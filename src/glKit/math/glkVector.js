@@ -8,8 +8,11 @@
 
 var glkVec3 =
 {
-    SIZE : 3,
-    ZERO : new Float32Array([0,0,0]),
+    SIZE   : 3,
+    ZERO   : this.make(),
+    AXIS_X : this.make(1,0,0),
+    AXIS_Y : this.make(0,1,0),
+    AXIS_Z : this.make(0,0,1),
 
     make : function(x,y,z)
     {

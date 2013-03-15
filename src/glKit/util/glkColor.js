@@ -27,7 +27,7 @@ var glkColor =
                                   a || 1.0]);
     },
 
-    setColor : function(c0,c1)
+    set : function(c0,c1)
     {
         c0[0] = c1[0];
         c0[1] = c1[1];
