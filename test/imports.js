@@ -7,5 +7,5 @@
  */
 
 document.write('<script type="text/javascript" src="../src/glKit/glKit.js""></script> ');
-document.write('<script type="text/javascript" src="../src/glKit/glkColor.js""></script> ');
-document.write('<script type="text/javascript" src="../src/glKit/glkVector.js""></script> ');
+document.write('<script type="text/javascript" src="../src/glKit/util/glkColor.js""></script> ');
+document.write('<script type="text/javascript" src="../src/glKit/math/glkVector.js""></script> ');

@@ -8,6 +8,7 @@
 
 var glkVec3 =
 {
+    SIZE : 3,
     ZERO : new Float32Array([0,0,0]),
 
     make : function(x,y,z)
@@ -228,6 +229,7 @@ var glkVec3 =
 //TODO:FINISH
 var glkVec4 =
 {
+    SIZE : 4,
     ZERO : new Float32Array([0,0,0,1.0]),
 
     make : function(x,y,z,w)
@@ -467,4 +469,9 @@ var glkVec4 =
         return '[' + v[0] + ',' + v[1] + ',' + v[2] + ']';
     }
 
-};};
+};
+
+glkVec2 =
+{
+    SIZE : 2
+};

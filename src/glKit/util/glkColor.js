@@ -10,6 +10,8 @@
 
 var glkColor =
 {
+    SIZE  : 4,
+
     BLACK : function(){this.make(0,0,0,1);},
     WHITE : function(){this.make(1,1,1,1);},
     RED   : function(){this.make(1,0,0,1);},
