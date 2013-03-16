@@ -17,13 +17,11 @@ GLKApplication.prototype =
     setWindow : function(parentDomElementId,width,height)
     {
         this.window = new GLKWindow(parentDomElementId,width,height);
-        this.gl     = this.window.gl;
+        //this.gl     = new GLKGL(this.window.getGL(),);
     },
 
-    draw : function()
-    {
-
-    },
+    //override
+    draw : function(){},
 
 
     loadShader : function(source,type)
@@ -42,9 +40,9 @@ GLKApplication.prototype =
         }
 
         return shader;
-    },
+    }
 
-    load
+
 
 
 

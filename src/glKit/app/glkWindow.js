@@ -20,7 +20,7 @@ function GLKWindow(parentDomElementId,width,height)
     {
         try
         {
-            this.gl = this._glCanvas.getContext(names[i],{ antialias:true});
+            this.gl = this._glCanvas.getContext(implNames[i],{ antialias:true});
         }
         catch (e)
         {
