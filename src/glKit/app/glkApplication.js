@@ -6,40 +6,58 @@
  *
  */
 
-function GLKApplication()
+
+
+function GLKApplication(parentDomElementId)
 {
-    this.window = null;
+    this.window = new GLKWindow(parentDomElementId);
+    this._ngl   = null;
     this.gl     = null;
+
+    this._elapsedFrames    = 0;
+    this._lastFrameTime    = Date.now();
+    this._currFrameTime    = 0;
+    this._elapsedFrameTime = 0;
 }
 
 GLKApplication.prototype =
 {
-    setWindow : function(parentDomElementId,width,height)
+    setWindowSize : function(width,height)
     {
-        this.window = new GLKWindow(parentDomElementId,width,height);
-        //this.gl     = new GLKGL(this.window.getGL(),);
+        this.window.setSize(width,height);
+        this.gl = new GLKGL(this.window.getGL());
+
+        this._loop();
     },
+
+
+
 
     //override
     draw : function(){},
 
-
-    loadShader : function(source,type)
+    _loop : function()
     {
-        var gl = this.gl;
-        var shader = gl.createShader(type);
+        requestAnimationFrame(GLKApplication.prototype._loop.bind(this));
 
-        gl.shaderSource(shader,source);
-        gl.compileShader(shader);
+        this._elapsedFrames++;
+        this._currFrameTime = Date.now();
+        this._elapsedFrameTime = this._currFrameTime - this._lastFrameTime;
 
-        if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))
-        {
-            console.log("Could not compile shader.");
-            gl.deleteShader(shader);
-            shader = null;
-        }
+        this.draw();
 
-        return shader;
+        this._lastFrameTime = this._currFrameTime;
+    },
+
+
+    getSecondsElapsed :  function()
+    {
+        return this._elapsedFrameTime;
+    },
+
+    getFramesElapsed : function()
+    {
+        return this._elapsedFrames;
     }
 
 
@@ -48,3 +66,27 @@ GLKApplication.prototype =
 
 
 };
+
+/*------------------------------------------------------------------------------------------------------*/
+
+/**
+ * Provides requestAnimationFrame in a cross browser way.
+ * http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+ */
+if ( !window.requestAnimationFrame ) {
+
+    window.requestAnimationFrame = ( function() {
+
+        return window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame || // comment out if FF4 is slow (it caps framerate at ~30fps: https://bugzilla.mozilla.org/show_bug.cgi?id=630127)
+            window.oRequestAnimationFrame ||
+            window.msRequestAnimationFrame ||
+            function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                window.setTimeout( callback, 1000 / 60 );
+
+            };
+
+    } )();
+
+}

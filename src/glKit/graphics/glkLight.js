@@ -20,11 +20,10 @@ function GLKLightBasic(gl)
     this._colorSpecular  = glkColor.make();
     this._shininess      = 1.0;
 
-    this._uPosition     = null;
-    this._uColorAmbient = null;
-    this._uColorDiffuse = null;
-    this._uColorSpecular= null;
-    this._uShininess    = null;
+    this._enabled        = false;
+
+    this._lightInternal = null;
+
 }
 
 GLKLightBasic.prototype =
@@ -32,7 +31,7 @@ GLKLightBasic.prototype =
     setPosition : function(v)
     {
         glkVec3.set(this._position,v);
-        this._gl.uniform3fv(this._uPosition,  this._position);
+        this._gl.uniform3fv(this._lightInternal.uPosition,  this._position);
 
         return this;
     },
@@ -40,7 +39,7 @@ GLKLightBasic.prototype =
     setPosition3f : function(x,y,z)
     {
         glkVec3.set3f(this._position,x,y,z);
-        this._gl.uniform3fv(this._uPosition,  this._position);
+        this._gl.uniform3fv(this._lightInternal.uPosition,  this._position);
 
         return this;
     },
@@ -63,9 +62,11 @@ GLKLightBasic.prototype =
 
         var gl = this._gl;
 
-        gl.uniform3fv(this._uColorAmbient,  colorAmbient);
-        gl.uniform3fv(this._uColorDiffuse,  colorDiffuse);
-        gl.uniform3fv(this._uColorSpecular, colorSpecular);
+        var li = this._lightInternal;
+
+        gl.uniform3fv(li.uColorAmbient,  colorAmbient);
+        gl.uniform3fv(li.uColorDiffuse,  colorDiffuse);
+        gl.uniform3fv(li.uColorSpecular, colorSpecular);
 
         return this;
     },
@@ -73,7 +74,7 @@ GLKLightBasic.prototype =
     setColorAmbient : function(ambient)
     {
         var colorAmbient  = this._colorAmbient;
-        this._gl.uniform3fv(this._uColorAmbient,  colorAmbient);
+        this._gl.uniform3fv(this._lightInternal.uColorAmbient,  colorAmbient);
 
         return this;
     },
@@ -81,7 +82,7 @@ GLKLightBasic.prototype =
     setColorDiffuse : function(diffuse)
     {
         var colorDiffuse  = this._colorDiffuse;
-        this._gl.uniform3fv(this._uColorDiffuse,  colorDiffuse);
+        this._gl.uniform3fv(this._lightInternal.uColorDiffuse,  colorDiffuse);
 
         return this;
     },
@@ -89,7 +90,7 @@ GLKLightBasic.prototype =
     setColorSpecular : function(specular)
     {
         var colorSpecular  = this._colorSpecular;
-        this._gl.uniform3fv(this._uColorSpecular,  colorSpecular);
+        this._gl.uniform3fv(this._lightInternal.uColorSpecular,  colorSpecular);
 
         return this;
     },
@@ -97,7 +98,7 @@ GLKLightBasic.prototype =
     setShininess : function(n)
     {
         this._shininess = n;
-        this._gl.uniform1f (this._uShininess, this._shininess);
+        this._gl.uniform1f (this._lightInternal.uShininess, this._shininess);
     },
 
     getColorAmbient : function()
@@ -122,8 +123,10 @@ GLKLightBasic.prototype =
 
     //TODO:Implement
 
-    enable : function(){},
-    disable: function(){}
+    enable : function(){this._gl.uniform1f(this._lightInternal.uEnabled,1.0);},
+    disable: function(){this._gl.uniform1f(this._lightInternal.uEnabled,0.0);}
+
+
 };
 
 

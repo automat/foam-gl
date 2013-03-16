@@ -11,9 +11,14 @@ function TestApplication(parentDomElementId,width,height)
 {
     GLKApplication.apply(this,arguments);
 
-    this.setWindow(parentDomElementId,width,height);
+    this.setWindowSize(width,height);
 
 
 }
 
 TestApplication.prototype = Object.create(GLKApplication.prototype);
+
+TestApplication.prototype.draw = function()
+{
+
+};

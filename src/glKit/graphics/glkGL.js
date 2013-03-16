@@ -7,10 +7,55 @@
  */
 
 
-function GLKGL(gl,program)
+function GLKGL(gl)
 {
     this._gl      = gl;
-    this._program = program;
+
+    this._renderVertexShader   = this.loadShader(glkProgShader.vertexShader,  gl.VERTEX_SHADER);
+    this._renderFragmentShader = this.loadShader(glkProgShader.fragmentShader,gl.FRAGMENT_SHADER);
+
+    var program = this._renderProgram = this.loadProgram(this._renderVertexShader,this._renderFragmentShader);
+
+    this._aVertexPosition    = gl.getAttribLocation(  program, 'VertexPosition' );
+    this._aVertexNormal      = gl.getAttribLocation(  program, 'VertexNormal' );
+    this._aVertexColor       = gl.getAttribLocation(  program, 'VertexColor' );
+    this._aVertexUV          = gl.getAttribLocation(  program, 'VertexUV' );
+
+    this._uUseLighting       = gl.getUniformLocation( program, 'UseLighting' );
+
+    this._uModelViewMatrix   = gl.getUniformLocation( program, 'ModelViewMatrix' );
+    this._uPerspectiveMatrix = gl.getUniformLocation( program, 'ProjectionMatrix' );
+    this._uNormalMatrix      = gl.getUniformLocation( program, 'NormalMatrix' );
+
+    this._uPointSize         = gl.getUniformLocation( program, 'PointSize' );
+
+    //TODO:FIX Multiple Lights init
+
+    var lights = this._lights = new Array(1);
+    var i = -1,light;
+
+    while(++i < lights.length)
+    {
+        light = lights[i] = new GLKLight_Internal(i);
+        light.uPosition      = gl.getUniformLocation(program,'Lights.position');
+        light.uColorAmbient  = gl.getUniformLocation(program,'Lights.colorAmbient');
+        light.uColorDiffuse  = gl.getUniformLocation(program,'Lights.colorDiffuse');
+        light.uColorSpecular = gl.getUniformLocation(program,'Lights.colorSpecular');
+        light.uShininess     = gl.getUniformLocation(program,'Lights.shininess');
+
+        /*
+        lights.uPosition      = gl.getUniformLocation(program,'Lights['+i+].position');
+        lights.uColorAmbient  = gl.getUniformLocation(program,'Lights['+i+'].colorAmbient');
+        lights.uColorDiffuse  = gl.getUniformLocation(program,'Lights['+i+'].colorDiffuse');
+        lights.uColorSpecular = gl.getUniformLocation(program,'Lights['+i+'].colorSpecular');
+        lights.uShininess     = gl.getUniformLocation(program,'Lights['+i+'].shininess');
+        */
+    }
+
+
+
+
+
 
 
     this._modelViewMatrix  = null;
@@ -20,16 +65,8 @@ function GLKGL(gl,program)
     this._matrixStack = [];
     this._matrixTemp  = glkMat44.make();
 
-    this._aVertexPosition    = null;
-    this._aVertexNormal      = null;
-    this._aVertexColor       = null;
-    this._aVertexUV          = null;
 
-    this._uUseLighting       = null;
 
-    this._uModelViewMatrix   = null;
-    this._uPerspectiveMatrix = null;
-    this._uNormalMatrix      = null;
 
     this._uPointSize         = null;
 
@@ -49,6 +86,10 @@ function GLKGL(gl,program)
     this.SIZE_OF_COLOR  = glkColor.SIZE;
     this.SIZE_OF_UV     = glkVec2.SIZE;
     this.SIZE_OF_FACE   = glkVec3.SIZE;
+
+
+    this.enable  = _gl.enable;
+    this.disable = _gl.disable;
 }
 
 
@@ -130,15 +171,6 @@ GLKGL.prototype =
         glkMat44.multPost(this._modelViewMatrix,glkMat44.rotateXYZ(ax,ay,az));
     },
 
-    enable : function(key)
-    {
-        this._gl.enable(key);
-    },
-
-    disable : function(key)
-    {
-        this._gl.disable(key);
-    },
 
     enableLighting : function()
     {
@@ -215,6 +247,41 @@ GLKGL.prototype =
 
     },
 
+    loadShader : function(source,type)
+    {
+        var gl = this._gl;
+        var shader = gl.createShader(type);
+
+        gl.shaderSource(shader,source);
+        gl.compileShader(shader);
+
+        if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))
+        {
+            console.log("Could not compile shader.");
+            gl.deleteShader(shader);
+            shader = null;
+        }
+
+        return shader;
+    },
+
+    loadProgram : function(vertexShader,fragmentShader)
+    {
+        var gl = this._gl;
+        var program = gl.createProgram();
+        gl.attachShader(program,vertexShader);
+        gl.attachShader(program,fragmentShader);
+        gl.linkProgram(program);
+        if(!gl.getProgramParameter(program,gl.LINK_STATUS))
+        {
+            console.log("Could not link program.");
+            gl.deleteProgram(program);
+            program = null;
+        }
+
+        return program;
+    },
+
 
 
 
@@ -232,6 +299,32 @@ GLKGL.prototype =
     getGL : function()
     {
         return this._gl;
+    },
+
+
+    setShaderLocations : function(program)
+    {
+        var gl = this._gl;
+
+        this._aVertexPosition    = gl.getAttribLocation(  program, "VertexPosition");
+        this._aVertexNormal      = gl.getAttribLocation(  program, "VertexNormal");
+        this._aVertexColor       = gl.getAttribLocation(  program, "VertexColor");
+        this._aVertexUV          = gl.getAttribLocation(  program, "VertexUV");
+
+        this._uUseLighting       = gl.getUniformLocation( program, "UseLighting");
+
+        this._uModelViewMatrix   = gl.getUniformLocation(program, "ModelViewMatrix");
+        this._uPerspectiveMatrix = gl.getUniformLocation(program, "ProjectionMatrix");
+        this._uNormalMatrix      = gl.getUniformLocation(program, "NormalMatrix");
+
+        this._uPointSize         = gl.getUniformLocation(program, "PointSize");
+    },
+
+    //TODO:FIX
+    setLightShaderLocation : function(light)
+    {
+
+
     }
 
 };

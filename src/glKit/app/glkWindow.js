@@ -7,7 +7,7 @@
  */
 
 
-function GLKWindow(parentDomElementId,width,height)
+function GLKWindow(parentDomElementId)
 {
     this.parent    = document.getElementById(parentDomElementId);
     this._glCanvas = document.createElement('canvas');
@@ -34,13 +34,21 @@ function GLKWindow(parentDomElementId,width,height)
 
     var gl = this.gl;
 
-    this._width  = width;
-    this._height = height;
+    this._width  = 300;
+    this._height = 300;
+
+    this.parent.appendChild(this._glCanvas);
 
 }
 
 GLKWindow.prototype =
 {
+    setSize : function(width,height)
+    {
+        this._width  = width;
+        this._height = height;
+    },
+
     setWidth : function(width)
     {
         this._width = width;
@@ -50,6 +58,24 @@ GLKWindow.prototype =
     {
         this._height = height;
     },
+
+    _updateSize : function(width,height)
+    {
+        var glc = this._glCanvas;
+
+        this.width  = width;
+        this.height = height;
+
+        glc.style.width  = width  + 'px';
+        glc.style.height = height + 'px';
+        glc.width        = width;
+        glc.height       = height;
+
+        var gl = this._gl;
+
+        gl.viewport(0,0,width,height);
+    },
+
 
     getWidth : function()
     {
