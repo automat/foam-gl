@@ -12,19 +12,16 @@ var glkColor =
 {
     SIZE  : 4,
 
-    BLACK : function(){this.make(0,0,0,1);},
-    WHITE : function(){this.make(1,1,1,1);},
-    RED   : function(){this.make(1,0,0,1);},
-    GREEN : function(){this.make(0,1,0,1);},
-    BLUE  : function(){this.make(0,0,1,1);},
+    BLACK : new Float32Array([0,0,0,1]),
+    WHITE : new Float32Array([1,1,1,1]),
+    RED   : new Float32Array([1,0,0,1]),
+    GREEN : new Float32Array([0,1,0,1]),
+    BLUE  : new Float32Array([0,0,1,1]),
 
 
     make : function(r,g,b,a)
     {
-        return new Float32Array([ r || 1.0,
-                                  g || 1.0,
-                                  b || 1.0,
-                                  a || 1.0]);
+        return new Float32Array([ r,g,b,a]);
     },
 
     set : function(c0,c1)

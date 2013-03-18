@@ -10,7 +10,12 @@ function importGLKit(pathToGLKit)
 {
     var string;
     var imports = ['glKit/glKit.js',
+                   'glKit/math/glkMath.js',
+                   'glKit/math/glkMatrix.js',
+                   'glKit/math/glkVector.js',
                    'glKit/app/glkProgShader.js',
+                   'glKit/graphics/glkLight_Internal.js',
+                   'glKit/util/glkColor.js',
                    'glKit/graphics/glkGL.js',
                    'glKit/app/glkWindow.js',
                    'glKit/app/glkApplication.js'];

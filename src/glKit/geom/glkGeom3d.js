@@ -11,7 +11,7 @@ function GLKGeom3d()
 {
     this.vertices = null;
     this.normals  = null;
-    this.faces    = null;
+    this.indices  = null;
     this.colors   = null;
 }
 
@@ -20,15 +20,14 @@ GLKGeom3d.prototype =
 
     calcVertexNormals : function()
     {
-        var indices  = this.faces,
+        var indices  = this.indices,
             vertices = this.vertices,
             normals  = this.normals;
 
         var i;
         var a, b, c, d;
         var e2x, e2y, e2z,
-            e1x, e1y, e1z,
-            nox, noy, noz;
+            e1x, e1y, e1z;
 
         var nx, ny, nz,
             vbx, vby, vbz,

@@ -24,6 +24,8 @@ function GLKLightBasic(gl)
 
     this._lightInternal = null;
 
+
+
 }
 
 GLKLightBasic.prototype =
@@ -124,7 +126,14 @@ GLKLightBasic.prototype =
     //TODO:Implement
 
     enable : function(){this._gl.uniform1f(this._lightInternal.uEnabled,1.0);},
-    disable: function(){this._gl.uniform1f(this._lightInternal.uEnabled,0.0);}
+    disable: function(){this._gl.uniform1f(this._lightInternal.uEnabled,0.0);},
+
+    //TODO:Improve
+
+    bind : function(lightInternal)
+    {
+        this._lightInternal = lightInternal;
+    }
 
 
 };
