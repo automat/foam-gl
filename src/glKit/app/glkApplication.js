@@ -13,10 +13,10 @@
 function GLKApplication(parentDomElementId)
 {
     this.window = new GLKWindow(parentDomElementId);
-    this._ngl   = null;
+
     this.gl     = null;
 
-    this._framesElapsed    = 0;
+    this.camera = null;
 
     this._fps = 60.0;
 
@@ -26,6 +26,8 @@ function GLKApplication(parentDomElementId)
     /*---------------------------------------------------------------------------------------------------------*/
     // Timer
     /*---------------------------------------------------------------------------------------------------------*/
+
+    this._framesElapsed    = 0;
 
     this._appTimeBegin   = new Date();
     this._appTimeCurr    = 0;
@@ -57,7 +59,14 @@ GLKApplication.prototype =
     {
         this.window.setSize(  width || glKit.MIN_WIDTH,
                              height || glKit.MIN_HEIGHT);
-        this.gl = new GLKGL(this.window.getGL());
+
+        this.gl     = new GLKGL(this.window.getGL());
+
+        this.camera = new GLKCameraBasic();
+        this.gl.setProjectionMatrix(this.camera._projectionMatrix);
+        this.gl.setModelViewMatrix( this.camera._modelViewMatrix);
+
+
 
         this._updateGLViewport();
         this._loop();
@@ -182,6 +191,7 @@ GLKApplication.prototype =
 
         gl.viewport(0,0, w.getWidth(), w.getHeight());
         gl.clearColor(gl.getClearColor());
+
     },
 
 
@@ -232,6 +242,12 @@ GLKApplication.prototype =
     getFramesElapsed : function()
     {
         return this._framesElapsed;
+    },
+
+
+    getAspectRatioWindow : function()
+    {
+        return this.window.getAspectRatio();
     }
 
 };

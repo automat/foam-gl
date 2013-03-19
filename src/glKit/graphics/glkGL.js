@@ -18,6 +18,14 @@ function GLKGL(gl)
 
     var _gl = this._gl;
 
+    _gl.useProgram(program);
+
+    this._abo  = _gl.createBuffer();
+    this._eabo = _gl.createBuffer();
+
+    _gl.bindBuffer(_gl.ARRAY_BUFFER,         this._abo);
+    _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this._eabo);
+
     //TODO:Transform to proper english & finish bindings
     /*---------------------------------------------------------------------------------------------------------*/
     // Bindings
@@ -27,6 +35,8 @@ function GLKGL(gl)
     // (e.g drawElements, which now includes automatic setting of buffer data,
     //  matrices....)
     //
+    // The 'original' methods can still be accessed via the returned gl object from getGL()
+    //
     /*---------------------------------------------------------------------------------------------------------*/
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -34,52 +44,6 @@ function GLKGL(gl)
     /*---------------------------------------------------------------------------------------------------------*/
 
     this.DEPTH_TEST     = _gl.DEPTH_TEST;
-
-    /*---------------------------------------------------------------------------------------------------------*/
-    // Bindings Uniform Data & Attibute variables
-    /*---------------------------------------------------------------------------------------------------------*/
-    this.getUniformLocation       = _gl.getUniformLocation.bind(_gl);
-    this.getActiveUniform         = _gl.getActiveUniform.bind(_gl);
-    this.getUniform               = _gl.getUniform.bind(_gl);
-    this.setUniform1f             = _gl.uniform1f.bind(_gl);
-    this.setUniform2f             = _gl.uniform2f.bind(_gl);
-    this.setUniform3f             = _gl.uniform3f.bind(_gl);
-    this.setUniform4f             = _gl.uniform4f.bind(_gl);
-    this.setUniform1fv            = _gl.uniform1fv.bind(_gl);
-    this.setUniform2fv            = _gl.uniform2fv.bind(_gl);
-    this.setUniform3fv            = _gl.uniform3fv.bind(_gl);
-    this.setUniform4fv            = _gl.uniform4fv.bind(_gl);
-    this.setUniform1i             = _gl.uniform1i.bind(_gl);
-    this.setUniform2i             = _gl.uniform2i.bind(_gl);
-    this.setUniform3i             = _gl.uniform3i.bind(_gl);
-    this.setUniform4i             = _gl.uniform4i.bind(_gl);
-    this.setUniform1iv            = _gl.uniform1iv.bind(_gl);
-    this.setUniform2iv            = _gl.uniform2iv.bind(_gl);
-    this.setUniform3iv            = _gl.uniform3iv.bind(_gl);
-    this.setUniform4iv            = _gl.uniform4iv.bind(_gl);
-
-    this.getAttribLocation        = _gl.getAttribLocation.bind(_gl);
-    this.getActiveAttrib          = _gl.getActiveAttrib.bind(_gl);
-    this.getVertexAttrib          = _gl.getVertexAttrib.bind(_gl);
-    this.setVertexAttribPointer   = _gl.vertexAttribPointer.bind(_gl);
-    this.setVertexAttrib1f        = _gl.vertexAttrib1f.bind(_gl);
-    this.setVertexAttrib2f        = _gl.vertexAttrib2f.bind(_gl);
-    this.setVertexAttrib3f        = _gl.vertexAttrib3f.bind(_gl);
-    this.setVertexAttrib4f        = _gl.vertexAttrib4f.bind(_gl);
-    this.setVertexAttrib1fv       = _gl.vertexAttrib1fv.bind(_gl);
-    this.setVertexAttrib2fv       = _gl.vertexAttrib2fv.bind(_gl);
-    this.setVertexAttrib3fv       = _gl.vertexAttrib3fv.bind(_gl);
-    this.setVertexAttrib4fv       = _gl.vertexAttrib4fv.bind(_gl);
-    this.bindAttribLocation       = _gl.bindAttribLocation.bind(_gl);
-    this.enableVertexAttribArray  = _gl.enableVertexAttribArray.bind(_gl);
-    this.disableVertexAttribArray = _gl.disableVertexAttribArray.bind(_gl);
-
-    this.VERTEX_ATTRIB_ARRAY_ENABLED        = _gl.VERTEX_ATTRIB_ARRAY_ENABLED;
-    this.VERTEX_ATTRIB_ARRAY_SIZE           = _gl.VERTEX_ATTRIB_ARRAY_SIZE;
-    this.VERTEX_ATTRIB_ARRAY_STRIDE         = _gl.VERTEX_ATTRIB_ARRAY_STRIDE;
-    this.VERTEX_ATTRIB_ARRAY_NORMALIZED     = _gl.VERTEX_ATTRIB_ARRAY_NORMALIZED;
-    this.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = _gl.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING;
-    this.CURRENT_VERTEX_ATTRIB              = _gl.CURRENT_VERTEX_ATTRIB;
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Bindings Multisampling
@@ -155,46 +119,94 @@ function GLKGL(gl)
     this.flush        = _gl.flush.bind(_gl);
     this.finish       = _gl.finish.bind(_gl);
     this.setScissor   = _gl.scissor.bind(_gl);
-    this.getError     = _gl.getError.bind(_gl);
-    this.getParameter = _gl.getParameter.bind(_gl);
-
-    this.MAX_VERTEX_UNIFORM_VECTORS   = _gl.MAX_VERTEX_UNIFORM_VECTORS;
-    this.MAX_FRAGMENT_UNIFORM_VECTORS = _gl.MAX_FRAGMENT_UNIFORM_VECTORS;
-    this.MAX_VERTEX_ATTRIBS           = _gl.MAX_VERTEX_ATTRIBS;
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Params
     /*---------------------------------------------------------------------------------------------------------*/
 
+    var SIZE_OF_VERTEX  = glkVec3.SIZE;
 
-    this.SIZE_OF_VERTEX = glkVec3.SIZE;
-    this.SIZE_OF_NORMAL = glkVec3.SIZE;
+    this.SIZE_OF_VERTEX = SIZE_OF_VERTEX;
+    this.SIZE_OF_NORMAL = SIZE_OF_VERTEX;
     this.SIZE_OF_COLOR  = glkColor.SIZE;
     this.SIZE_OF_UV     = glkVec2.SIZE;
-    this.SIZE_OF_FACE   = glkVec3.SIZE;
+    this.SIZE_OF_FACE   = SIZE_OF_VERTEX;
+
+    this.SIZE_OF_QUAD     = SIZE_OF_VERTEX * 4;
+    this.SIZE_OF_TRIANGLE = SIZE_OF_VERTEX * 3;
+    this.SIZE_OF_LINE     = SIZE_OF_VERTEX * 4;
+    this.SIZE_OF_POINT    = SIZE_OF_VERTEX;
+
+    this.ELLIPSE_DETAIL_MAX = 30;
 
     /*---------------------------------------------------------------------------------------------------------*/
-    // buffer
+    // buffers
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this._bufferColor4f   = glkColor.make();
-    this._bufferColorBg4f = glkColor.make();
+    this._bColor4f   = glkColor.make();
+    this._bColor     = null;
+    this._bColorBg4f = glkColor.make();
+
+    this._bVertexQuad     = new Float32Array(this.SIZE_OF_QUAD);
+    this._bNormalQuad     = new Float32Array(this.SIZE_OF_QUAD);
+    this._bColorQuad      = new Float32Array(this.SIZE_OF_COLOR * 4);
+    this._bUVQuad         = new Float32Array([0.0,0.0,1.0,0.0,0.0,1.0,1.0,1.0]);
+    this._bUVQuadDefault  = new Float32Array([0.0,0.0,1.0,0.0,0.0,1.0,1.0,1.0]);
+    this._bIndicesQuad    = new Uint16Array( [0,1,3,1,2,3]);
+
+    this._bNormalsRect    = new Float32Array([0,1,0,0,1,0,0,1,0,0,1,0]);
+
+    this._bVerticesTriangle  = new Float32Array(this.SIZE_OF_TRIANGLE);
+    this._bVerticesLine      = new Float32Array(this.SIZE_OF_LINE);
+    this._bVerticesPoint     = new Float32Array(this.SIZE_OF_POINT);
+    this._bVerticesEllipse   = new Float32Array(this.ELLIPSE_DETAIL_MAX * SIZE_OF_VERTEX);
+    this._bVerticesRoundRect = new Float32Array(this.ELLIPSE_DETAIL_MAX * SIZE_OF_VERTEX + this.SIZE_OF_QUAD);
+
+    this._bIndicesRoundRect  = new Uint16Array( (this._bVerticesRoundRect.length / SIZE_OF_VERTEX - 2) * this.SIZE_OF_FACE);
+
+
+    this._bTexCoordsTriangleDefault = new Float32Array([0.0,0.0,1.0,0.0,1.0,1.0]);
+    this._bTexCoordsTriangle        = new Float32Array(this._bTexCoordsTriangleDefault.length);
+    this._bTexCoordsEllipse         = new Float32Array(this._bVerticesEllipse.length);
+
+    var SIZE_OF_COLOR =  this.SIZE_OF_COLOR;
+
+    this._bColorVertex    = new Float32Array(SIZE_OF_COLOR);
+
+    this._bColorTriangle  = new Float32Array(SIZE_OF_COLOR * 3);
+    this._bColorLine      = new Float32Array(SIZE_OF_COLOR * 2);
+    this._bColorPoint     = new Float32Array(SIZE_OF_COLOR);
+    this._bColorEllipse   = new Float32Array(SIZE_OF_COLOR * this.ELLIPSE_DETAIL_MAX);
+    this._bColorRoundRect = new Float32Array(this._bVerticesRoundRect.length / SIZE_OF_VERTEX * SIZE_OF_COLOR);
+
+    this._iTriangle = [0,1,2];
+    this._iQuad     = [0,1,2,1,2,3];
+
+    this._bScreenCoords = new Float32Array([0,0]);
+
+
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Uniform & Attrib Locations
     /*---------------------------------------------------------------------------------------------------------*/
 
 
-    this._aVertexPosition    = this.getAttribLocation(  program, 'VertexPosition' );
-    this._aVertexNormal      = this.getAttribLocation(  program, 'VertexNormal' );
-    this._aVertexColor       = this.getAttribLocation(  program, 'VertexColor' );
-    this._aVertexUV          = this.getAttribLocation(  program, 'VertexUV' );
-    this._uUseLighting       = this.getUniformLocation( program, 'UseLighting' );
-    this._uModelViewMatrix   = this.getUniformLocation( program, 'ModelViewMatrix' );
-    this._uPerspectiveMatrix = this.getUniformLocation( program, 'ProjectionMatrix' );
-    this._uNormalMatrix      = this.getUniformLocation( program, 'NormalMatrix' );
+    this._aVertexPosition    = gl.getAttribLocation(  program, 'VertexPosition' );
+    this._aVertexNormal      = gl.getAttribLocation(  program, 'VertexNormal' );
+    this._aVertexColor       = gl.getAttribLocation(  program, 'VertexColor' );
+    this._aVertexUV          = gl.getAttribLocation(  program, 'VertexUV' );
+    this._uUseLighting       = gl.getUniformLocation( program, 'UseLighting' );
 
-    this._uPointSize         = this.getUniformLocation( program, 'PointSize' );
+    this._uModelViewMatrix   = gl.getUniformLocation( program, 'ModelViewMatrix' );
+    this._uPerspectiveMatrix = gl.getUniformLocation( program, 'ProjectionMatrix' );
+    this._uNormalMatrix      = gl.getUniformLocation( program, 'NormalMatrix' );
+
+    this._uPointSize         = gl.getUniformLocation( program, 'PointSize' );
+
+    _gl.enableVertexAttribArray(this._aVertexPosition);
+    _gl.enableVertexAttribArray(this._aVertexNormal);
+    _gl.enableVertexAttribArray(this._aVertexColor);
+    _gl.enableVertexAttribArray(this._aVertexUV);
 
     //TODO:FIX Multiple Lights init
     /*---------------------------------------------------------------------------------------------------------*/
@@ -211,11 +223,11 @@ function GLKGL(gl)
     while(++i < lights.length)
     {
         light = lights[i] = new GLKLight_Internal(i);
-        light.uPosition      = this.getUniformLocation(program,'Lights.position');
-        light.uColorAmbient  = this.getUniformLocation(program,'Lights.colorAmbient');
-        light.uColorDiffuse  = this.getUniformLocation(program,'Lights.colorDiffuse');
-        light.uColorSpecular = this.getUniformLocation(program,'Lights.colorSpecular');
-        light.uShininess     = this.getUniformLocation(program,'Lights.shininess');
+        light.uPosition      = gl.getUniformLocation(program,'Lights.position');
+        light.uColorAmbient  = gl.getUniformLocation(program,'Lights.colorAmbient');
+        light.uColorDiffuse  = gl.getUniformLocation(program,'Lights.colorDiffuse');
+        light.uColorSpecular = gl.getUniformLocation(program,'Lights.colorSpecular');
+        light.uShininess     = gl.getUniformLocation(program,'Lights.shininess');
 
         /*
          lights.uPosition      = _gl.getUniformLocation(program,'Lights['+i+].position');
@@ -227,6 +239,20 @@ function GLKGL(gl)
     }
 
     this._lighting = true;
+
+
+
+    this.MATERIAL_WIREFRAME = 0;
+    this.MATERIAL_COLOR     = 1;
+    this.MATERIAL_TEXTURE   = 2;
+    this.CENTER = 0;
+    this.CORNER = 1;
+
+    this._modeRectangle = 0;
+    this._modeEllipse   = 0;
+    this._modeMaterial  = 1;
+
+    this._autoUpdateNormals = true;
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Matrices Init
@@ -240,24 +266,12 @@ function GLKGL(gl)
     this._matrixStack = [];
     this._matrixTemp  = glkMat44.make();
 
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Init
+    /*---------------------------------------------------------------------------------------------------------*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    this.enableBlend(true);
     this.enableDepthTest(true);
-
-
-
 }
 
 
@@ -265,19 +279,23 @@ function GLKGL(gl)
 
 GLKGL.prototype =
 {
-    setModelViewMatrix : function(camera)
-    {
-        this._modelViewMatrix = camera.getModelViewMatrix();
-    },
+    setModelViewMatrix  : function(matrix){this._modelViewMatrix  = matrix;},
+    setProjectionMatrix : function(matrix){this._projectionMatrix = matrix;},
 
-    setProjectionMatrix : function(camera)
+    setMatrices : function(camera)
     {
+        this._modelViewMatrix  = camera.getModelViewMatrix();
         this._projectionMatrix = camera.getProjectionMatrix();
     },
 
-    _setMatricesUniform : function()
+    getModelViewMatrix  : function(){return this._modelViewMatrix;},
+    getProjectionMatrix : function(){return this._projectionMatrix;},
+
+    setMatricesUniform : function()
     {
         var gl = this._gl;
+
+
 
         this._gl.uniformMatrix4fv(this._uModelViewMatrix,   false,this._modelViewMatrix);
         this._gl.uniformMatrix4fv(this._uPerspectiveMatrix, false,this._projectionMatrix);
@@ -285,14 +303,21 @@ GLKGL.prototype =
         if(!this._lighting)return;
     },
 
-    bindLight : function(light,lightID)
-    {
-        light.bind(this._lights[lightID]);
-    },
+    bindLight : function(light,lightID){light.bind(this._lights[lightID]);},
+
+    setMaterial    : function(mode){this._modeMaterial  = mode;},
+    setRectMode    : function(mode){this._modeRectangle = mode;},
+    setEllipseMode : function(mode){this._modeEllipse   = mode;},
+
+    enableAutoUpdateNormals : function(bool){this._autoUpdateNormals = bool;},
+
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Matrix stack methods
+    /*---------------------------------------------------------------------------------------------------------*/
 
     loadIdentity : function()
     {
-        glkMat44.identity(this._modelViewMatrix);
+        this._modelViewMatrix = glkMat44.identity(this._modelViewMatrix);
     },
 
     pushMatrix : function()
@@ -310,41 +335,49 @@ GLKGL.prototype =
         return this._modelViewMatrix;
     },
 
-    translate : function(x,y,z)
+    translate : function(vec)
     {
-        glkMat44.multPost(this._modelViewMatrix,glkMat44.translate(x,y,z));
+        this._modelViewMatrix = glkMat44.multPost(this._modelViewMatrix,glkMat44.makeTranslate(vec[0],vec[1],vec[2]));
+    },
+
+    translateXYZ : function(x,y,z)
+    {
+        this._modelViewMatrix = glkMat44.multPost(this._modelViewMatrix,glkMat44.makeTranslate(x,y,z));
     },
 
     scale : function(x,y,z)
     {
-        glkMat44.multPost(this._modelViewMatrix,glkMat44.scale(x,y,z));
+        this._modelViewMatrix = glkMat44.multPost(this._modelViewMatrix,glkMat44.makeScale(x,y,z));
     },
 
     rotateX : function(a)
     {
-        glkMat44.multPost(this._modelViewMatrix,glkMat44.rotateX(a));
+        this._modelViewMatrix = glkMat44.multPost(this._modelViewMatrix,glkMat44.makeRotationX(a));
     },
 
     rotateY : function(a)
     {
-        glkMat44.multPost(this._modelViewMatrix,glkMat44.rotateY(a));
+        this._modelViewMatrix = glkMat44.multPost(this._modelViewMatrix,glkMat44.makeRotationY(a));
     },
 
     rotateZ : function(a)
     {
-        glkMat44.multPost(this._modelViewMatrix,glkMat44.rotateZ(a));
+        this._modelViewMatrix = glkMat44.multPost(this._modelViewMatrix,glkMat44.makeRotationZ(a));
     },
 
     rotateXYZ : function(ax,ay,az)
     {
-        glkMat44.multPost(this._modelViewMatrix,glkMat44.rotateXYZ(ax,ay,az));
+        this._modelViewMatrix = glkMat44.multPost(this._modelViewMatrix,glkMat44.makeRotationXYZ(ax,ay,az));
     },
 
     rotateVec3 : function(vec)
     {
-        glkMat44.multPost(this._modelViewMatrix,glkMat44.rotateXYZ(vec[0],vec[1],vec[2]));
+        this._modelViewMatrix = glkMat44.multPost(this._modelViewMatrix,glkMat44.makeRotationXYZ(vec[0],vec[1],vec[2]));
     },
 
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Lighting
+    /*---------------------------------------------------------------------------------------------------------*/
 
     enableLighting : function()
     {
@@ -359,7 +392,7 @@ GLKGL.prototype =
     },
 
     /*---------------------------------------------------------------------------------------------------------*/
-    // Draw
+    // Draw Array Data
     /*---------------------------------------------------------------------------------------------------------*/
 
     drawElements : function(vertexFloat32Array,
@@ -371,7 +404,7 @@ GLKGL.prototype =
 
         mode = mode || this.TRIANGLES;
         this._fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
-        this._setMatricesUniform();
+        this.setMatricesUniform();
 
         var gl = this._gl;
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexUInt16Array,gl.DYNAMIC_DRAW);
@@ -381,7 +414,7 @@ GLKGL.prototype =
     drawArrays : function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,mode,first,count)
     {
         this._fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
-        this._setMatricesUniform();
+        this.setMatricesUniform();
         this._gl.drawArrays(mode,first,count);
     },
 
@@ -399,17 +432,21 @@ GLKGL.prototype =
             glArrayBuffer = gl.ARRAY_BUFFER,
             glFloat       = gl.FLOAT;
 
+
+
         var vblen   =       vertexFloat32Array.byteLength,
             nblen   = na  ? normalFloat32Array.byteLength : 0,
             cblen   =       colorFloat32Array.byteLength,
-            uvablen = uva ? uvFloat32Array.byteLength : 0;
+            uvablen = uva ? uvFloat32Array.byteLength : 0,
+            tblen   = vblen + nblen + cblen + uvablen;
 
         var offsetV  = 0,
             offsetN  = offsetV + vblen,
             offsetC  = offsetN + nblen,
             offsetUV = offsetC + cblen;
 
-        gl.bufferData(glArrayBuffer, vblen + nblen + cblen + uvablen, gl.DYNAMIC_DRAW);
+
+        gl.bufferData(glArrayBuffer, tblen, gl.DYNAMIC_DRAW);
 
         gl.bufferSubData(glArrayBuffer, offsetV,  vertexFloat32Array);
         gl.bufferSubData(glArrayBuffer, offsetN,  normalFloat32Array);
@@ -428,6 +465,66 @@ GLKGL.prototype =
         gl.vertexAttribPointer(aVertexUV,             this.SIZE_OF_UV,     glFloat, false, 0, offsetUV);
 
     },
+
+    _fillArrayBufferVertsCols : function(vertexFloat32Array,colorFloat32Array)
+    {
+        var gl  = this.gl;
+        var glArrayBuffer = gl.ARRAY_BUFFER,
+            glDynamicDraw = gl.DYNAMIC_DRAW,
+            glFloat       = gl.FLOAT;
+
+        var vblen = vertexFloat32Array.byteLength,
+            cblen = colorFloat32Array.byteLength,
+            tblen = vblen + cblen;
+
+        gl.bufferData(glArrayBuffer,tblen,glDynamicDraw);
+        gl.bufferSubData(glArrayBuffer,0,vertexFloat32Array);
+        gl.bufferSubData(glArrayBuffer,vblen,colorFloat32Array);
+        gl.vertexAttribPointer(this._aVertexPosition, this.SIZE_OF_VERTEX,glFloat,false,0,0);
+        gl.vertexAttribPointer(this._aVertexColor   , this.SIZE_OF_COLOR, glFloat,false,0,vblen);
+
+    },
+
+
+    _applyColorToColorBuffer : function(srcColor,dstBuffer)
+    {
+        var i = 0;
+
+        if(srcColor.length == this.SIZE_OF_COLOR)
+        {
+            while(i < dstBuffer.length)
+            {
+                dstBuffer[i  ] = srcColor[0];
+                dstBuffer[i+1] = srcColor[1];
+                dstBuffer[i+2] = srcColor[2];
+                dstBuffer[i+3] = srcColor[3];
+                i+=4;
+            }
+        }
+        else
+        {
+            if(srcColor.length != dstBuffer.length)
+            {
+                throw ("Color array length not equal to number of vertices.");
+            }
+
+            while(i < dstBuffer.length)
+            {
+                dstBuffer[i  ] = srcColor[i  ];
+                dstBuffer[i+1] = srcColor[i+1];
+                dstBuffer[i+2] = srcColor[i+2];
+                dstBuffer[i+3] = srcColor[i+3];
+                i+=4;
+            }
+        }
+        return dstBuffer;
+
+    },
+
+
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Shader & program loading
+    /*---------------------------------------------------------------------------------------------------------*/
 
     loadShader : function(source,type)
     {
@@ -468,11 +565,12 @@ GLKGL.prototype =
     // Set current color
     /*---------------------------------------------------------------------------------------------------------*/
 
-    color   : function(color)  {glkColor.set(this._bufferColor4f,color);},
-    color4f : function(r,g,b,a){glkColor.set4f(this._bufferColor4f,r,g,b,a);},
-    color3f : function(r,g,b)  {glkColor.set3f(this._bufferColor4f,r,g,b);},
-    color2f : function(k,a)    {glkColor.set2f(this._bufferColor4f,k,a);},
-    color1f : function(k)      {glkColor.set1f(this._bufferColor4f,k);},
+    color   : function(color)  {this._bColor = glkColor.set(this._bColor4f,color);},
+    color4f : function(r,g,b,a){this._bColor = glkColor.set4f(this._bColor4f,r,g,b,a);},
+    color3f : function(r,g,b)  {this._bColor = glkColor.set3f(this._bColor4f,r,g,b);},
+    color2f : function(k,a)    {this._bColor = glkColor.set2f(this._bColor4f,k,a);},
+    color1f : function(k)      {this._bColor = glkColor.set1f(this._bColor4f,k);},
+    colorfv : function(array)  {this._bColor = array;},
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Clear
@@ -486,8 +584,7 @@ GLKGL.prototype =
 
     clear4f : function(r,g,b,a)
     {
-        var c = this._bufferColorBg4f;
-        glkColor.set4f(c,r,g,b,a);
+        var c = glkColor.set4f(this._bColorBg4f,r,g,b,a);
 
         var gl = this._gl;
         gl.clearColor(c[0],c[1],c[2],c[3]);
@@ -496,7 +593,7 @@ GLKGL.prototype =
 
     getClearColor : function()
     {
-        return this._bufferColorBg4f;
+        return this._bColorBg4f;
     },
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -526,7 +623,157 @@ GLKGL.prototype =
     // Draw
     /*---------------------------------------------------------------------------------------------------------*/
 
+    point : function(v0)
+    {
+        var v = this._bVerticesPoint,
+            c = this._applyColorToColorBuffer(this._bColor4f,this._bColorPoint);
+
+        v[0] = v0[0];
+        v[1] = v0[1];
+        v[2] = v0[2];
+
+        this.setMatricesUniform();
+        this._fillArrayBuffer(v,null,c,null);
+        this._gl.drawArrays(this.POINTS,0,1);
+    },
+
+    _quadf : function(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3,normals)
+    {
+        var gl = this._gl,
+            v  = this._bVertexQuad;
+
+        this.setMatricesUniform();
+
+        v[ 0] = x0;
+        v[ 1] = y0;
+        v[ 2] = z0;
+        v[ 3] = x1;
+        v[ 4] = y1;
+        v[ 5] = z1;
+        v[ 6] = x2;
+        v[ 7] = y2;
+        v[ 8] = z2;
+        v[ 9] = x3;
+        v[10] = y3;
+        v[11] = z3;
+
+        var materialMode = this._modeMaterial;
+        var c = this._applyColorToColorBuffer(this._bColor,this._bColorQuad);
+
+        if(materialMode == this.MATERIAL_WIREFRAME)
+        {
+            this._fillArrayBufferVertsCols(v,c);
+            gl.drawArrays(this.LINE_LOOP,0,4);
+        }
+        else if(materialMode == this.MATERIAL_COLOR)
+        {
+            if(normals)
+            {
+                if(this._autoUpdateNormals)
+                {
+                    this._setVertexNormals(this._bNormalQuad,v,this._bIndicesQuad);
+                }
+                else
+                {
+                    this._fillArrayBuffer(v,normals,c,null);
+                }
+
+            }
+            else
+            {
+                this._fillArrayBufferVertsCols(v,c);
+            }
+            gl.drawArrays(this.TRIANGLE_STRIP,0,4);
+        }
+        else if(materialMode == this.MATERIAL_TEXTURE)
+        {
+
+        }
+
+    },
+
+    quad : function(v0,v1,v2,v3)
+    {
+        this._quadf(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2],v2[0],v2[1],v2[2],v3[0],v3[1],v3[2]);
+    },
+
+
+
+    rectf : function(x,y,z,width,height)
+    {
+        var cm = this._modeRectangle == this.CENTER,
+            rx,ry = y,rz,rw,rh;
+
+        var autoUpdateNormals = this._autoUpdateNormals;
+        this.enableAutoUpdateNormals(false);
+
+        if(cm)
+        {
+            var w2 = width  * 0.5,
+                h2 = height * 0.5;
+
+            rx = x - w2;
+            rz = z - h2;
+            rw = x + w2;
+            rh = z + h2;
+        }
+        else
+        {
+            rx = x;
+            rz = z;
+            rw = x+width;
+            rh = z+height;
+        }
+
+        this._quadf(rx,ry,rz,
+                    rw,ry,rh,
+                    rw,ry,rh,
+                    rx,ry,rh, this._bNormalsRect);
+
+        this.enableAutoUpdateNormals(autoUpdateNormals);
+
+
+    },
+
+    rect : function(v,width,height)
+    {
+        this.rectf(v[0],v[1],v[3],width,height);
+    },
+
+
     line : function(v0,v1)
+    {
+        this.linef(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);
+    },
+
+    linef : function(x0,y0,z0,x1,y1,z1)
+    {
+        var v = this._bVerticesLine,
+            c = this._applyColorToColorBuffer(this._bColor,this._bColorLine);
+
+        v[0] = x0;
+        v[1] = y0;
+        v[2] = z0;
+        v[3] = x1;
+        v[4] = y1;
+        v[5] = z1;
+
+        this._fillArrayBufferVertsCols(v,c);
+        this._gl.drawArrays(this.LINES,0,2);
+    },
+
+    linefv : function(array)
+    {
+        if(array.length == 6)
+        {
+            this.linef(array[0],array[1],array[2],array[3],array[4],array[5]);
+            return;
+        }
+
+        this._polyline(array);
+    },
+
+    _polyline : function(array)
     {
 
     },
@@ -536,6 +783,79 @@ GLKGL.prototype =
 
     },
 
+    _setVertexNormals : function(normals,vertices,indices)
+    {
+        var i;
+        var a, b, c, d;
+        var e2x, e2y, e2z,
+            e1x, e1y, e1z;
+
+        var nx, ny, nz,
+            vbx, vby, vbz,
+            a0, a1, a2,
+            b0, b1, b2,
+            c0, c1, c2;
+
+        var n;
+
+        i = 0;
+        while( i < normals.length )
+        {
+            normals[i] = normals[i+1] = normals[i+2] = 0.0;
+            i+=3;
+        }
+
+        i = 0;
+        while( i < indices.length )
+        {
+            a = indices[i  ]*3;
+            b = indices[i+1]*3;
+            c = indices[i+2]*3;
+
+            a0 = a;
+            a1 = a+1;
+            a2 = a+2;
+
+            b0 = b;
+            b1 = b+1;
+            b2 = b+2;
+
+            c0 = c;
+            c1 = c+1;
+            c2 = c+2;
+
+            vbx = vertices[b0];
+            vby = vertices[b1];
+            vbz = vertices[b2];
+
+            e1x = vertices[a0]-vbx;
+            e1y = vertices[a1]-vby;
+            e1z = vertices[a2]-vbz;
+
+            e2x = vertices[c0]-vbx;
+            e2y = vertices[c1]-vby;
+            e2z = vertices[c2]-vbz;
+
+            nx = e1y * e2z - e1z * e2y;
+            ny = e1z * e2x - e1x * e2z;
+            nz = e1x * e2y - e1y * e2x;
+
+            normals[a0] += nx;
+            normals[a1] += ny;
+            normals[a2] += nz;
+
+            normals[b0] += nx;
+            normals[b1] += ny;
+            normals[b2] += nz;
+
+            normals[c0] += nx;
+            normals[c1] += ny;
+            normals[c2] += nz;
+
+            i+=3;
+        }
+
+    },
 
 
 
@@ -551,37 +871,17 @@ GLKGL.prototype =
 
 
 
+
+
+    /*---------------------------------------------------------------------------------------------------------*/
+    // GL Webgl
+    /*---------------------------------------------------------------------------------------------------------*/
 
 
     getGL : function()
     {
         return this._gl;
-    },
-
-
-    setShaderLocations : function(program)
-    {
-        var gl = this._gl;
-
-        this._aVertexPosition    = gl.getAttribLocation(  program, "VertexPosition");
-        this._aVertexNormal      = gl.getAttribLocation(  program, "VertexNormal");
-        this._aVertexColor       = gl.getAttribLocation(  program, "VertexColor");
-        this._aVertexUV          = gl.getAttribLocation(  program, "VertexUV");
-
-        this._uUseLighting       = gl.getUniformLocation( program, "UseLighting");
-
-        this._uModelViewMatrix   = gl.getUniformLocation(program, "ModelViewMatrix");
-        this._uPerspectiveMatrix = gl.getUniformLocation(program, "ProjectionMatrix");
-        this._uNormalMatrix      = gl.getUniformLocation(program, "NormalMatrix");
-
-        this._uPointSize         = gl.getUniformLocation(program, "PointSize");
-    },
-
-    //TODO:FIX
-    setLightShaderLocation : function(light)
-    {
-
-
     }
+
 
 };
