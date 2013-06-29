@@ -1,117 +1,52 @@
-/**
- * glKit - A collection of WebGL tools
- *
- * Copyright (c) 2013 Henryk Wollik. All rights reserved.
- * http://henrykwollik.com
- *
- */
-
-
-function GLKWindow(parentDomElementId)
+GLKit.Window = function(parentDomElement)
 {
-    this.parent    = document.getElementById(parentDomElementId);
+    this._parent   = parentDomElement;
+
     this._glCanvas = document.createElement('canvas');
-    this._gl        = null;
+    this._gl       = this._glCanvas.getContext('webkit-3d');
 
-    var implNames = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
-    var i = -1;
+    this._width  = 0;
+    this._height = 0;
 
-    while(++i < implNames.length)
-    {
-        try
-        {
-            this._gl = this._glCanvas.getContext(implNames[i],{ antialias:true});
-        }
-        catch (e)
-        {
-            throw ("WebGL context could not be initialized");
-        }
-        if(this._gl)
-        {
-            break;
-        }
-    }
-
-    var gl = this._gl;
-
-    this._width  = 300;
-    this._height = 300;
-
-    this._isWindowFullScreen = false;
-
-
-
-    this.parent.appendChild(this._glCanvas);
-
-}
-
-GLKWindow.prototype =
-{
-    setSize : function(width,height)
-    {
-        this._width  = width;
-        this._height = height;
-
-        this._isWindowFullScreen = width == window.innerWidth && window.innerHeight;
-
-        this._updateSize();
-    },
-
-    setWidth : function(width)
-    {
-        this._width = width;
-        this._updateSize();
-    },
-
-    setHeight : function(height)
-    {
-        this._height = height;
-        this._updateSize();
-    },
-
-    _updateSize : function()
-    {
-        var glc = this._glCanvas;
-
-        var width  = this._width,
-            height = this._height;
-
-        glc.style.width  = width  + 'px';
-        glc.style.height = height + 'px';
-        glc.width        = width;
-        glc.height       = height;
-    },
-
-
-    getWidth : function()
-    {
-        return this._width;
-    },
-
-    getHeight : function()
-    {
-        return this._height;
-    },
-
-    getAspectRatio : function()
-    {
-        return this._width / this._height;
-    },
-
-    getGL : function()
-    {
-        return this._gl;
-    },
-
-    getCanvas : function()
-    {
-        return this._glCanvas;
-    },
-
-    isWindowFullscreen : function()
-    {
-        return this._isWindowFullScreen;
-    }
-
-
+    this._parent.appendChild(this._glCanvas);
 };
+
+/*---------------------------------------------------------------------------------*/
+
+GLKit.Window.prototype.getParent = function(){return this._parent;};
+GLKit.Window.prototype.getCanvas = function(){return this._glCanvas;};
+GLKit.Window.prototype.getGL     = function(){return this._gl};
+
+/*---------------------------------------------------------------------------------*/
+
+GLKit.Window.prototype.getAspectRatio = function(){return this._width/this._height;};
+
+/*---------------------------------------------------------------------------------*/
+
+GLKit.Window.prototype.setSize = function(width,height)
+{
+    this._width  = width;
+    this._height = height;
+
+    this._updateSize();
+};
+
+GLKit.Window.prototype._updateSize = function()
+{
+    var glCanvas = this._glCanvas,
+        width    = this._width,
+        height   = this._height;
+
+        glCanvas.style.width  = width  + 'px';
+        glCanvas.style.height = height + 'px';
+        glCanvas.width        = width;
+        glCanvas.height       = height;
+};
+
+GLKit.Window.prototype.setWidth  = function(width) {this._width = width;  this._updateSize();};
+GLKit.Window.prototype.setHeight = function(height){this._height = height;this._updateSize();};
+
+GLKit.Window.prototype.getHeight = function(){return this._height;};
+GLKit.Window.prototype.getWidth  = function(){return this._width;};
+
+/*---------------------------------------------------------------------------------*/
