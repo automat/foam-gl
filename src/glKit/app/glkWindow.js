@@ -49,4 +49,7 @@ GLKit.Window.prototype.setHeight = function(height){this._height = height;this._
 GLKit.Window.prototype.getHeight = function(){return this._height;};
 GLKit.Window.prototype.getWidth  = function(){return this._width;};
 
+GLKit.Window.prototype.isFullWindowFrame = function(){return this._width == window.innerWidth && this._height == window.innerHeight;};
+GLKit.Window.prototype.isFullscreen      = function(){return false;};
+
 /*---------------------------------------------------------------------------------*/

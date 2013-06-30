@@ -8,10 +8,8 @@ GLKit.Color =
     GREEN : new Float32Array([0,1,0,1]),
     BLUE  : new Float32Array([0,0,1,1]),
 
-    make : function(r,g,b,a)
-    {
-        return new Float32Array([ r,g,b,a]);
-    },
+    make : function(r,g,b,a){return new Float32Array([ r,g,b,a]);},
+    copy : function(c){return this.make(c[0],c[1],c[2],c[3]);},
 
     set : function(c0,c1)
     {
@@ -57,35 +55,12 @@ GLKit.Color =
         return c;
     },
 
-    set4i : function(c,r,g,b,a)
-    {
-        return this.set4f(c,r/255.0,g/255.0,b/255.0,a);
-    },
-
-    set3i : function(c,r,g,b)
-    {
-        return this.set3f(c,r/255.0,g/255.0,b/255.0);
-    },
-
-    set2i : function(c,k,a)
-    {
-        return this.set2f(c,k/255.0,a);
-    },
-
-    set1i : function(c,k)
-    {
-        return this.set1f(c,k/255.0);
-    },
-
-    toArray : function(c)
-    {
-        return c.toArray();
-    },
-
-    toString : function(c)
-    {
-        return '['+c[0]+','+c[1]+','+c[2]+','+c[3]+']';
-    },
+    set4i    : function(c,r,g,b,a){return this.set4f(c,r/255.0,g/255.0,b/255.0,a);},
+    set3i    : function(c,r,g,b)  {return this.set3f(c,r/255.0,g/255.0,b/255.0);},
+    set2i    : function(c,k,a)    {return this.set2f(c,k/255.0,a);},
+    set1i    : function(c,k)      {return this.set1f(c,k/255.0);},
+    toArray  : function(c)        {return c.toArray();},
+    toString : function(c)        {return '['+c[0]+','+c[1]+','+c[2]+','+c[3]+']';},
 
     interpolated : function(c0,c1,f)
     {

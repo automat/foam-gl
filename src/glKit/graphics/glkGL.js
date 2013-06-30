@@ -1,5 +1,7 @@
 GLKit.GL = function(gl)
 {
+    /*---------------------------------------------------------------------------------------------------------*/
+
     var _gl = this._gl = gl;
 
     this._progVertexShader = GLKit.ShaderLoader.loadShaderFromString(_gl,GLKit.ProgVertexShader,_gl.VERTEX_SHADER);
@@ -9,12 +11,39 @@ GLKit.GL = function(gl)
 
     _gl.useProgram(program);
 
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Bind & enable shader attributes & uniforms
+    /*---------------------------------------------------------------------------------------------------------*/
+
+    this._aVertexPosition    = _gl.getAttribLocation(  program, 'VertexPosition' );
+    this._aVertexNormal      = _gl.getAttribLocation(  program, 'VertexNormal' );
+    this._aVertexColor       = _gl.getAttribLocation(  program, 'VertexColor' );
+    this._aVertexUV          = _gl.getAttribLocation(  program, 'VertexUV' );
+    this._uUseLighting       = _gl.getUniformLocation( program, 'UseLighting' );
+
+    this._uModelViewMatrix   = _gl.getUniformLocation( program, 'ModelViewMatrix' );
+    this._uPerspectiveMatrix = _gl.getUniformLocation( program, 'ProjectionMatrix' );
+    this._uNormalMatrix      = _gl.getUniformLocation( program, 'NormalMatrix' );
+
+    this._uPointSize         = _gl.getUniformLocation( program, 'PointSize' );
+
+    _gl.enableVertexAttribArray(this._aVertexPosition);
+    _gl.enableVertexAttribArray(this._aVertexNormal);
+    _gl.enableVertexAttribArray(this._aVertexColor);
+    _gl.enableVertexAttribArray(this._aVertexUV);
+
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Pre Bind ARRAY_BUFFER & ELEMENT_ARRAY_BUFFER
+    /*---------------------------------------------------------------------------------------------------------*/
+
     this._abo  = _gl.createBuffer();
     this._eabo = _gl.createBuffer();
 
     _gl.bindBuffer(_gl.ARRAY_BUFFER,         this._abo);
     _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this._eabo);
 
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Bind constants
     /*---------------------------------------------------------------------------------------------------------*/
 
     this.DEPTH_TEST               = _gl.DEPTH_TEST;
@@ -47,7 +76,7 @@ GLKit.GL = function(gl)
     this.ONE_MINUS_CONSTANT_ALPHA = _gl.ONE_MINUS_CONSTANT_ALPHA;
     this.FUNC_ADD                 = _gl.FUNC_ADD;
     this.FUNC_SUBTRACT            = _gl.FUNC_SUBTRACT;
-    this.FUNC_RESERVE_SUBTRACT    = _gl.FUNC_REVERSE_SUBTRACT;
+    this.FUNC_REVERSVE_SUBTRACT   = _gl.FUNC_REVERSE_SUBTRACT;
 
     var SIZE_OF_VERTEX  = GLKit.Vec3.SIZE,
         SIZE_OF_COLOR   = GLKit.Color.SIZE,
@@ -64,6 +93,8 @@ GLKit.GL = function(gl)
     this.SIZE_OF_LINE     = SIZE_OF_VERTEX * 4;
     this.SIZE_OF_POINT    = SIZE_OF_VERTEX;
 
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Bind methods
     /*---------------------------------------------------------------------------------------------------------*/
 
     this.sampleCoverage        = _gl.sampleCoverage.bind(_gl);
@@ -83,10 +114,12 @@ GLKit.GL = function(gl)
     this.scissor               = _gl.scissor.bind(_gl);
 
     /*---------------------------------------------------------------------------------------------------------*/
+    // Init Buffers
+    /*---------------------------------------------------------------------------------------------------------*/
 
-    this._bColor4f   = GLKit.Color.WHITE();
+    this._bColor4f   = GLKit.Color.copy(GLKit.Color.WHITE);
     this._bColor     = null;
-    this._bColorBg4f = GLKit.Color.BLACK();
+    this._bColorBg4f = GLKit.Color.copy(GLKit.Color.BLACK);
 
     this._bVertexQuad               = new Float32Array(this.SIZE_OF_QUAD);
     this._bNormalQuad               = new Float32Array(this.SIZE_OF_QUAD);
@@ -101,9 +134,6 @@ GLKit.GL = function(gl)
     this._bVerticesLine             = new Float32Array(this.SIZE_OF_LINE);
     this._bVerticesPoint            = new Float32Array(this.SIZE_OF_POINT);
     this._bVerticesEllipse          = new Float32Array(this.ELLIPSE_DETAIL_MAX * SIZE_OF_VERTEX);
-    this._bVerticesRoundRect        = new Float32Array(this.ELLIPSE_DETAIL_MAX * SIZE_OF_VERTEX + this.SIZE_OF_QUAD);
-
-    this._bIndicesRoundRect         = new Uint16Array( (this._bVerticesRoundRect.length / SIZE_OF_VERTEX - 2) * this.SIZE_OF_FACE);
 
     this._bTexCoordsTriangleDefault = new Float32Array([0.0,0.0,1.0,0.0,1.0,1.0]);
     this._bTexCoordsTriangle        = new Float32Array(this._bTexCoordsTriangleDefault.length);
@@ -115,7 +145,6 @@ GLKit.GL = function(gl)
     this._bColorLine                = new Float32Array(SIZE_OF_COLOR * 2);
     this._bColorPoint               = new Float32Array(SIZE_OF_COLOR);
     this._bColorEllipse             = new Float32Array(SIZE_OF_COLOR * this.ELLIPSE_DETAIL_MAX);
-    this._bColorRoundRect           = new Float32Array(this._bVerticesRoundRect.length / SIZE_OF_VERTEX * SIZE_OF_COLOR);
 
     this._iTriangle = [0,1,2];
     this._iQuad     = [0,1,2,1,2,3];
@@ -123,24 +152,7 @@ GLKit.GL = function(gl)
     this._bScreenCoords = new Float32Array([0,0]);
 
     /*---------------------------------------------------------------------------------------------------------*/
-
-    this._aVertexPosition    = _gl.getAttribLocation(  program, 'VertexPosition' );
-    this._aVertexNormal      = _gl.getAttribLocation(  program, 'VertexNormal' );
-    this._aVertexColor       = _gl.getAttribLocation(  program, 'VertexColor' );
-    this._aVertexUV          = _gl.getAttribLocation(  program, 'VertexUV' );
-    this._uUseLighting       = _gl.getUniformLocation( program, 'UseLighting' );
-
-    this._uModelViewMatrix   = _gl.getUniformLocation( program, 'ModelViewMatrix' );
-    this._uPerspectiveMatrix = _gl.getUniformLocation( program, 'ProjectionMatrix' );
-    this._uNormalMatrix      = _gl.getUniformLocation( program, 'NormalMatrix' );
-
-    this._uPointSize         = _gl.getUniformLocation( program, 'PointSize' );
-
-    _gl.enableVertexAttribArray(this._aVertexPosition);
-    _gl.enableVertexAttribArray(this._aVertexNormal);
-    _gl.enableVertexAttribArray(this._aVertexColor);
-    _gl.enableVertexAttribArray(this._aVertexUV);
-
+    // Init Matrices
     /*---------------------------------------------------------------------------------------------------------*/
 
     this._mModelView   = new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
@@ -150,26 +162,18 @@ GLKit.GL = function(gl)
     this._mArcBall     = new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
     this._mStack       = [];
 
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Init presets
+    /*---------------------------------------------------------------------------------------------------------*/
 
     _gl.enable(_gl.BLEND);
     _gl.enable(_gl.DEPTH_TEST);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
+
 
 GLKit.GL.prototype.loadIdentity = function(){this._mModelView = GLKit.Mat44.identity(this._mModelView);};
 GLKit.GL.prototype.pushMatrix   = function(){this._mStack.push(GLKit.Mat44.copy(this._mModelView));};
@@ -183,8 +187,10 @@ GLKit.GL.prototype.popMatrix    = function()
     return this._mStack;
 };
 
+
 /*---------------------------------------------------------------------------------------------------------*/
 
+/*
 GLKit.GL.prototype.translate   = function(v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(v[0],v[1],v[1]));};
 GLKit.GL.prototype.translate3f = function(x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,y,z));};
 GLKit.GL.prototype.translateX  = function(x)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,0,0));};
@@ -200,9 +206,10 @@ GLKit.GL.prototype.rotate3f    = function(x,y,z){this._mModelView = GLKit.Mat44.
 GLKit.GL.prototype.rotateX     = function(x)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationX(x));};
 GLKit.GL.prototype.rotateY     = function(y)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationY(y));};
 GLKit.GL.prototype.rotateZ     = function(z)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationZ(z));};
-
+*/
 /*---------------------------------------------------------------------------------------------------------*/
 
+/*
 GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,indexUInt16Array,mode)
 {
     mode = mode || this.TRIANGLES;
@@ -220,9 +227,11 @@ GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,c
     this.setMatricesUniform();
     this._gl.drawArrays(mode,first,count);
 };
+*/
 
 /*---------------------------------------------------------------------------------------------------------*/
 
+/*
 GLKit.GL.prototype._fillArrayBuffer = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array)
 {
     var na  = normalFloat32Array ? true : false,
@@ -315,9 +324,11 @@ GLKit.GL.prototype._applyColorToColorBuffer = function(srcColor,distBuffer)
     }
     return distBuffer;
 };
+*/
 
 /*---------------------------------------------------------------------------------------------------------*/
 
+/*
 GLKit.GL.prototype.color   = function(color)  {this._bColor = glkColor.set(this._bColor4f,color);};
 GLKit.GL.prototype.color4f = function(r,g,b,a){this._bColor = glkColor.set4f(this._bColor4f,r,g,b,a);};
 GLKit.GL.prototype.color3f = function(r,g,b)  {this._bColor = glkColor.set3f(this._bColor4f,r,g,b);};
@@ -330,10 +341,9 @@ GLKit.GL.prototype.clear      = function()     {this.clear4f(0,0,0,1);};
 GLKit.GL.prototype.clear3f    = function(r,g,b){this.clear4f(r,g,b,1);};
 GLKit.GL.prototype.clear2f    = function(k,a)  {this.clear4f(k,k,k,a);};
 GLKit.GL.prototype.clear1f    = function(k)    {this.clear4f(k,k,k,1.0);};
-GLKit.GL..prototype.clear4f   = function(r,g,b,a)
+GLKit.GL.prototype.clear4f   = function(r,g,b,a)
 {
-    var c = GLKit.Color.set4f(this._bColorBg4f,r,g,b,a);
-
+    var c  = GLKit.Color.set4f(this._bColorBg4f,r,g,b,a);
     var gl = this._gl;
     gl.clearColor(c[0],c[1],c[2],c[3]);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -342,12 +352,15 @@ GLKit.GL..prototype.clear4f   = function(r,g,b,a)
 
 GLKit.GL.prototype.getColorBuffer = function(){return this._bColor;};
 GLKit.GL.prototype.getClearBuffer = function(){return this._bColorBg4f;};
+*/
 
 /*---------------------------------------------------------------------------------------------------------*/
 
+/*
 GLKit.GL.prototype.getGL = function(){return this._gl;};
 
 GLKit.GL.prototype.setModelViewMatrix  = function(matrix){this._modelViewMatrix  = matrix;};
 GLKit.GL.prototype.setProjectionMatrix = function(matrix){this._projectionMatrix = matrix;};
 GLKit.GL.prototype.getModelViewMatrix  = function(){return this._modelViewMatrix;};
 GLKit.GL.prototype.getProjectionMatrix = function(){return this._projectionMatrix;};
+*/
