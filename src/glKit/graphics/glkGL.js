@@ -155,8 +155,10 @@ GLKit.GL = function(gl)
     // Init Matrices
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this._mModelView   = new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
-    this._mPerspective = new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
+    this._camera = null;
+
+   // this._mModelView   = new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
+   // this._mPerspective = new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
     this._mNormal      = new Float32Array([1,0,0,0,1,0,0,0,1]);
     this._mTemp        = new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
     this._mArcBall     = new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
@@ -172,11 +174,13 @@ GLKit.GL = function(gl)
 
 };
 
+GLKit.GL.prototype.setCamera = function(camera){this._camera = camera;};
+
 /*---------------------------------------------------------------------------------------------------------*/
 
 
-GLKit.GL.prototype.loadIdentity = function(){this._mModelView = GLKit.Mat44.identity(this._mModelView);};
-GLKit.GL.prototype.pushMatrix   = function(){this._mStack.push(GLKit.Mat44.copy(this._mModelView));};
+GLKit.GL.prototype.loadIdentity = function(){this._camera.modelViewMatrix = GLKit.Mat44.identity(this._camera.modelViewMatrix);};
+GLKit.GL.prototype.pushMatrix   = function(){this._mStack.push(GLKit.Mat44.copy(this._camera.modelViewMatrix));};
 GLKit.GL.prototype.popMatrix    = function()
 {
     var stack = this._mStack;
@@ -187,29 +191,44 @@ GLKit.GL.prototype.popMatrix    = function()
     return this._mStack;
 };
 
+GLKit.GL.prototype._setMatricesUniform = function()
+{
+    var gl = this._gl;
+    var camera = this._camera;
+
+    gl.uniformMatrix4fv(this._uModelViewMatrix,  false,camera.modelViewMatrix);
+    gl.uniformMatrix4fv(this._uPerspectiveMatrix,false,camera.perspectiveMatrix);
+
+    if(!this._lighting)return;
+
+
+
+
+}
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-/*
-GLKit.GL.prototype.translate   = function(v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(v[0],v[1],v[1]));};
-GLKit.GL.prototype.translate3f = function(x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,y,z));};
-GLKit.GL.prototype.translateX  = function(x)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,0,0));};
-GLKit.GL.prototype.translateY  = function(y)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(0,y,0));};
-GLKit.GL.prototype.translateZ  = function(z)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(0,0,z));};
-GLKit.GL.prototype.scale       = function(v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(v[0],v[1],v[2]));};
-GLKit.GL.prototype.scale3f     = function(x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(x,y,z));};
-GLKit.GL.prototype.scaleX      = function(x)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(x,1,1));};
-GLKit.GL.prototype.scaleY      = function(y)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(1,y,1));};
-GLKit.GL.prototype.scaleZ      = function(z)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(1,1,z));};
-GLKit.GL.prototype.rotate      = function(v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationXYZ(v[0],v[1],v[2]));};
-GLKit.GL.prototype.rotate3f    = function(x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationXYZ(x,y,z));};
-GLKit.GL.prototype.rotateX     = function(x)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationX(x));};
-GLKit.GL.prototype.rotateY     = function(y)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationY(y));};
-GLKit.GL.prototype.rotateZ     = function(z)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationZ(z));};
-*/
+
+GLKit.GL.prototype.translate   = function(v)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeTranslate(v[0],v[1],v[1]));};
+GLKit.GL.prototype.translate3f = function(x,y,z){this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeTranslate(x,y,z));};
+GLKit.GL.prototype.translateX  = function(x)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeTranslate(x,0,0));};
+GLKit.GL.prototype.translateY  = function(y)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeTranslate(0,y,0));};
+GLKit.GL.prototype.translateZ  = function(z)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeTranslate(0,0,z));};
+GLKit.GL.prototype.scale       = function(v)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeScale(v[0],v[1],v[2]));};
+GLKit.GL.prototype.scale3f     = function(x,y,z){this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeScale(x,y,z));};
+GLKit.GL.prototype.scaleX      = function(x)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeScale(x,1,1));};
+GLKit.GL.prototype.scaleY      = function(y)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeScale(1,y,1));};
+GLKit.GL.prototype.scaleZ      = function(z)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeScale(1,1,z));};
+GLKit.GL.prototype.rotate      = function(v)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeRotationXYZ(v[0],v[1],v[2]));};
+GLKit.GL.prototype.rotate3f    = function(x,y,z){this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeRotationXYZ(x,y,z));};
+GLKit.GL.prototype.rotateX     = function(x)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeRotationX(x));};
+GLKit.GL.prototype.rotateY     = function(y)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeRotationY(y));};
+GLKit.GL.prototype.rotateZ     = function(z)    {this._camera.modelViewMatrix = GLKit.Mat44.multPost(this._camera.modelViewMatrix,GLKit.Mat44.makeRotationZ(z));};
+
 /*---------------------------------------------------------------------------------------------------------*/
 
-/*
+
 GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,indexUInt16Array,mode)
 {
     mode = mode || this.TRIANGLES;
@@ -227,11 +246,11 @@ GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,c
     this.setMatricesUniform();
     this._gl.drawArrays(mode,first,count);
 };
-*/
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-/*
+
 GLKit.GL.prototype._fillArrayBuffer = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array)
 {
     var na  = normalFloat32Array ? true : false,
@@ -324,11 +343,11 @@ GLKit.GL.prototype._applyColorToColorBuffer = function(srcColor,distBuffer)
     }
     return distBuffer;
 };
-*/
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-/*
+
 GLKit.GL.prototype.color   = function(color)  {this._bColor = glkColor.set(this._bColor4f,color);};
 GLKit.GL.prototype.color4f = function(r,g,b,a){this._bColor = glkColor.set4f(this._bColor4f,r,g,b,a);};
 GLKit.GL.prototype.color3f = function(r,g,b)  {this._bColor = glkColor.set3f(this._bColor4f,r,g,b);};
@@ -352,13 +371,14 @@ GLKit.GL.prototype.clear4f   = function(r,g,b,a)
 
 GLKit.GL.prototype.getColorBuffer = function(){return this._bColor;};
 GLKit.GL.prototype.getClearBuffer = function(){return this._bColorBg4f;};
-*/
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-/*
-GLKit.GL.prototype.getGL = function(){return this._gl;};
 
+GLKit.GL.prototype.getGL     = function(){return this._gl;};
+
+/*
 GLKit.GL.prototype.setModelViewMatrix  = function(matrix){this._modelViewMatrix  = matrix;};
 GLKit.GL.prototype.setProjectionMatrix = function(matrix){this._projectionMatrix = matrix;};
 GLKit.GL.prototype.getModelViewMatrix  = function(){return this._modelViewMatrix;};

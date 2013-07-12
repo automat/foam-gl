@@ -13,7 +13,7 @@ GLKit.CameraBasic = function()
     this._modelViewMatrixUpdated   = false;
     this._perspectiveMatrixUpdated = false;
 
-    this.projectionMatrix = GLKit.Mat44.make();
+    this.perspectiveMatrix = GLKit.Mat44.make();
     this.modelViewMatrix  = GLKit.Mat44.make();
 };
 
@@ -25,7 +25,7 @@ GLKit.CameraBasic.prototype.setPerspective = function(fov,windowAspectRatio,near
 
     this._aspectRatioLast = windowAspectRatio;
 
-    this.updatePerspective();
+    this.updatePerspectiveMatrix();
 };
 
 GLKit.CameraBasic.prototype.setTarget         = function(v)    {GLKit.Vec3.set(this._target,v);this._modelViewMatrixUpdated = false;};
@@ -41,7 +41,7 @@ GLKit.CameraBasic.prototype.setFov            = function(fov)        {this._fov 
 GLKit.CameraBasic.prototype.setAspectRatio    = function(aspectRatio){this._aspectRatioLast = aspectRatio;this._perspectiveMatrixUpdated = false;};
 
 GLKit.CameraBasic.prototype.updateModelViewMatrix   = function(){if(this._modelViewMatrixUpdated)return; GLKit.MatGL.lookAt(this.modelViewMatrix,this._position,this._target,this._up); this._modelViewMatrixUpdated = true;};
-GLKit.CameraBasic.prototype.updatePerspectiveMatrix = function(){if(this._perspectiveMatrixUpdated)return;GLKit.MatGL.perspective(this.projectionMatrix,this._fov,this._aspectRatioLast,this._near,this._far);this._perspectiveMatrixUpdated = true;};
+GLKit.CameraBasic.prototype.updatePerspectiveMatrix = function(){if(this._perspectiveMatrixUpdated)return;GLKit.MatGL.perspective(this.perspectiveMatrix,this._fov,this._aspectRatioLast,this._near,this._far);this._perspectiveMatrixUpdated = true;};
 
 GLKit.CameraBasic.prototype.updateMatrices = function(){this.updateModelViewMatrix();this.updatePerspectiveMatrix();};
 
