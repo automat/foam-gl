@@ -11,9 +11,21 @@ GLKit.Application = function(parentDomElement)
 
     /*---------------------------------------------------------------------------------*/
 
-    this._keyDown   = false;
-    this._mouseDown = false;
-    this._update    = true;
+    this._keyDown         = false;
+    this._mouseDown       = false;
+    this._mouseWheelDelta = 0.0;
+
+
+    this._update          = true;
+
+    this._targetFPS = 60;
+    this._frames    = 0;
+
+    this._time;
+    this._timeStart    = Date.now();
+    this._timeNext     = Date.now();
+    this._timeInterval = 1000/this._targetFPS;
+    this._timeElapsed;
 
     /*---------------------------------------------------------------------------------*/
 
@@ -23,7 +35,7 @@ GLKit.Application = function(parentDomElement)
        GLKit.Application._instance = this;
 };
 
-GLKit.Application.prototype.setWindowSize = function(width, height)
+GLKit.Application.prototype.setSize = function(width, height)
 {
     var glWindow = this.glWindow;
         glWindow.setSize(width,height);
@@ -45,10 +57,13 @@ GLKit.Application.prototype.setCamera = function(camera)
 
 GLKit.Application.prototype._onWindowResize = function()
 {
+    this.onWindowResize();
     this.camera.setAspectRatio(this.glWindow.getAspectRatio());
-    this.camera.updatePerspectiveMatrix();
+    this.camera.updateProjectionMatrix();
     this._updateGLViewport();
 };
+
+GLKit.Application.prototype.onWindowResize = function(){};
 
 
 GLKit.Application.prototype._updateGLViewport = function()
@@ -62,8 +77,41 @@ GLKit.Application.prototype._updateGLViewport = function()
 /*---------------------------------------------------------------------------------*/
 
 GLKit.Application.prototype.setUpdate = function(bool){this._update = bool;};
-GLKit.Application.prototype._updateLoop = function(){if(!this._update)return; webkitRequestAnimationFrame(this._updateLoop.bind(this));this.update();};
-GLKit.Application.prototype.update      = function(){};
+
+GLKit.Application.prototype._updateLoop = function()
+{
+    if(!this._update)return;
+    webkitRequestAnimationFrame(this._updateLoop.bind(this),null);
+
+    var time         = this._time      = Date.now(),
+        timeDelta    = time - this._timeNext,
+        timeInterval = this._timeInterval;
+
+    var timeNext;
+
+    if(timeDelta > timeInterval)
+    {
+        timeNext = this._timeNext = time - (timeDelta % timeInterval);
+
+        this.update();
+
+        this._timeElapsed = (timeNext - this._timeStart) / 1000.0;
+        this._frames++;
+
+    }
+};
+
+
+
+GLKit.Application.prototype.update = function(){};
+
+GLKit.Application.prototype.getFramesElapsed  = function(){return this._frames;};
+GLKit.Application.prototype.getSecondsElapsed = function(){return this._timeElapsed;};
+GLKit.Application.prototype.getTime           = function(){return this._time;};
+
+
+GLKit.Application.prototype.setTargetFPS = function(fps){this._targetFPS = fps;this._timeInterval = 1000/this._targetFPS;};
+GLKit.Application.prototype.getTargetFPS = function(){return this._targetFPS;};
 
 /*---------------------------------------------------------------------------------*/
 
@@ -81,18 +129,25 @@ GLKit.Application.prototype._initListeners = function()
 };
 
 
-GLKit.Application.prototype._onGLCanvasKeyDown    = function(e){this.onKeyDown(e)};
-GLKit.Application.prototype._onGLCanvasKeyUp      = function(e){this.onKeyUp(e)};
-GLKit.Application.prototype._onGLCanvasMouseUp    = function(e){this.onMouseUp(e);};
-GLKit.Application.prototype._onGLCanvasMouseDown  = function(e){this.onMouseDown(e);};
+GLKit.Application.prototype._onGLCanvasKeyDown    = function(e){this._keyDown = true;this.onKeyDown(e)};
+GLKit.Application.prototype._onGLCanvasKeyUp      = function(e){this._keyDown = false;this.onKeyUp(e)};
+GLKit.Application.prototype._onGLCanvasMouseUp    = function(e){this._mouseDown = false;this.onMouseUp(e);};
+GLKit.Application.prototype._onGLCanvasMouseDown  = function(e){this._mouseDown = true;this.onMouseDown(e);};
 GLKit.Application.prototype._onGLCanvasMouseMove  = function(e){this.onMouseMove(e);};
-GLKit.Application.prototype._onGLCanvasMouseWheel = function(e){this.onMouseWheel(e);};
+GLKit.Application.prototype._onGLCanvasMouseWheel = function(e){this._mouseWheelDelta += Math.max(-1,Math.min(1, e.wheelDelta)) * -1;this.onMouseWheel(e);};
 GLKit.Application.prototype.onKeyDown             = function(e){};
 GLKit.Application.prototype.onKeyUp               = function(e){};
 GLKit.Application.prototype.onMouseUp             = function(e){};
 GLKit.Application.prototype.onMouseDown           = function(e){};
 GLKit.Application.prototype.onMouseWheel          = function(e){};
 GLKit.Application.prototype.onMouseMove           = function(e){};
+
+
+
+GLKit.Application.prototype.isKeyDown          = function(){return this._keyDown;};
+GLKit.Application.prototype.isMouseDown        = function(){return this._mouseDown;};
+GLKit.Application.prototype.isMouseMove        = function(){};
+GLKit.Application.prototype.getMouseWheelDelta = function(){return this._mouseWheelDelta;}
 
 /*---------------------------------------------------------------------------------*/
 
