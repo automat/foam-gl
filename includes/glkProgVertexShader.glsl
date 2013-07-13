@@ -23,6 +23,6 @@ void main()
     vVertexPosition = ModelViewMatrix * vec4(VertexPosition,1.0);
     vVertexUV       = VertexUV;
 
-    gl_Position  = uProjectionMatrix * vVertexPosition;;
-    gl_PointSize = uPointSize;
+    gl_Position  = ProjectionMatrix * vVertexPosition;
+    gl_PointSize = PointSize;
 }
