@@ -15,9 +15,11 @@ TestApp.prototype.onWindowResize = function(){this.setSize(window.innerWidth,win
 TestApp.prototype.update = function()
 {
 
-    var gl   = this.gl,
-        cam  = this.camera;
-    var time = this.getSecondsElapsed();
+    var gl     = this.gl,
+        cam    = this.camera;
+    var time   = this.getSecondsElapsed(),
+        timePI = time * Math.PI,
+        PI     = Math.PI;
 
     gl.clear3f(0.1,0.1,0.1);
     gl.loadIdentity();
@@ -36,25 +38,27 @@ TestApp.prototype.update = function()
     cam.updateMatrices();
 
 
+    gl.color3f(0.2,0.2,0.2);
+    GLKit.GLUtil.drawGridCube(gl,8,1);
 
     gl.color3f(0.25,0.25,0.25);
     gl.pushMatrix();
     gl.translate3f(0,-0.01,0);
-    GLKit.GLUtil.drawGrid(gl,10);
+    GLKit.GLUtil.drawGrid(gl,8,1);
     gl.popMatrix();
 
-    gl.color3f(0.2,0.2,0.2);
-
-    GLKit.GLUtil.drawGridCube(gl,4,2.5);
-
-    GLKit.GLUtil.drawAxes(gl,5);
+    GLKit.GLUtil.drawAxes(gl,4);
 
 
 
 
     gl.color4f(1,1,1,1);
-    gl.setDrawMode(gl.LINE_LOOP);
-    gl.trianglef(0,0,0,1,0,0,0.5,0,1);
+    gl.setDrawMode(gl.TRIANGLES);
+    gl.pushMatrix();
+    gl.translate3f(0.5,0.5,0.5);
+    gl.cube(1);
+    gl.popMatrix();
+
 
 
 
