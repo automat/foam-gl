@@ -2,7 +2,7 @@ GLKit.CameraBasic = function()
 {
     this._position = GLKit.Vec3.make();
     this._target   = GLKit.Vec3.make();
-    this._up       = GLKit.Vec3.AXIS_Y;
+    this._up       = GLKit.Vec3.AXIS_Y();
 
     this._fov  = 0;
     this._near = 0;

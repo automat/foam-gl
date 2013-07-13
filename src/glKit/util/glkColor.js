@@ -2,11 +2,11 @@ GLKit.Color =
 {
     SIZE  : 4,
 
-    BLACK : new Float32Array([0,0,0,1]),
-    WHITE : new Float32Array([1,1,1,1]),
-    RED   : new Float32Array([1,0,0,1]),
-    GREEN : new Float32Array([0,1,0,1]),
-    BLUE  : new Float32Array([0,0,1,1]),
+    BLACK : function(){return new Float32Array([0,0,0,1])},
+    WHITE : function(){return new Float32Array([1,1,1,1])},
+    RED   : function(){return new Float32Array([1,0,0,1])},
+    GREEN : function(){return new Float32Array([0,1,0,1])},
+    BLUE  : function(){return new Float32Array([0,0,1,1])},
 
     make : function(r,g,b,a){return new Float32Array([ r,g,b,a]);},
     copy : function(c){return this.make(c[0],c[1],c[2],c[3]);},

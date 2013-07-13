@@ -3,10 +3,10 @@
 GLKit.Vec3 =
 {
     SIZE   : 3,
-    ZERO   : new Float32Array([0,0,0]),
-    AXIS_X : new Float32Array([1,0,0]),
-    AXIS_Y : new Float32Array([0,1,0]),
-    AXIS_Z : new Float32Array([0,0,1]),
+    ZERO   : function(){return new Float32Array([0,0,0])},
+    AXIS_X : function(){return new Float32Array([1,0,0])},
+    AXIS_Y : function(){return new Float32Array([0,1,0])},
+    AXIS_Z : function(){return new Float32Array([0,0,1])},
 
     make : function(x,y,z)
     {
