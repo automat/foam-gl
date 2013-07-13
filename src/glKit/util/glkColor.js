@@ -36,6 +36,7 @@ GLKit.Color =
         c[0] = r;
         c[1] = g;
         c[2] = b;
+        c[3] = 1.0;
 
         return c;
     },
@@ -51,6 +52,7 @@ GLKit.Color =
     set1f : function(c,k)
     {
         c[0] = c[1] = c[2] = k;
+        c[3] = 1.0;
 
         return c;
     },
