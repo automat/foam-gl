@@ -1,8 +1,8 @@
 GLKit.ProgVertexShader=
-"attribute vec3 VertexPosition;" + 
-"attribute vec3 VertexNormal;" + 
-"attribute vec4 VertexColor;" + 
-"attribute vec2 VertexUV;" + 
+"attribute vec3 aVertexPosition;" + 
+"attribute vec3 aVertexNormal;" + 
+"attribute vec4 aVertexColor;" + 
+"attribute vec2 aVertexUV;" + 
 
 "varying vec4 vVertexPosition;" + 
 "varying vec3 vVertexNormal;" + 
@@ -18,10 +18,10 @@ GLKit.ProgVertexShader=
 
 "void main()" + 
 "{" + 
-"    vVertexColor    = VertexColor;" + 
-"    vVertexNormal   = VertexNormal;" + 
-"    vVertexPosition = uModelViewMatrix * vec4(VertexPosition,1.0);" + 
-"    vVertexUV       = VertexUV;" + 
+"    vVertexPosition = uModelViewMatrix * vec4(aVertexPosition,1.0);" + 
+"    vVertexNormal   = aVertexNormal;" + 
+"    vVertexColor    = aVertexColor;" + 
+"    vVertexUV       = aVertexUV;" + 
 
 "    gl_Position  = uProjectionMatrix * vVertexPosition;" + 
 "    gl_PointSize = uPointSize;" + 

@@ -15,12 +15,13 @@ GLKit.GL = function(gl)
     // Bind & enable shader attributes & uniforms
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this._aVertexPosition   = gl.getAttribLocation(program,"VertexPosition");
-    this._aVertexNormal     = gl.getAttribLocation(program,"VertexNormal");
-    this._aVertexColor      = gl.getAttribLocation(program,"VertexColor");
-    this._aVertexUV         = gl.getAttribLocation(program,"VertexUV");
+    this._aVertexPosition   = gl.getAttribLocation(program,"aVertexPosition");
+    this._aVertexNormal     = gl.getAttribLocation(program,"aVertexNormal");
+    this._aVertexColor      = gl.getAttribLocation(program,"aVertexColor");
+    this._aVertexUV         = gl.getAttribLocation(program,"aVertexUV");
 
-    this._uUseLighting      = gl.getUniformLocation(program,"uLighting");
+
+    this._uLighting      = gl.getUniformLocation(program,"uLighting");
 
     this._uModelViewMatrix   = gl.getUniformLocation(program,"uModelViewMatrix");
     this._uProjectionMatrix  = gl.getUniformLocation(program,"uProjectionMatrix");
@@ -31,7 +32,7 @@ GLKit.GL = function(gl)
 
 
 
-    _gl.uniform1f(this._uUseLighting,0.0);
+    _gl.uniform1f(this._uLighting,0.0);
     _gl.uniform1f(this._uPointSize,  1.0);
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -127,6 +128,18 @@ GLKit.GL = function(gl)
     // Init Buffers
     /*---------------------------------------------------------------------------------------------------------*/
 
+
+    this.LIGHT_0 = 0;
+    this.LIGHT_1 = 1;
+    this.LIGHT_2 = 2;
+    this.LIGHT_3 = 3;
+    this.LIGHT_4 = 4;
+    this.LIGHT_5 = 5;
+    this.LIGHT_6 = 6;
+    this.LIGHT_7 = 7;
+
+
+
     this._bColor4f   = GLKit.Color.copy(GLKit.Color.WHITE);
     this._bColorBg4f = GLKit.Color.copy(GLKit.Color.BLACK);
 
@@ -187,6 +200,14 @@ GLKit.GL = function(gl)
 
     this._bScreenCoords = new Float32Array([0,0]);
 
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Init Matrices
+    /*---------------------------------------------------------------------------------------------------------*/
+
+
+    this._bLighting = false;
+
+
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init Matrices
@@ -214,7 +235,12 @@ GLKit.GL.prototype.setCamera = function(camera){this._camera = camera;};
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.GL.prototype.setPointSize = function(value){this._gl.uniform1f(this._uPointSize,value);};
+GLKit.GL.prototype.pointSize = function(value){this._gl.uniform1f(this._uPointSize,value);};
+
+
+
+GLKit.GL.prototype.lighting    = function(bool){this._gl.uniform1f(this._uLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
+GLKit.GL.prototype.getLighting = function(){return this._bLighting;}
 
 GLKit.GL.prototype.loadIdentity = function(){this._mModelView = GLKit.Mat44.identity(this._camera.modelViewMatrix);};
 GLKit.GL.prototype.pushMatrix   = function(){this._mStack.push(GLKit.Mat44.copy(this._mModelView));};
@@ -400,7 +426,7 @@ GLKit.GL.prototype.getClearBuffer = function(){return this._bColorBg4f;};
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.GL.prototype.setDrawMode = function(mode){this._drawMode = mode;};
+GLKit.GL.prototype.drawMode = function(mode){this._drawMode = mode;};
 GLKit.GL.prototype.getDrawMode = function(){return this._drawMode;};
 
 GLKit.GL.prototype.point   = function(vector){this.drawArrays(vector,null,this._fillColorBuffer(this._bColor,this._bColorPoint),null,this.POINTS,0,1);};
@@ -479,11 +505,77 @@ GLKit.GL.prototype.cube = function(size)
     this.scale3f(size,size,size);
     this.drawElements(this._bVertexCube,this._bNormalCube,this._fillColorBuffer(this._bColor,this._bColorCube),this._bTexCoordCube,this._bIndexCube,this._drawMode);
     this.popMatrix();
-}
+};
 
 
-GLKit.GL.prototype.enableLighting  = function(){};
-GLKit.GL.prototype.disableLighting = function(){};
+GLKit.GL.prototype.sphere = function(radius,segments)
+{
+    var vertices   = new Float32Array((segments + 1) * 6),
+        normals    = new Float32Array((segments + 1) * 6),
+        texCoords  = new Float32Array((segments + 1) * 4),
+        colors     = new Float32Array((segments + 1) * 8);
+
+
+    var pi     = Math.PI,
+        piHalf = pi * 0.5,
+        piTwo  = pi * 2;
+
+    var segHalf = segments * 0.5,
+        segInv  = 1 / segments;
+
+    var i = -1,j;
+
+    var theta1,theta2,theta3;
+
+    var e = new GLKit.Vec3.make();
+
+    while(++i < segHalf)
+    {
+        theta1 = i * piTwo * segInv - piHalf;
+        theta2 = (i + 1) * piTwo * segInv - piHalf;
+
+        j = -1;
+
+        while(++j < segments)
+        {
+            theta3 = j * piTwo * segInv;
+
+            GLKit.Vec3.set3f(e,Math.cos(theta1) * Math.cos(theta3),
+                               Math.sin(theta1),
+                               Math.cos(theta1) * Math.sin(theta3));
+
+            normals[i * 6    ] = e[0];
+            normals[i * 6 + 1] = e[1];
+            normals[i * 6 + 2] = e[2];
+
+            texCoords[i * 4    ] = 0.999 - j / segments;
+            texCoords[i * 4 + 1] = 0.999 - 2 * i / segments;
+
+            vertices[i * 6    ] = e[0] * radius;
+            vertices[i * 6 + 1] = e[1] * radius;
+            vertices[i * 6 + 2] = e[2] * radius;
+
+
+            GLKit.Vec3.set3f(e,Math.cos(theta2) * Math.cos(theta3),
+                               Math.sin(theta2),
+                               Math.cos(theta2) * Math.sin(theta3));
+
+            normals[i * 6 + 3] = e[0];
+            normals[i * 6 + 4] = e[1];
+            normals[i * 6 + 5] = e[2];
+
+            texCoords[i * 4 + 2] = 0.999 - j / segments;
+            texCoords[i * 4 + 3] = 0.999 - 2 * (i + 1) / segments;
+
+            vertices[i * 6 + 3] = e[0] * radius;
+            vertices[i * 6 + 4] = e[1] * radius;
+            vertices[i * 6 + 5] = e[2] * radius;
+        }
+
+        this.drawArrays(vertices,normals,this._fillColorBuffer(this._bColor,colors),texCoords,this._drawMode,0,(segments + 1) * 2);
+
+    }
+};
 
 /*---------------------------------------------------------------------------------------------------------*/
 
