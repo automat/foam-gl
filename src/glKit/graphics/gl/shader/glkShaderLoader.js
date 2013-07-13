@@ -9,7 +9,7 @@ GLKit.ShaderLoader =
 
         if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))
         {
-            console.log("Could not compile shader.");
+            console.log("Could not compile shader of type: " + (type == gl.VERTEX_SHADER ? 'VERTEX_SHADER' : 'FRAGMENT_SHADER') +'.');
             gl.deleteShader(shader);
             shader = null;
         }
