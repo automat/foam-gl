@@ -20,13 +20,13 @@ GLKit.GL = function(gl)
     this._aVertexColor      = gl.getAttribLocation(program,"VertexColor");
     this._aVertexUV         = gl.getAttribLocation(program,"VertexUV");
 
-    this._uUseLighting      = gl.getUniformLocation(program,"UseLighting");
+    this._uUseLighting      = gl.getUniformLocation(program,"uLighting");
 
-    this._uModelViewMatrix   = gl.getUniformLocation(program,"ModelViewMatrix");
-    this._uProjectionMatrix = gl.getUniformLocation(program,"ProjectionMatrix");
-    this._uNormalMatrix      = gl.getUniformLocation(program,"NormalMatrix");
+    this._uModelViewMatrix   = gl.getUniformLocation(program,"uModelViewMatrix");
+    this._uProjectionMatrix  = gl.getUniformLocation(program,"uProjectionMatrix");
+    this._uNormalMatrix      = gl.getUniformLocation(program,"uNormalMatrix");
 
-    this._uPointSize         = gl.getUniformLocation(program,"PointSize");
+    this._uPointSize         = gl.getUniformLocation(program,"uPointSize");
 
 
 
@@ -45,9 +45,9 @@ GLKit.GL = function(gl)
     _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this._eabo);
 
     gl.enableVertexAttribArray(this._aVertexPosition);
-    //gl.enableVertexAttribArray(this._aVertexNormal);
+    gl.enableVertexAttribArray(this._aVertexNormal);
     gl.enableVertexAttribArray(this._aVertexColor);
-    //gl.enableVertexAttribArray(this._aVertexUV);
+    gl.enableVertexAttribArray(this._aVertexUV);
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Bind constants
@@ -473,6 +473,13 @@ GLKit.GL.prototype.trianglef = function(v0,v1,v2,v3,v4,v5,v6,v7,v8)
 
 GLKit.GL.prototype.trianglev = function(vertices,normals,texCoords){this.drawArrays(this._fillVertexBuffer(vertices,this._bVertexTriangle),normals,this._fillColorBuffer(this._bColor,this._bColorTriangle),texCoords,this._drawMode,0,3);}
 
+GLKit.GL.prototype.cube = function(size)
+{
+    this.pushMatrix();
+    this.scale3f(size,size,size);
+    this.drawElements(this._bVertexCube,this._bNormalCube,this._fillColorBuffer(this._bColor,this._bColorCube),this._bTexCoordCube,this._bIndexCube,this._drawMode);
+    this.popMatrix();
+}
 
 
 GLKit.GL.prototype.enableLighting  = function(){};

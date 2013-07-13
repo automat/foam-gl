@@ -11,18 +11,18 @@ varying vec2 vVertexUV;
 
 varying vec4 vColor;
 
-uniform mat4 ModelViewMatrix;
-uniform mat4 ProjectionMatrix;
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
 
-uniform float PointSize;
+uniform float uPointSize;
 
 void main()
 {
     vVertexColor    = VertexColor;
     vVertexNormal   = VertexNormal;
-    vVertexPosition = ModelViewMatrix * vec4(VertexPosition,1.0);
+    vVertexPosition = uModelViewMatrix * vec4(VertexPosition,1.0);
     vVertexUV       = VertexUV;
 
-    gl_Position  = ProjectionMatrix * vVertexPosition;
-    gl_PointSize = PointSize;
+    gl_Position  = uProjectionMatrix * vVertexPosition;
+    gl_PointSize = uPointSize;
 }
