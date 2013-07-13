@@ -108,6 +108,8 @@ GLKit.Application.prototype.update = function(){};
 GLKit.Application.prototype.getFramesElapsed  = function(){return this._frames;};
 GLKit.Application.prototype.getSecondsElapsed = function(){return this._timeElapsed;};
 GLKit.Application.prototype.getTime           = function(){return this._time;};
+GLKit.Application.prototype.getTimeStart      = function(){return this._timeStart;};
+GLKit.Application.prototype.getTimeNext       = function(){return this._timeNext;}
 
 
 GLKit.Application.prototype.setTargetFPS = function(fps){this._targetFPS = fps;this._timeInterval = 1000/this._targetFPS;};
