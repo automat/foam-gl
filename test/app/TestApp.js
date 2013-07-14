@@ -11,6 +11,12 @@ function TestApp(div)
         light0.setSpecular3f(1,1,1);
 
 
+    var light1 = this._light1 = new GLKit.Light(this.gl.LIGHT_1);
+        light1.setAmbient3f(0,0,0);
+        light1.setDiffuse3f(0.8,0.8,0.8);
+        light1.setSpecular3f(1,1,1);
+
+
 }
 
 TestApp.prototype = Object.create(GLKit.Application.prototype);
@@ -22,7 +28,8 @@ TestApp.prototype.update = function()
 
     var gl     = this.gl,
         cam    = this.camera,
-        light0 = this._light0;
+        light0 = this._light0,
+        light1 = this._light1;
 
     var time   = this.getSecondsElapsed(),
         timePI = time * Math.PI,
@@ -59,6 +66,10 @@ TestApp.prototype.update = function()
     cam.updateMatrices();
 
     light0.setPosition3f(Math.cos(rotX)*2 ,0.5,Math.sin(rotX)*2);
+    light1.setPosition3f(0,Math.sin(time*0.25)*4,0);
+
+    light1.setAmbient3f(Math.abs(Math.sin(time)),Math.abs(Math.sin(time*0.5)),Math.abs(Math.sin(time*0.25)));
+
 
 
     gl.color1f(1);
@@ -78,8 +89,22 @@ TestApp.prototype.update = function()
 
     GLKit.GLUtil.drawAxes(gl,4);
 
+
+    gl.drawMode(gl.LINE_LOOP);
+    gl.pushMatrix();
+    gl.translate(light0.position);
+    GLKit.GLUtil.octahedron(gl,0.075);
+    gl.popMatrix();
+
+    gl.pushMatrix();
+    gl.translate(light1.position);
+    GLKit.GLUtil.octahedron(gl,0.075);
+    gl.popMatrix();
+
     gl.lighting(true);
+
     gl.light(light0);
+    //gl.light(light1);
 
     gl.color3f(1,1,1);
     gl.drawMode(gl.TRIANGLES);

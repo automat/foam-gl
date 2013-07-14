@@ -6,6 +6,7 @@ GLKit.Light = function(id)
     this.diffuse  = new Float32Array([1,1,1]);
     this.specular = new Float32Array([1,1,1]);
 
+
     this.position = GLKit.Vec3.ZERO();
 };
 

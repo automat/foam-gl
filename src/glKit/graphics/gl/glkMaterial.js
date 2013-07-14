@@ -3,7 +3,7 @@ GLKit.Material = function(ambient,diffuse,specular,shininess,emission)
     ambient   = ambient   || GLKit.Color.make(1.0,0.5,0.5,1.0);
     diffuse   = diffuse   || GLKit.Color.BLACK();
     specular  = specular  || GLKit.Color.BLACK();
-    shininess = shininess || 1.0;
+    shininess = shininess || 10.0;
     emission  = emission  || GLKit.Color.BLACK;
 
     this.emission  = emission;

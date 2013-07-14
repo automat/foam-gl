@@ -27,20 +27,57 @@ GLKit.GL = function(gl)
     this._uPointSize         = gl.getUniformLocation(program,"uPointSize");
 
 
-    //temp for debug
+
+    this.LIGHT_0    = 0;
+    this.LIGHT_1    = 1;
+    this.LIGHT_2    = 2;
+    this.LIGHT_3    = 3;
+    this.LIGHT_4    = 4;
+    this.LIGHT_5    = 5;
+    this.LIGHT_6    = 6;
+    this.LIGHT_7    = 7;
+    this.MAX_LIGHTS = 8;
+
     this._uLighting       = gl.getUniformLocation(program,'uLighting');
-    this._uLightPosition  = gl.getUniformLocation(program,'uLights.position');
-    this._uLightAmbient   = gl.getUniformLocation(program,'uLights.ambient');
-    this._uLightDiffuse   = gl.getUniformLocation(program,'uLights.diffuse');
-    this._uLightSpecular  = gl.getUniformLocation(program,'uLights.specular');
-    this._uLightShininess = gl.getUniformLocation(program,'uLights.shininess');
+
+    var l = this.MAX_LIGHTS;
+
+    //temp for debug
+
+    var uLightPosition  = this._uLightPosition  = new Array(l),
+        uLightAmbient   = this._uLightAmbient   = new Array(l),
+        uLightDiffuse   = this._uLightDiffuse   = new Array(l),
+        uLightSpecular  = this._uLightSpecular  = new Array(l),
+        uLightShininess = this._uLightShininess = new Array(l);
+
+    var i = -1;
+    while(++i < l)
+    {
+        uLightPosition[i]  = gl.getUniformLocation(program,'uLights['+i+'].position');
+        uLightAmbient[i]   = gl.getUniformLocation(program,'uLights['+i+'].ambient');
+        uLightDiffuse[i]   = gl.getUniformLocation(program,'uLights['+i+'].diffuse');
+        uLightSpecular[i]  = gl.getUniformLocation(program,'uLights['+i+'].specular');
+        uLightShininess[i] = gl.getUniformLocation(program,'uLights['+i+'].shininess');
 
 
-    this._uMaterialEmission  = gl.getUniformLocation(program,'uMaterial.emission');
-    this._uMaterialAmbient   = gl.getUniformLocation(program,'uMaterial.ambient');
-    this._uMaterialDiffuse   = gl.getUniformLocation(program,'uMaterial.diffuse');
-    this._uMaterialSpecular  = gl.getUniformLocation(program,'uMaterial.specular');
-    this._uMaterialShininess = gl.getUniformLocation(program,'uMaterial.shininess');
+        _gl.uniform3fv(uLightPosition[i], new Float32Array([0,0,0]));
+        _gl.uniform3fv(uLightAmbient[i],  new Float32Array([0,0,0]));
+        _gl.uniform3fv(uLightDiffuse[i],  new Float32Array([0,0,0]));
+        _gl.uniform1f(uLightShininess[i], 1.0);
+   }
+
+
+
+
+
+
+
+
+    this._uMaterialEmission  = _gl.getUniformLocation(program,'uMaterial.emission');
+    this._uMaterialAmbient   = _gl.getUniformLocation(program,'uMaterial.ambient');
+    this._uMaterialDiffuse   = _gl.getUniformLocation(program,'uMaterial.diffuse');
+    this._uMaterialSpecular  = _gl.getUniformLocation(program,'uMaterial.specular');
+    this._uMaterialShininess = _gl.getUniformLocation(program,'uMaterial.shininess');
 
 
 
@@ -58,10 +95,10 @@ GLKit.GL = function(gl)
     _gl.bindBuffer(_gl.ARRAY_BUFFER,         this._abo);
     _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this._eabo);
 
-    gl.enableVertexAttribArray(this._aVertexPosition);
-    gl.enableVertexAttribArray(this._aVertexNormal);
-    gl.enableVertexAttribArray(this._aVertexColor);
-    gl.enableVertexAttribArray(this._aVertexUV);
+    _gl.enableVertexAttribArray(this._aVertexPosition);
+    _gl.enableVertexAttribArray(this._aVertexNormal);
+    _gl.enableVertexAttribArray(this._aVertexColor);
+    _gl.enableVertexAttribArray(this._aVertexUV);
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Bind constants
@@ -141,15 +178,6 @@ GLKit.GL = function(gl)
     // Init Buffers
     /*---------------------------------------------------------------------------------------------------------*/
 
-
-    this.LIGHT_0 = 0;
-    this.LIGHT_1 = 1;
-    this.LIGHT_2 = 2;
-    this.LIGHT_3 = 3;
-    this.LIGHT_4 = 4;
-    this.LIGHT_5 = 5;
-    this.LIGHT_6 = 6;
-    this.LIGHT_7 = 7;
 
 
 
@@ -259,14 +287,14 @@ GLKit.GL.prototype.material = function(material)
 GLKit.GL.prototype.light = function(light)
 {
     //temp for debug
+    var id = light.getId(),
+        gl = this._gl;
 
-    var gl = this._gl;
-
-    gl.uniform3fv(this._uLightPosition, light.position);
-    gl.uniform3fv(this._uLightAmbient,  light.ambient);
-    gl.uniform3fv(this._uLightDiffuse,  light.diffuse);
-    gl.uniform3fv(this._uLightSpecular, light.specular);
-    gl.uniform1f (this._uLightShininess,20.0);
+    gl.uniform3fv(this._uLightPosition[id], light.position);
+    gl.uniform3fv(this._uLightAmbient[id],  light.ambient);
+    gl.uniform3fv(this._uLightDiffuse[id],  light.diffuse);
+    gl.uniform3fv(this._uLightSpecular[id], light.specular);
+    gl.uniform1f (this._uLightShininess[id],1.0); //temp
 };
 
 GLKit.GL.prototype.lighting    = function(bool){this._gl.uniform1f(this._uLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
@@ -303,7 +331,7 @@ GLKit.GL.prototype._setMatricesUniform = function()
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.GL.prototype.translate   = function(v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(v[0],v[1],v[1]));};
+GLKit.GL.prototype.translate   = function(v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(v[0],v[1],v[2]));};
 GLKit.GL.prototype.translate3f = function(x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,y,z));};
 GLKit.GL.prototype.translateX  = function(x)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,0,0));};
 GLKit.GL.prototype.translateY  = function(y)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(0,y,0));};

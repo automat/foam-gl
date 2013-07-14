@@ -49,7 +49,7 @@ vec4 phongModel(vec4 position, vec3 normal, vec4 color, Light light)
     return vec4(ambient + diffuse + specular,color.a);
 }
 
-uniform Light    uLights;
+uniform Light    uLights[8];
 uniform Material uMaterial;
 
 uniform mat3 uNormalMatrix;
@@ -58,6 +58,12 @@ uniform mat3 uNormalMatrix;
 void main()
 {
     vec3 tVertexNormal = (gl_FrontFacing ? -1.0 : 1.0) * normalize(uNormalMatrix * vVertexNormal);
-    vec4 lightingColor = phongModel(vVertexPosition,tVertexNormal,vVertexColor,uLights);
+    vec4 lightingColor = vec4(0,0,0,0);
+
+    for(int i = 0;i < 2;i++)
+    {
+        lightingColor+=phongModel(vVertexPosition,tVertexNormal,vVertexColor,uLights[i]);
+    }
+
     gl_FragColor = uLighting * lightingColor + (1.0-uLighting) * vVertexColor;
 }
