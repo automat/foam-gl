@@ -5,7 +5,11 @@ function TestApp(div)
     this.setSize(window.innerWidth,window.innerHeight);
     this.setTargetFPS(60);
 
-    this._light0 = new GLKit.Light(this.gl.LIGHT_0);
+    var light0 = this._light0 = new GLKit.Light(this.gl.LIGHT_0);
+        light0.setAmbient3f(0,0,0);
+        light0.setDiffuse3f(0.8,0.8,0.8);
+        light0.setSpecular3f(1,1,1);
+
 
 
 }
@@ -38,11 +42,16 @@ TestApp.prototype.update = function()
 
     cam.updateMatrices();
 
+    light0.position[0] = Math.cos(time)*2;
+    light0.position[1] = 0.5;
+    light0.position[2] = Math.sin(time)*2;
 
-    light0.setPosition3f(Math.cos(timePI)*2,0,Math.sin(timePI)*2);
+
     gl.color1f(1);
+    gl.pushMatrix();
+    gl.translate3f(0,0.5,0);
     gl.point(light0.position);
-
+    gl.popMatrix();
 
     gl.color3f(0.2,0.2,0.2);
     GLKit.GLUtil.drawGridCube(gl,8,1);
@@ -55,23 +64,54 @@ TestApp.prototype.update = function()
 
     GLKit.GLUtil.drawAxes(gl,4);
 
-
-    gl.drawMode(gl.LINE_STRIP);
-
-    gl.color4f(1,1,1,1);
-
+    gl.lighting(true);
+    gl.light(light0);
+    gl.color3f(0.5,0.5,0.5);
+    gl.drawMode(gl.TRIANGLES);
     gl.pushMatrix();
     gl.translate3f(0.5,0.5,0.5);
-    gl.cube(1);
-
+    gl.rotate3f(time,time,time);
+    gl.cube(0.5);
     gl.popMatrix();
-    gl.color3f(Math.abs(Math.sin(timePI)),0,0);
-    gl.drawMode(gl.LINE_LOOP);
+
+    gl.drawMode(gl.TRIANGLE_FAN);
+    gl.pushMatrix();
+    gl.translate3f(1,0.5,0);
+    gl.rect(0.5,0.5);
+    gl.pushMatrix();
+    gl.rotateX(PI * 0.5);
+    gl.rect(0.5,0.5);
+    gl.popMatrix();
+    gl.popMatrix();
+
+
+    gl.lighting(false);
+
+    gl.color3f(1,1,1);
+    gl.drawMode(gl.TRIANGLES);
     gl.pushMatrix();
     gl.translate3f(-0.5,0.5,-0.5);
-    //gl.cube(1);
-    gl.sphere(1,200);
+    gl.rotate3f(time,time,time);
+    gl.cube(0.5);
     gl.popMatrix();
+
+    gl.color3f(1,1,1);
+    gl.drawMode(gl.LINE_STRIP);
+    gl.pushMatrix();
+    gl.translate3f(0.5,0.5,-0.5);
+    gl.cube(0.5);
+    gl.popMatrix();
+
+    gl.color3f(0.05,0.05,0.05);
+    gl.drawMode(gl.LINE_STRIP);
+    gl.pushMatrix();
+    gl.translate3f(-0.5,0.5,0.5);
+    gl.rotate3f(time,time,time);
+    gl.cube(0.5);
+
+    gl.popMatrix();
+
+
 
 };
 
