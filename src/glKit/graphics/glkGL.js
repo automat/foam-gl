@@ -36,6 +36,13 @@ GLKit.GL = function(gl)
     this._uLightShininess = gl.getUniformLocation(program,'uLights.shininess');
 
 
+    this._uMaterialEmission  = gl.getUniformLocation(program,'uMaterial.emission');
+    this._uMaterialAmbient   = gl.getUniformLocation(program,'uMaterial.ambient');
+    this._uMaterialDiffuse   = gl.getUniformLocation(program,'uMaterial.diffuse');
+    this._uMaterialSpecular  = gl.getUniformLocation(program,'uMaterial.specular');
+    this._uMaterialShininess = gl.getUniformLocation(program,'uMaterial.shininess');
+
+
 
 
     _gl.uniform1f(this._uLighting,  0.0);
@@ -186,12 +193,7 @@ GLKit.GL = function(gl)
     this._bTexCoordEllipse = new Float32Array(SIZE_OF_UV * ELLIPSE_DETAIL_MAX);
 
 
-    this._bVertexCube = new Float32Array([-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5, 0.5,
-                                          -0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,
-                                          -0.5, 0.5,-0.5,-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,-0.5,
-                                          -0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5,-0.5, 0.5,-0.5,-0.5, 0.5,
-                                           0.5,-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5,
-                                          -0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5]);
+    this._bVertexCube = new Float32Array([-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5, 0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5,-0.5, 0.5,-0.5,-0.5, 0.5,0.5,-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5]);
     this._bColorCube  = new Float32Array(this._bVertexCube.length / SIZE_OF_VERTEX * SIZE_OF_COLOR);
     this._bNormalCube = new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0] );
 
@@ -242,6 +244,17 @@ GLKit.GL.prototype.setCamera = function(camera){this._camera = camera;};
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.pointSize = function(value){this._gl.uniform1f(this._uPointSize,value);};
+
+GLKit.GL.prototype.material = function(material)
+{
+    var gl = this._gl;
+
+    gl.uniform4fv(this._uMaterialEmission,  material.emission);
+    gl.uniform4fv(this._uMaterialAmbient,   material.ambient);
+    gl.uniform4fv(this._uMaterialDiffuse,   material.diffuse);
+    gl.uniform4fv(this._uMaterialSpecular,  material.specular);
+    gl.uniform1f( this._uMaterialShininess, material.shininess);
+}
 
 GLKit.GL.prototype.light = function(light)
 {
@@ -530,6 +543,14 @@ GLKit.GL.prototype.cube = function(size)
     this.scale3f(size,size,size);
     this.drawElements(this._bVertexCube,this._bNormalCube,this.fillColorBuffer(this._bColor,this._bColorCube),this._bTexCoordCube,this._bIndexCube,this._drawMode);
     this.popMatrix();
+};
+
+GLKit.GL.prototype.sphere = function(segments,size)
+{
+
+
+
+
 };
 
 
