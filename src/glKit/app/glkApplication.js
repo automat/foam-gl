@@ -15,6 +15,7 @@ GLKit.Application = function(parentDomElement)
     this._mouseDown       = false;
     this._mouseWheelDelta = 0.0;
 
+    this.mouse = new GLKit.Mouse();
 
     this._update          = true;
 
@@ -26,6 +27,8 @@ GLKit.Application = function(parentDomElement)
     this._timeNext     = Date.now();
     this._timeInterval = 1000/this._targetFPS;
     this._timeElapsed;
+
+
 
     /*---------------------------------------------------------------------------------*/
 
