@@ -84,16 +84,24 @@ TestApp.prototype.update = function()
 
     GLKit.GLUtil.drawAxes(gl,4);
 
+    var x,y;
 
-
-
-
-    gl.useLighting(true);
-
-    gl.useLighting(false);
     gl.color3f(1,1,1);
-    gl.linef(0,0,0,10,10,10);
+
+    var length = PI * (Math.sin(time))*2 / 100;
+
+    var i = -1;
+    while(++i < 100)
+    {
+
+        gl.linef(Math.cos(time-i*length)*2,Math.sin((time-i*length)*Math.sin(time*2)*5)*0.25,Math.sin(time-i*length)*2,
+                 Math.cos(time-i*length-length)*2,Math.sin((time-i*length-length)*Math.sin(time*2)*5)*0.25,Math.sin(time-i*length-length)*2);
+    }
+
+
     gl.useLighting(true);
+
+
 
     gl.light(light0);
     gl.light(light1);
