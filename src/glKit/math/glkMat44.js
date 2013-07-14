@@ -3,9 +3,9 @@ GLKit.Mat44 =
     make : function()
     {
         return new Float32Array([ 1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1 ]);
+                                  0, 1, 0, 0,
+                                  0, 0, 1, 0,
+                                  0, 0, 0, 1 ]);
     },
 
     identity : function(m)
@@ -243,6 +243,38 @@ GLKit.Mat44 =
         mo[15] = m[15];
 
         return mo;
+    },
+
+    toMat33Inversed : function(mat44,mat33)
+    {
+        var a00 = mat44[0], a01 = mat44[1], a02 = mat44[2];
+        var a10 = mat44[4], a11 = mat44[5], a12 = mat44[6];
+        var a20 = mat44[8], a21 = mat44[9], a22 = mat44[10];
+
+        var b01 = a22*a11-a12*a21;
+        var b11 = -a22*a10+a12*a20;
+        var b21 = a21*a10-a11*a20;
+
+        var d = a00*b01 + a01*b11 + a02*b21;
+        if (!d) { return null; }
+        var id = 1/d;
+
+
+        if(!mat33) { mat33 = GLKit.Mat33.make(); }
+
+        mat33[0] = b01*id;
+        mat33[1] = (-a22*a01 + a02*a21)*id;
+        mat33[2] = (a12*a01 - a02*a11)*id;
+        mat33[3] = b11*id;
+        mat33[4] = (a22*a00 - a02*a20)*id;
+        mat33[5] = (-a12*a00 + a02*a10)*id;
+        mat33[6] = b21*id;
+        mat33[7] = (-a21*a00 + a01*a20)*id;
+        mat33[8] = (a11*a00 - a01*a10)*id;
+
+        return mat33;
+
+
     },
 
     isFloatEqual : function(m0,m1)

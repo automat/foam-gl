@@ -20,9 +20,6 @@ GLKit.GL = function(gl)
     this._aVertexColor      = gl.getAttribLocation(program,"aVertexColor");
     this._aVertexUV         = gl.getAttribLocation(program,"aVertexUV");
 
-
-    this._uLighting      = gl.getUniformLocation(program,"uLighting");
-
     this._uModelViewMatrix   = gl.getUniformLocation(program,"uModelViewMatrix");
     this._uProjectionMatrix  = gl.getUniformLocation(program,"uProjectionMatrix");
     this._uNormalMatrix      = gl.getUniformLocation(program,"uNormalMatrix");
@@ -30,10 +27,19 @@ GLKit.GL = function(gl)
     this._uPointSize         = gl.getUniformLocation(program,"uPointSize");
 
 
+    //temp for debug
+    this._uLighting       = gl.getUniformLocation(program,'uLighting');
+    this._uLightPosition  = gl.getUniformLocation(program,'uLights.position');
+    this._uLightAmbient   = gl.getUniformLocation(program,'uLights.ambient');
+    this._uLightDiffuse   = gl.getUniformLocation(program,'uLights.diffuse');
+    this._uLightSpecular  = gl.getUniformLocation(program,'uLights.specular');
+    this._uLightShininess = gl.getUniformLocation(program,'uLights.shininess');
 
 
-    _gl.uniform1f(this._uLighting,0.0);
-    _gl.uniform1f(this._uPointSize,  1.0);
+
+
+    _gl.uniform1f(this._uLighting,  0.0);
+    _gl.uniform1f(this._uPointSize, 1.0);
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Pre Bind ARRAY_BUFFER & ELEMENT_ARRAY_BUFFER
@@ -169,6 +175,10 @@ GLKit.GL = function(gl)
     this._bTexCoordQuadDefault = new Float32Array([0.0,0.0,1.0,0.0,0.0,1.0,1.0,1.0]);
     this._bTexCoordQuad        = new Float32Array(this._bTexCoordQuadDefault.length);
 
+    this._bVertexRect          = new Float32Array(SIZE_OF_QUAD);
+    this._bNormalRect          = new Float32Array([0,1,0,0,1,0,0,1,0,0,1,0]);
+    this._bColorRect           = new Float32Array(4 * SIZE_OF_COLOR);
+
     this._bVertexEllipse   = new Float32Array(SIZE_OF_VERTEX * ELLIPSE_DETAIL_MAX);
     this._bNormalEllipse   = new Float32Array(this._bVertexEllipse.length);
     this._bColorEllipse    = new Float32Array(SIZE_OF_COLOR  * ELLIPSE_DETAIL_MAX);
@@ -183,12 +193,8 @@ GLKit.GL = function(gl)
                                            0.5,-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5,
                                           -0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5]);
     this._bColorCube  = new Float32Array(this._bVertexCube.length / SIZE_OF_VERTEX * SIZE_OF_COLOR);
-    this._bNormalCube = new Float32Array([ 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-                                           0.0, 0.0,-1.0, 0.0, 0.0,-1.0, 0.0, 0.0,-1.0, 0.0, 0.0,-1.0,
-                                           0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
-                                           0.0,-1.0, 0.0, 0.0,-1.0, 0.0, 0.0,-1.0, 0.0, 0.0,-1.0, 0.0,
-                                           1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-                                          -1.0, 0.0, 0.0,-1.0, 0.0, 0.0,-1.0, 0.0, 0.0,-1.0, 0.0, 0.0]);
+    this._bNormalCube = new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0] );
+
     this._bIndexCube  = new Uint16Array([  0, 1, 2, 0, 2, 3,
                                            4, 5, 6, 4, 6, 7,
                                            8, 9,10, 8,10,11,
@@ -215,8 +221,8 @@ GLKit.GL = function(gl)
 
     this._camera = null;
 
-    this._mModelView   = new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
-    this._mNormal      = new Float32Array([1,0,0,0,1,0,0,0,1]);
+    this._mModelView   = GLKit.Mat44.make();
+    this._mNormal      = GLKit.Mat33.make();
     this._mStack       = [];
 
     this._drawMode = this.LINES;
@@ -237,7 +243,18 @@ GLKit.GL.prototype.setCamera = function(camera){this._camera = camera;};
 
 GLKit.GL.prototype.pointSize = function(value){this._gl.uniform1f(this._uPointSize,value);};
 
+GLKit.GL.prototype.light = function(light)
+{
+    //temp for debug
 
+    var gl = this._gl;
+
+    gl.uniform3fv(this._uLightPosition, light.position);
+    gl.uniform3fv(this._uLightAmbient,  light.ambient);
+    gl.uniform3fv(this._uLightDiffuse,  light.diffuse);
+    gl.uniform3fv(this._uLightSpecular, light.specular);
+    gl.uniform1f (this._uLightShininess,20.0);
+};
 
 GLKit.GL.prototype.lighting    = function(bool){this._gl.uniform1f(this._uLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
 GLKit.GL.prototype.getLighting = function(){return this._bLighting;}
@@ -251,7 +268,6 @@ GLKit.GL.prototype.popMatrix    = function()
     if(stack.length == 0)throw ('Invalid pop!');
     this._mModelView = stack.pop();
 
-
     return this._mModelView;
 };
 
@@ -263,12 +279,16 @@ GLKit.GL.prototype._setMatricesUniform = function()
     gl.uniformMatrix4fv(this._uModelViewMatrix, false,this._mModelView);
     gl.uniformMatrix4fv(this._uProjectionMatrix,false,camera.projectionMatrix);
 
-    //if(!this._lighting)return;
-}
 
+    if(!this._bLighting)return;
+
+    GLKit.Mat44.toMat33Inversed(this._mModelView,this._mNormal);
+    GLKit.Mat33.transpose(this._mNormal,this._mNormal);
+
+    gl.uniformMatrix3fv(this._uNormalMatrix,false,this._mNormal);
+};
 
 /*---------------------------------------------------------------------------------------------------------*/
-
 
 GLKit.GL.prototype.translate   = function(v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(v[0],v[1],v[1]));};
 GLKit.GL.prototype.translate3f = function(x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,y,z));};
@@ -292,7 +312,7 @@ GLKit.GL.prototype.rotateZ     = function(z)    {this._mModelView = GLKit.Mat44.
 GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,indexUInt16Array,mode)
 {
     mode = mode || this.TRIANGLES;
-    this._fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
+    this.fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
     this._setMatricesUniform();
 
     var gl = this._gl;
@@ -303,16 +323,21 @@ GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array
 GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,mode,first,count)
 {
 
-    this._fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
+    this.fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
     this._setMatricesUniform();
     this._gl.drawArrays(mode,first,count);
+};
+
+GLKit.GL.prototype.drawGeometry = function(geom)
+{
+    this.drawElements(geom.vertices,geom.normals,geom.colors,geom.texCoords,geom.indices,this._drawMode);
 };
 
 
 /*---------------------------------------------------------------------------------------------------------*/
 
 
-GLKit.GL.prototype._fillArrayBuffer = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array)
+GLKit.GL.prototype.fillArrayBuffer = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array)
 {
 
     var na  = normalFloat32Array ? true : false,
@@ -352,7 +377,7 @@ GLKit.GL.prototype._fillArrayBuffer = function(vertexFloat32Array,normalFloat32A
 };
 
 
-GLKit.GL.prototype._fillColorBuffer = function(color,buffer)
+GLKit.GL.prototype.fillColorBuffer = function(color,buffer)
 {
     var i = 0;
 
@@ -387,7 +412,7 @@ GLKit.GL.prototype._fillColorBuffer = function(color,buffer)
     return buffer;
 };
 
-GLKit.GL.prototype._fillVertexBuffer = function(vertices,buffer)
+GLKit.GL.prototype.fillVertexBuffer = function(vertices,buffer)
 {
     if(vertices.length != buffer.length)throw ('Verices array has wrong length. Should be ' + buffer.length + '.');
     var i = -1;while(++i < buffer.length)buffer[i] = vertices[i];
@@ -429,18 +454,18 @@ GLKit.GL.prototype.getClearBuffer = function(){return this._bColorBg4f;};
 GLKit.GL.prototype.drawMode = function(mode){this._drawMode = mode;};
 GLKit.GL.prototype.getDrawMode = function(){return this._drawMode;};
 
-GLKit.GL.prototype.point   = function(vector){this.drawArrays(vector,null,this._fillColorBuffer(this._bColor,this._bColorPoint),null,this.POINTS,0,1);};
+GLKit.GL.prototype.point   = function(vector){this.drawArrays(vector,null,this.fillColorBuffer(this._bColor,this._bColorPoint),null,this.POINTS,0,1);};
 GLKit.GL.prototype.point3f = function(x,y,z) {this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;this._bVertexPoint[2] = z;this.point(this._bVertexPoint);};
 GLKit.GL.prototype.point2f = function(x,y){this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;his._bVertexPoint[2] = 0;this.point(this._bVertexPoint);};
 GLKit.GL.prototype.pointv  = function(arr){this._bVertexPoint[0] = arr[0];this._bVertexPoint[1] = arr[1];this._bVertexPoint[2] = arr[2];this.point(this._bVertexPoint);};
 
 
-GLKit.GL.prototype.line  = function(vertices){this.drawArrays(this._fillVertexBuffer(vertices,this._bVertexLine),null,this._fillColorBuffer(this._bColor,this._bColorLine),null,this._drawMode,0, 2);};
+GLKit.GL.prototype.line  = function(vertices){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexLine),null,this.fillColorBuffer(this._bColor,this._bColorLine),null,this._drawMode,0, 2);};
 GLKit.GL.prototype.linev = function(vertices)
 {
     var v = new Float32Array(vertices),
         l = vertices.length / this.SIZE_OF_VERTEX;
-    this.drawArrays(v,null,this._fillColorBuffer(this._bColor, new Float32Array(l*this.SIZE_OF_COLOR)),null,this._drawMode,0, l);
+    this.drawArrays(v,null,this.fillColorBuffer(this._bColor, new Float32Array(l*this.SIZE_OF_COLOR)),null,this._drawMode,0, l);
 };
 
 GLKit.GL.prototype.linef = function(x0,y0,z0,x1,y1,z1)
@@ -450,7 +475,7 @@ GLKit.GL.prototype.linef = function(x0,y0,z0,x1,y1,z1)
     v[0] = x0;v[1] = y0;v[2] = z0;
     v[3] = x1;v[4] = y1;v[5] = z1;
 
-    this.drawArrays(v,null,this._fillColorBuffer(this._bColor,this._bColorLine),null,this._drawMode,0,2);
+    this.drawArrays(v,null,this.fillColorBuffer(this._bColor,this._bColorLine),null,this._drawMode,0,2);
 };
 
 GLKit.GL.prototype.quadf = function(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3)
@@ -462,19 +487,19 @@ GLKit.GL.prototype.quadf = function(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3)
     v[ 6] = x2;v[ 7] = y2;v[ 8] = z2;
     v[ 9] = x3;v[10] = y3;v[11] = z3;
 
-    this.drawArrays(v,null,this._fillColorBuffer(this._bColor,this._bColorQuad),null,this._drawMode,0,4);
+    this.drawArrays(v,null,this.fillColorBuffer(this._bColor,this._bColorQuad),null,this._drawMode,0,4);
 };
 
-GLKit.GL.prototype.quad = function(vertices,normals,texCoords){this.drawArrays(this._fillVertexBuffer(vertices,this._bVertexQuad),normals,this._fillColorBuffer(this._bColor,this._bColorQuad),texCoords,this._drawMode,0,4);};
+GLKit.GL.prototype.quad = function(vertices,normals,texCoords){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexQuad),normals,this.fillColorBuffer(this._bColor,this._bColorQuad),texCoords,this._drawMode,0,4);};
 
 GLKit.GL.prototype.rect = function(width,height)
 {
-    var v = this._bVertexQuad;
+    var v = this._bVertexRect;
 
     v[0] = v[1] = v[2] = v[4] = v[5] = v[7] = v[9] = v[10] = 0;
     v[3] = v[6] = width; v[8] = v[11] = height;
 
-    this.drawArrays(v,null,this._fillColorBuffer(this._bColor,this._bColorQuad),null,this._drawMode,0,4);
+    this.drawArrays(v,this._bNormalRect,this.fillColorBuffer(this._bColor,this._bColorRect),null,this._drawMode,0,4);
 };
 
 GLKit.GL.prototype.triangle = function(v0,v1,v2)
@@ -484,7 +509,7 @@ GLKit.GL.prototype.triangle = function(v0,v1,v2)
     v[3] = v1[0];v[4] = v1[1];v[5] = v1[2];
     v[6] = v2[0];v[7] = v2[1];v[8] = v2[2];
 
-    this.drawArrays(v,null,this._fillColorBuffer(this._bColor,this._bColorTriangle),null,this._drawMode,0,3);
+    this.drawArrays(v,null,this.fillColorBuffer(this._bColor,this._bColorTriangle),null,this._drawMode,0,3);
 };
 
 GLKit.GL.prototype.trianglef = function(v0,v1,v2,v3,v4,v5,v6,v7,v8)
@@ -494,88 +519,21 @@ GLKit.GL.prototype.trianglef = function(v0,v1,v2,v3,v4,v5,v6,v7,v8)
     v[3] = v3;v[4] = v4;v[5] = v5;
     v[6] = v6;v[7] = v7;v[8] = v8;
 
-    this.drawArrays(v,null,this._fillColorBuffer(this._bColor,this._bColorTriangle),null,this._drawMode,0,3);
+    this.drawArrays(v,null,this.fillColorBuffer(this._bColor,this._bColorTriangle),null,this._drawMode,0,3);
 };
 
-GLKit.GL.prototype.trianglev = function(vertices,normals,texCoords){this.drawArrays(this._fillVertexBuffer(vertices,this._bVertexTriangle),normals,this._fillColorBuffer(this._bColor,this._bColorTriangle),texCoords,this._drawMode,0,3);}
+GLKit.GL.prototype.trianglev = function(vertices,normals,texCoords){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexTriangle),normals,this.fillColorBuffer(this._bColor,this._bColorTriangle),texCoords,this._drawMode,0,3);}
 
 GLKit.GL.prototype.cube = function(size)
 {
     this.pushMatrix();
     this.scale3f(size,size,size);
-    this.drawElements(this._bVertexCube,this._bNormalCube,this._fillColorBuffer(this._bColor,this._bColorCube),this._bTexCoordCube,this._bIndexCube,this._drawMode);
+    this.drawElements(this._bVertexCube,this._bNormalCube,this.fillColorBuffer(this._bColor,this._bColorCube),this._bTexCoordCube,this._bIndexCube,this._drawMode);
     this.popMatrix();
 };
 
 
-GLKit.GL.prototype.sphere = function(radius,segments)
-{
-    var vertices   = new Float32Array((segments + 1) * 6),
-        normals    = new Float32Array((segments + 1) * 6),
-        texCoords  = new Float32Array((segments + 1) * 4),
-        colors     = new Float32Array((segments + 1) * 8);
 
-
-    var pi     = Math.PI,
-        piHalf = pi * 0.5,
-        piTwo  = pi * 2;
-
-    var segHalf = segments * 0.5,
-        segInv  = 1 / segments;
-
-    var i = -1,j;
-
-    var theta1,theta2,theta3;
-
-    var e = new GLKit.Vec3.make();
-
-    while(++i < segHalf)
-    {
-        theta1 = i * piTwo * segInv - piHalf;
-        theta2 = (i + 1) * piTwo * segInv - piHalf;
-
-        j = -1;
-
-        while(++j < segments)
-        {
-            theta3 = j * piTwo * segInv;
-
-            GLKit.Vec3.set3f(e,Math.cos(theta1) * Math.cos(theta3),
-                               Math.sin(theta1),
-                               Math.cos(theta1) * Math.sin(theta3));
-
-            normals[i * 6    ] = e[0];
-            normals[i * 6 + 1] = e[1];
-            normals[i * 6 + 2] = e[2];
-
-            texCoords[i * 4    ] = 0.999 - j / segments;
-            texCoords[i * 4 + 1] = 0.999 - 2 * i / segments;
-
-            vertices[i * 6    ] = e[0] * radius;
-            vertices[i * 6 + 1] = e[1] * radius;
-            vertices[i * 6 + 2] = e[2] * radius;
-
-
-            GLKit.Vec3.set3f(e,Math.cos(theta2) * Math.cos(theta3),
-                               Math.sin(theta2),
-                               Math.cos(theta2) * Math.sin(theta3));
-
-            normals[i * 6 + 3] = e[0];
-            normals[i * 6 + 4] = e[1];
-            normals[i * 6 + 5] = e[2];
-
-            texCoords[i * 4 + 2] = 0.999 - j / segments;
-            texCoords[i * 4 + 3] = 0.999 - 2 * (i + 1) / segments;
-
-            vertices[i * 6 + 3] = e[0] * radius;
-            vertices[i * 6 + 4] = e[1] * radius;
-            vertices[i * 6 + 5] = e[2] * radius;
-        }
-
-        this.drawArrays(vertices,normals,this._fillColorBuffer(this._bColor,colors),texCoords,this._drawMode,0,(segments + 1) * 2);
-
-    }
-};
 
 /*---------------------------------------------------------------------------------------------------------*/
 
