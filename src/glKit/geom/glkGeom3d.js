@@ -82,7 +82,7 @@ GLKit.Geom3d.prototype.updateVertexNormals = function()
         i+=3;
     }
 
-    var x, y, z,l;
+    var x, y, z, l, il;
 
     i = 0;
     while(i < normals.length)
@@ -92,11 +92,13 @@ GLKit.Geom3d.prototype.updateVertexNormals = function()
         y = normals[i+1];
         z = normals[i+2];
 
-        l = 1 / Math.sqrt(x*x+y*y+z*z);
+        l = Math.sqrt(x*x+y*y+z*z);
 
-        normals[i  ] *= l;
-        normals[i+1] *= l;
-        normals[i+2] *= l;
+        il = 1 / (l != 0 ? l : 1);
+
+        normals[i  ] *= il;
+        normals[i+1] *= il;
+        normals[i+2] *= il;
 
         i+=3;
     }
