@@ -16,6 +16,14 @@ struct Light
     vec3  diffuse;
     vec3  specular;
     float shininess;
+
+    vec4  halfVector;
+    vec3  spotDirection;
+    float spotExponent;
+    float spotCosCutoff;
+    float constantAttenuation;
+    float linearAttenuation;
+    float quadraticAttenuation;
 };
 
 struct Material
