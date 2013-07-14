@@ -37,6 +37,12 @@ GLKit.GL = function(gl)
     this.LIGHT_7    = 7;
     this.MAX_LIGHTS = 8;
 
+    this.MODEL_PHONG       = 0;
+    this.MODEL_ANTISOPTRIC = 1;
+    this.MODEL_FRESNEL     = 2;
+    this.MODEL_BLINN       = 3;
+    this.MODEL_FLAT        = 4;
+
     this._uUseLighting = gl.getUniformLocation(program,'uUseLighting');
     this._uUseMaterial = gl.getUniformLocation(program,'uUseMaterial');
 
@@ -79,6 +85,8 @@ GLKit.GL = function(gl)
     _gl.uniform1f(this._uUseMaterial, 0.0);
     _gl.uniform1f(this._uUseLighting, 0.0);
 
+    this._lightingMode = 0;
+
     _gl.uniform1f(this._uPointSize, 1.0);
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -99,6 +107,8 @@ GLKit.GL = function(gl)
     /*---------------------------------------------------------------------------------------------------------*/
     // Bind constants
     /*---------------------------------------------------------------------------------------------------------*/
+
+
 
     this.DEPTH_TEST               = _gl.DEPTH_TEST;
 
@@ -291,13 +301,17 @@ GLKit.GL.prototype.light = function(light)
     gl.uniform3fv(this._uLightSpecular[id], light.specular);
 };
 
-GLKit.GL.prototype.materialMode = function(mode){};
+GLKit.GL.prototype.lightingMode = function(mode){this._lightingMode = mode;};
 
 GLKit.GL.prototype.useMaterial = function(bool){this._gl.uniform1f(this._uUseMaterial,bool ? 1.0 : 0.0);};
 GLKit.GL.prototype.useLighting = function(bool){this._gl.uniform1f(this._uUseLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
 GLKit.GL.prototype.getLighting = function(){return this._bLighting;}
 
+GLKit.GL.prototype.ambient   = function(color){this._gl.uniform3f(this._uAmbient,color[0],color[1],color[2]);};
+GLKit.GL.prototype.ambient3f = function(r,g,b){this._gl.uniform3f(this._uAmbient,r,g,b);};
+GLKit.GL.prototype.ambient1f = function(k)    {this._gl.uniform1f(this._uAmbient,k);};
 
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.loadIdentity = function(){this._mModelView = GLKit.Mat44.identity(this._camera.modelViewMatrix);};
 GLKit.GL.prototype.pushMatrix   = function(){this._mStack.push(GLKit.Mat44.copy(this._mModelView));};
@@ -471,9 +485,7 @@ GLKit.GL.prototype.color2f = function(k,a)    {this._bColor = GLKit.Color.set2f(
 GLKit.GL.prototype.color1f = function(k)      {this._bColor = GLKit.Color.set1f(this._bColor4f,k);};
 GLKit.GL.prototype.colorfv = function(array)  {this._bColor = array;};
 
-GLKit.GL.prototype.ambient   = function(color){this._gl.uniform3f(this._uAmbient,color[0],color[1],color[2]);};
-GLKit.GL.prototype.ambient3f = function(r,g,b){this._gl.uniform3f(this._uAmbient,r,g,b);};
-GLKit.GL.prototype.ambient1f = function(k)    {this._gl.uniform1f(this._uAmbient,k);};
+
 
 GLKit.GL.prototype.clearColor = function(color){this.clear4f(color[0],color[1],color[2],color[3]);};
 GLKit.GL.prototype.clear      = function()     {this.clear4f(0,0,0,1);};
