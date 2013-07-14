@@ -69,7 +69,7 @@ GLKit.GLUtil =
     {
         var b = gl.getLighting();
 
-        gl.lighting(false);
+        gl.useLighting(false);
 
         gl.color3f(1,0,0);
         gl.linef(0,0,0,unit,0,0);
@@ -78,7 +78,7 @@ GLKit.GLUtil =
         gl.color3f(0,0,1);
         gl.linef(0,0,0,0,0,unit);
 
-        gl.lighting(b);
+        gl.useLighting(b);
     },
 
 
