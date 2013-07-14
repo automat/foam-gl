@@ -11,7 +11,6 @@ function TestApp(div)
         light0.setSpecular3f(1,1,1);
 
 
-
 }
 
 TestApp.prototype = Object.create(GLKit.Application.prototype);
@@ -36,80 +35,96 @@ TestApp.prototype.update = function()
 
     var zoom = 3 + this.getMouseWheelDelta() * 0.1;
 
+    var rotX;
 
-    cam.setPosition3f(Math.cos(time) * zoom,zoom ,Math.sin(time) * zoom);
+    if(this.isMouseDown())
+    {
+        rotX = (-1 + this.mouse.getX() / this.glWindow.getWidth() * 2) * PI;
+        var rotY = (-1 + this.mouse.getY() / this.glWindow.getHeight()* 2) * PI * 0.5;
+
+        cam.setPosition3f(Math.cos(rotX) * zoom,
+                          Math.sin(rotY) * zoom,
+                          Math.sin(rotX) * zoom);
+    }
+    else
+    {
+        rotX = time * 0.25;
+
+        cam.setPosition3f(Math.cos(rotX) * zoom,
+                          zoom,
+                          Math.sin(rotX) * zoom);
+    }
+
     cam.setTarget3f(0,0,0);
-
     cam.updateMatrices();
 
-    light0.position[0] = Math.cos(time)*2;
-    light0.position[1] = 0.5;
-    light0.position[2] = Math.sin(time)*2;
+    light0.setPosition3f(Math.cos(rotX)*2 ,0.5,Math.sin(rotX)*2);
 
 
     gl.color1f(1);
     gl.pushMatrix();
-    gl.translate3f(0,0.5,0);
-    gl.point(light0.position);
+        gl.translate3f(0,0.5,0);
+        gl.point(light0.position);
     gl.popMatrix();
 
-    gl.color3f(0.2,0.2,0.2);
+    gl.color3f(0.4,0.4,0.4);
     GLKit.GLUtil.drawGridCube(gl,8,1);
 
-    gl.color3f(0.25,0.25,0.25);
+    gl.color3f(0.4,0.4,0.4);
     gl.pushMatrix();
-    gl.translate3f(0,-0.01,0);
-    GLKit.GLUtil.drawGrid(gl,8,1);
+        gl.translate3f(0,-0.01,0);
+        GLKit.GLUtil.drawGrid(gl,8,1);
     gl.popMatrix();
 
     GLKit.GLUtil.drawAxes(gl,4);
 
     gl.lighting(true);
     gl.light(light0);
-    gl.color3f(0.5,0.5,0.5);
+
+    gl.color3f(1,1,1);
     gl.drawMode(gl.TRIANGLES);
+    gl.cube(8);
+
+    gl.color3f(0.5,0.5,0.5);
+
     gl.pushMatrix();
-    gl.translate3f(0.5,0.5,0.5);
-    gl.rotate3f(time,time,time);
-    gl.cube(0.5);
+        gl.translate3f(0.5,0.5,0.5);
+        gl.rotate3f(time,time,time);
+        gl.cube(0.5);
     gl.popMatrix();
 
-    gl.drawMode(gl.TRIANGLE_FAN);
-    gl.pushMatrix();
-    gl.translate3f(1,0.5,0);
-    gl.rect(0.5,0.5);
-    gl.pushMatrix();
-    gl.rotateX(PI * 0.5);
-    gl.rect(0.5,0.5);
+    gl.color3f(1,1,1);
+        gl.pushMatrix();
+        gl.translate3f(-0.5,0.5,-0.5);
+        gl.cube(0.5);
     gl.popMatrix();
+
+    gl.color3f(Math.abs(Math.sin(timePI)),Math.abs(Math.cos(timePI)),1);
+        gl.pushMatrix();
+        gl.translate3f(-1.5,0.5,-1.5);
+        gl.cube(1);
     gl.popMatrix();
 
 
     gl.lighting(false);
 
     gl.color3f(1,1,1);
-    gl.drawMode(gl.TRIANGLES);
-    gl.pushMatrix();
-    gl.translate3f(-0.5,0.5,-0.5);
-    gl.rotate3f(time,time,time);
-    gl.cube(0.5);
-    gl.popMatrix();
-
-    gl.color3f(1,1,1);
     gl.drawMode(gl.LINE_STRIP);
     gl.pushMatrix();
-    gl.translate3f(0.5,0.5,-0.5);
-    gl.cube(0.5);
+        gl.translate3f(0.5,0.5,-0.5);
+        gl.cube(0.5);
     gl.popMatrix();
 
     gl.color3f(0.05,0.05,0.05);
     gl.drawMode(gl.LINE_STRIP);
     gl.pushMatrix();
-    gl.translate3f(-0.5,0.5,0.5);
-    gl.rotate3f(time,time,time);
-    gl.cube(0.5);
-
+        gl.translate3f(-0.5,0.5,0.5);
+        gl.rotate3f(time,time,time);
+        gl.cube(0.5);
     gl.popMatrix();
+
+
+
 
 
 
