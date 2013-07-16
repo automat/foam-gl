@@ -303,6 +303,7 @@ GLKit.GL.prototype.light = function(light)
 
 GLKit.GL.prototype.lightingMode = function(mode){this._lightingMode = mode;};
 
+GLKit.GL.prototype.useTexture  = function(bool){};
 GLKit.GL.prototype.useMaterial = function(bool){this._gl.uniform1f(this._uUseMaterial,bool ? 1.0 : 0.0);};
 GLKit.GL.prototype.useLighting = function(bool){this._gl.uniform1f(this._uUseLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
 GLKit.GL.prototype.getLighting = function(){return this._bLighting;}
@@ -579,6 +580,14 @@ GLKit.GL.prototype.trianglef = function(v0,v1,v2,v3,v4,v5,v6,v7,v8)
 };
 
 GLKit.GL.prototype.trianglev = function(vertices,normals,texCoords){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexTriangle),normals,this.fillColorBuffer(this._bColor,this._bColorTriangle),texCoords,this._drawMode,0,3);}
+
+GLKit.GL.prototype.box = function(width,height,depth)
+{
+    this.pushMatrix();
+    this.scale3f(width,depth,height);
+    this.drawElements(this._bVertexCube,this._bNormalCube,this.fillColorBuffer(this._bColor,this._bColorCube),this._bTexCoordCube,this._bIndexCube,this._drawMode);
+    this.popMatrix();
+};
 
 GLKit.GL.prototype.cube = function(size)
 {

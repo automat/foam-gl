@@ -88,14 +88,15 @@ TestApp.prototype.update = function()
 
     gl.color3f(1,1,1);
 
-    var length = PI * (Math.sin(time))*2 / 100;
+    var a = 100;
+    var length = Math.PI / a;
 
     var i = -1;
-    while(++i < 100)
+    while(++i < a)
     {
-
-        gl.linef(Math.cos(time-i*length)*2,Math.sin((time-i*length)*Math.sin(time*2)*5)*0.25,Math.sin(time-i*length)*2,
-                 Math.cos(time-i*length-length)*2,Math.sin((time-i*length-length)*Math.sin(time*2)*5)*0.25,Math.sin(time-i*length-length)*2);
+        gl.color1f(1.0-i/a);
+        gl.linef(Math.cos(time-i*length)*2,Math.sin((time-i*length)*2),Math.sin(time-i*length)*2,
+                 Math.cos(time-i*length-length)*2,Math.sin((time-i*length-length)*2),Math.sin(time-i*length-length)*2);
     }
 
 
@@ -107,6 +108,9 @@ TestApp.prototype.update = function()
     gl.light(light1);
 
     gl.drawMode(gl.TRIANGLE_STRIP);
+
+
+
     gl.pushMatrix();
     gl.translate(light0.position);
     GLKit.GLUtil.octahedron(gl,0.075);
@@ -138,11 +142,8 @@ TestApp.prototype.update = function()
     material.setAmbient3f(0.0,0.0,0.0);
     material.setSpecular3f(0,0,0);
 
-
-
-
-
-    var i = -1,j;
+    i = -1;
+    var j;
     while(++i < 4)
     {
         j = -1;
@@ -150,22 +151,13 @@ TestApp.prototype.update = function()
         {
             gl.pushMatrix();
             gl.translate3f(0.5 + i,0.5 + Math.sin(time*2 + i*j)*0.25,0.5 + j);
-
-
-
             gl.rotate3f(time*i,time,time*j);
             gl.cube(0.25 + i*j*0.025);
-
-
-
             gl.popMatrix();
-
-
-
-
         }
-
     }
+
+
 
     gl.useMaterial(false);
 
@@ -176,6 +168,18 @@ TestApp.prototype.update = function()
         gl.translate3f(-0.5,0.5,-0.5);
         gl.cube(0.5);
     gl.popMatrix();
+
+
+    gl.color3f(1,1,1);
+    gl.pushMatrix();
+    gl.translate3f(Math.cos(time)*2,Math.sin(time * 2),Math.sin(time)*2);
+    gl.cube(0.025);
+    gl.popMatrix();
+
+
+
+
+
 
     gl.useMaterial(true);
 
@@ -194,6 +198,8 @@ TestApp.prototype.update = function()
         gl.translate3f(-1.5,0.5,-1.5);
         gl.cube(1);
     gl.popMatrix();
+
+
 
     gl.useMaterial(false);
 
