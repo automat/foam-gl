@@ -67,9 +67,15 @@ GLKit.ProgFragShader="precision mediump float;" +
 
 "void main()" + 
 "{" + 
-"    vec3 tVertexNormal    = (gl_FrontFacing ? -1.0 : 1.0) * normalize(uNormalMatrix * vVertexNormal);" + 
-"    ColorComponent color = (uUseMaterial == 0.0) ? ColorComponent(vVertexColor,vVertexColor,vVertexColor,1.0) :" + 
-"                                                   ColorComponent(uMaterial.ambient,uMaterial.diffuse,uMaterial.specular,uMaterial.shininess);" + 
+"    vec3 tVertexNormal     = (gl_FrontFacing ? -1.0 : 1.0) * normalize(uNormalMatrix * vVertexNormal);" + 
+
+"    vec4 vertexColor = vVertexColor * (1.0-uUseMaterial);" + 
+
+"    ColorComponent color  = ColorComponent(uMaterial.ambient   * uUseMaterial + vertexColor," + 
+"                                           uMaterial.diffuse   * uUseMaterial + vertexColor," + 
+"                                           uMaterial.specular  * uUseMaterial + vertexColor," + 
+"                                           uMaterial.shininess * uUseMaterial + (1.0 - uUseMaterial));" + 
+
 "    vec4 lightingColor = vec4(0,0,0,0);" + 
 
 "    for(int i = 0;i < MAX_LIGHTS;i++)" + 
