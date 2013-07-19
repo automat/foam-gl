@@ -26,9 +26,9 @@
         var surface0 = this._surface0 = new GLKit.ParametricSurface(100);
 
 
-            surface0.setFunctions('Math.cos(v)*(1 + 0.25 * Math.cos(u))',
-                                  '0.25 * Math.sin(u)',
-                                  'Math.sin(v)*(1 + 0.25 * Math.cos(u))',
+            surface0.setFunctions(function(u,v,t){return Math.cos(v)*(1 + 0.25 * Math.cos(u))},
+                                  function(u,v,t){return 0.25 * Math.sin(u)},
+                                  function(u,v,t){return Math.sin(v)*(1 + 0.25 * Math.cos(u))},
                                   [0,2*Math.PI],
                                   [0,2*Math.PI]);
 
@@ -37,9 +37,9 @@
 
         var surface1 = this._surface1 = new GLKit.ParametricSurface(100);
 
-            surface1.setFunctions('0.5 * Math.sin(v) * Math.cos(u)',
-                                  '0.5 * Math.sin(v) * Math.sin(u)',
-                                  '0.5 * Math.cos(v)',
+            surface1.setFunctions(function(u,v,t){return 0.5 * Math.sin(v) * Math.cos(u)},
+                                  function(u,v,t){return 0.5 * Math.sin(v) * Math.sin(u)},
+                                  function(u,v,t){return 0.5 * Math.cos(v)},
                                   [0,Math.PI],
                                   [0,2*Math.PI]);
             surface1.applyFunctions();

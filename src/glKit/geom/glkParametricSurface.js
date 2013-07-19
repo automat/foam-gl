@@ -2,15 +2,15 @@ GLKit.ParametricSurface = function(size)
 {
     GLKit.Geom3d.apply(this,null);
 
-    this.funcX = null;
-    this.funcY = null;
-    this.funcZ = null;
-    this.ur    = null;
-    this.vr    = null;
+    this.funcX = function(u,v,t){return u;};
+    this.funcY = function(u,v,t){return 0;};
+    this.funcZ = function(u,v,t){return v;};
+    this.ur    = [-1,1];
+    this.vr    = [-1,1];
     this.size  = null;
 
     this.setSize(size);
-    this.setFunctions('u','0','v',[-1,1],[-1,1]);
+
 };
 
 GLKit.ParametricSurface.prototype = Object.create(GLKit.Geom3d.prototype);
@@ -54,13 +54,11 @@ GLKit.ParametricSurface.prototype.setSize = function(size,unit)
     this.updateVertexNormals();
 };
 
-//Override
-
-GLKit.ParametricSurface.prototype.setFunctions = function(stringFuncX,stringFuncY,stringFuncZ,vr,ur)
+GLKit.ParametricSurface.prototype.setFunctions = function(funcX,funcY,funcZ,vr,ur)
 {
-    this.setFunctionXString(stringFuncX);
-    this.setFunctionYString(stringFuncY);
-    this.setFunctionZString(stringFuncZ);
+    this.funcX = funcX;
+    this.funcY = funcY;
+    this.funcZ = funcZ;
     this.vr   = vr;
     this.ur   = ur;
 };
@@ -68,9 +66,9 @@ GLKit.ParametricSurface.prototype.setFunctions = function(stringFuncX,stringFunc
 GLKit.ParametricSurface.prototype.applyFunctions = function()
 {
     this.applyFunctionsWithTime(0);
-
 };
 
+//Override
 GLKit.ParametricSurface.prototype.applyFunctionsWithTime = function(t)
 {
     var size  = this.size;
@@ -120,17 +118,3 @@ GLKit.ParametricSurface.prototype.pointOnSurface = function(u,v)
                            this.funcZ(u,v,0));
 };
 
-GLKit.ParametricSurface.prototype.setFunctionXString = function(string)
-{
-    try{this.funcX = new Function('u','v','t','return ' + string +';');}catch(e){}
-};
-
-GLKit.ParametricSurface.prototype.setFunctionYString = function(string)
-{
-    try{this.funcY = new Function('u','v','t','return ' + string +';');}catch(e){}
-};
-
-GLKit.ParametricSurface.prototype.setFunctionZString = function(string)
-{
-    try{this.funcZ = new Function('u','v','t','return ' + string +';');}catch(e){}
-}
