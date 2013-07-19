@@ -93,6 +93,17 @@ GLKit.Vec3 =
         v0[2] = z0 * (1.0 - f) + v1[2] * f;
     },
 
+    lerp3f : function(v,x,y,z,f)
+    {
+        var vx = v[0],
+            vy = v[1],
+            vz = v[2];
+
+        v[0] = vx * (1.0 - f) + x * f;
+        v[1] = vy * (1.0 - f) + y * f;
+        v[2] = vz * (1.0 - f) + z * f;
+    },
+
 
     length : function(v)
     {

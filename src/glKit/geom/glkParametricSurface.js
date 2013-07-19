@@ -24,7 +24,7 @@ GLKit.ParametricSurface.prototype.setSize = function(size,unit)
     this.unit = unit;
 
     var length  = size * size;
-    var uvScale = 1 / (size > 1 ? (size - 1) : 1);
+    var uvScale = 1 / (size > 1 ? (size - 1) : 1) * unit;
 
     this.vertices  = new Float32Array(length * GLKit.Vec3.SIZE);
     this.normals   = new Float32Array(length * GLKit.Vec3.SIZE);
@@ -44,9 +44,9 @@ GLKit.ParametricSurface.prototype.setSize = function(size,unit)
         {
             index = (j + size * i) * GLKit.Vec3.SIZE;
 
-            vertices[index    ] = -0.5 + j * uvScale;
+            vertices[index    ] = -0.5 * unit + j * uvScale;
             vertices[index + 1] = 0.0;
-            vertices[index + 2] = -0.5 + i * uvScale;
+            vertices[index + 2] = -0.5 * unit + i * uvScale;
         }
     }
 
@@ -90,11 +90,13 @@ GLKit.ParametricSurface.prototype.applyFunctions = function()
 
 };
 
-//TODO: FIX ME!!
+//TODO: FIX ME!
 GLKit.ParametricSurface.prototype.applyFunctionsWithTime = function(t)
 {
+    var unit = this.unit;
+
     var size  = this.size,
-        iSize = 1 / (size - 1);
+        iSize = 1 / (size - 1) * unit;
 
     var funcX = this.funcX,
         funcY = this.funcY,
@@ -125,8 +127,8 @@ GLKit.ParametricSurface.prototype.applyFunctionsWithTime = function(t)
             index = (j + size * i);
             indexVertices = index * 3;
 
-            u = urLower + (j * temp0) * 2;
-            v = vrLower + (i * temp1) * 2;
+            u = urLower * unit + (j * temp0) * 2;
+            v = vrLower * unit + (i * temp1) * 2;
 
             vertices[indexVertices    ] = funcX(u,v,t);
             vertices[indexVertices + 1] = funcY(u,v,t);
