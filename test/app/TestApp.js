@@ -3,7 +3,7 @@ function TestApp(div)
     GLKit.Application.apply(this,arguments);
 
     this.setSize(window.innerWidth,window.innerHeight);
-    this.setTargetFPS(60);
+    this.setTargetFPS(40);
 
     var light0 = this._light0 = new GLKit.Light(this.gl.LIGHT_0);
         light0.setAmbient3f(0,0,0);
@@ -50,13 +50,15 @@ TestApp.prototype.update = function()
         rotX = (-1 + this.mouse.getX() / this.glWindow.getWidth() * 2) * PI;
         var rotY = (-1 + this.mouse.getY() / this.glWindow.getHeight()* 2) * PI * 0.5;
 
+
+
         cam.setPosition3f(Math.cos(rotX) * zoom,
                           Math.sin(rotY) * zoom,
                           Math.sin(rotX) * zoom);
     }
     else
     {
-        rotX = time * 0.25;
+        rotX = time;
 
         cam.setPosition3f(Math.cos(rotX) * zoom,
                           zoom,
