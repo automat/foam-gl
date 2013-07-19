@@ -40,6 +40,9 @@ GLKit.CameraBasic.prototype.setFar            = function(far)        {this._far 
 GLKit.CameraBasic.prototype.setFov            = function(fov)        {this._fov  = fov;this._projectionMatrixUpdated = false;};
 GLKit.CameraBasic.prototype.setAspectRatio    = function(aspectRatio){this._aspectRatioLast = aspectRatio;this._projectionMatrixUpdated = false;};
 
+GLKit.CameraBasic.prototype.getScreenCoord3f  = function(x,y,z){};
+GLKit.CameraBasic.prototype.getScreenCoord    = function(v){return this.getScreenCoord3f(v[0],v[1],v[2]);};
+
 GLKit.CameraBasic.prototype.updateModelViewMatrix   = function(){if(this._modelViewMatrixUpdated)return; GLKit.MatGL.lookAt(this.modelViewMatrix,this.position,this._target,this._up); this._modelViewMatrixUpdated = true;};
 GLKit.CameraBasic.prototype.updateProjectionMatrix = function(){if(this._projectionMatrixUpdated)return;GLKit.MatGL.perspective(this.projectionMatrix,this._fov,this._aspectRatioLast,this._near,this._far);this._projectionMatrixUpdated = true;};
 
