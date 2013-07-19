@@ -113,8 +113,13 @@ GLKit.ParametricSurface.prototype.applyFunctionsWithTime = function(t)
 
 GLKit.ParametricSurface.prototype.pointOnSurface = function(u,v)
 {
-    return GLKit.Vec3.make(this.funcX(u,v,0),
-                           this.funcY(u,v,0),
-                           this.funcZ(u,v,0));
+    return this.pointOnSurfaceWithTime(u,v,0);
+}
+
+GLKit.ParametricSurface.prototype.pointOnSurfaceWithTime = function(u,v,t)
+{
+    return GLKit.Vec3.make(this.funcX(u,v,t),
+                           this.funcY(u,v,t),
+                           this.funcZ(u,v,t));
 };
 
