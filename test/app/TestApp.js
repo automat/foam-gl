@@ -5,6 +5,8 @@ function TestApp(div)
     this.setSize(window.innerWidth,window.innerHeight);
     this.setTargetFPS(40);
 
+    this._zoom = 3;
+
     var light0 = this._light0 = new GLKit.Light(this.gl.LIGHT_0);
         light0.setAmbient3f(0,0,0);
         light0.setDiffuse3f(0.8,0.8,0.8);
@@ -17,6 +19,10 @@ function TestApp(div)
         light1.setSpecular3f(1,1,1);
 
     this._material = new GLKit.Material();
+
+    var surface = this._surface = new GLKit.ParametricSurface(50);
+        surface.setFunctions('Math.cos(u)*Math.cos(v)*Math.sin(v*t)','Math.sin(u)','Math.cos(u)*Math.sin(v)*Math.sin(v*t)',[-Math.PI,Math.PI],[0,2*Math.PI]);
+    console.log(surface.funcX);
 
 }
 
@@ -36,12 +42,15 @@ TestApp.prototype.update = function()
         timePI = time * Math.PI,
         PI     = Math.PI;
 
+    var timeDelta = this.getTimeDelta();
+
+    var zoom = this._zoom = GLKit.Math.lerp(this._zoom,3 + this.getMouseWheelDelta() * 0.25,timeDelta * 0.025);
+
     gl.clear3f(0.1,0.1,0.1);
     gl.loadIdentity();
 
     gl.drawMode(gl.LINES);
 
-    var zoom = 3 + this.getMouseWheelDelta() * 0.1;
 
     var rotX;
 
@@ -50,11 +59,11 @@ TestApp.prototype.update = function()
         rotX = (-1 + this.mouse.getX() / this.glWindow.getWidth() * 2) * PI;
         var rotY = (-1 + this.mouse.getY() / this.glWindow.getHeight()* 2) * PI * 0.5;
 
-
-
-        cam.setPosition3f(Math.cos(rotX) * zoom,
-                          Math.sin(rotY) * zoom,
-                          Math.sin(rotX) * zoom);
+        GLKit.Vec3.lerp(cam.position,
+                        GLKit.Vec3.make(Math.cos(rotX) * zoom,
+                                        Math.sin(rotY) * zoom,
+                                        Math.sin(rotX) * zoom),
+                                        timeDelta*0.025);
     }
     else
     {
@@ -90,16 +99,6 @@ TestApp.prototype.update = function()
 
     gl.color3f(1,1,1);
 
-    var a = 100;
-    var length = Math.PI / a;
-
-    var i = -1;
-    while(++i < a)
-    {
-        gl.color1f(1.0-i/a);
-        gl.linef(Math.cos(time-i*length)*2,Math.sin((time-i*length)*2),Math.sin(time-i*length)*2,
-                 Math.cos(time-i*length-length)*2,Math.sin((time-i*length-length)*2),Math.sin(time-i*length-length)*2);
-    }
 
 
     gl.useLighting(true);
@@ -109,8 +108,50 @@ TestApp.prototype.update = function()
     gl.light(light0);
     gl.light(light1);
 
-    gl.drawMode(gl.TRIANGLE_STRIP);
 
+    var surface = this._surface;
+
+    gl.drawMode(gl.TRIANGLES);
+    gl.fillColorBuffer(gl.getColorBuffer(),surface.colors);
+    surface.applyFunctionsWithTime(time);
+    surface.updateVertexNormals();
+    gl.drawGeometry(surface);
+
+    gl.useLighting(false);
+
+    gl.drawMode(gl.LINE_STRIP);
+    gl.fillColorBuffer(gl.getColorBuffer(),surface.colors);
+    //gl.drawGeometry(surface);
+
+    gl.useLighting(true);
+    gl.drawMode(gl.TRIANGLES);
+    var a = 300;
+    var length = Math.PI / a;
+
+    var temp0,temp1,temp2;
+
+    var i = -1;
+    while(++i < a)
+    {
+        gl.color3f(1.0,1.0,1.0-i/a);
+
+        temp0 = time - i * length * PI;
+        temp1 = temp0 - length;
+        temp2 = Math.abs(Math.sin(time*i*0.25))*2;
+
+        gl.pushMatrix();
+        gl.translate3f(Math.cos(temp0*3*Math.sin(time*0.025))*(2+temp2),Math.sin(temp0*2),Math.sin(temp0*3*Math.sin(time*0.025))*(2+temp2));
+        gl.box(Math.abs(Math.sin(temp0*2)*0.1),Math.abs(GLKit.Math.sgn(Math.sin(temp0*10)))*0.25,Math.abs(Math.sin(temp0*2)*0.1));
+        gl.popMatrix();
+
+        /*
+        gl.linef(Math.cos(temp0)*2 + Math.cos(temp2)*0.25, Math.sin(temp0*2) + Math.sin(temp2)*0.25, Math.sin(temp0)*2,
+                 Math.cos(temp1)*2 + Math.cos(time*PI)*0.25, Math.sin(temp1*2) + Math.sin(time*PI)*0.25, Math.sin(temp1)*2);
+                 */
+    }
+
+
+    gl.drawMode(gl.TRIANGLE_STRIP);
 
 
     gl.pushMatrix();
@@ -144,6 +185,10 @@ TestApp.prototype.update = function()
     material.setAmbient3f(0.0,0.0,0.0);
     material.setSpecular3f(0,0,0);
 
+
+    gl.useLighting(false);
+
+    /*
     i = -1;
     var j;
     while(++i < 4)
@@ -185,7 +230,6 @@ TestApp.prototype.update = function()
 
     gl.useMaterial(true);
 
-    //gl.color3f(Math.abs(Math.sin(timePI)),Math.abs(Math.cos(timePI)),1);
 
 
         material.setDiffuse3f(Math.abs(Math.sin(timePI)),
@@ -221,6 +265,9 @@ TestApp.prototype.update = function()
         gl.rotate3f(time,time,time);
         gl.cube(0.5);
     gl.popMatrix();
+    */
+
+
 
 
 };
