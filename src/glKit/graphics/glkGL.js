@@ -584,7 +584,7 @@ GLKit.GL.prototype.trianglev = function(vertices,normals,texCoords){this.drawArr
 GLKit.GL.prototype.box = function(width,height,depth)
 {
     this.pushMatrix();
-    this.scale3f(width,depth,height);
+    this.scale3f(width,height,depth);
     this.drawElements(this._bVertexCube,this._bNormalCube,this.fillColorBuffer(this._bColor,this._bColorCube),this._bTexCoordCube,this._bIndexCube,this._drawMode);
     this.popMatrix();
 };
