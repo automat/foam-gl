@@ -17,6 +17,12 @@
             light0.setSpecular3f(1,1,1);
             light0.setPosition3f(1,1,1);
 
+        var material = this._material0 = new GLKit.Material();
+            material.setDiffuse3f(0.7,0.7,0.7);
+            material.setAmbient3f(0.7,0.7,0.7);
+            material.setSpecular3f(1,1,1);
+            material.shininess = 20.0;
+
     }
 
     TestApp.prototype = Object.create(GLKit.Application.prototype);
