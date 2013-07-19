@@ -20,9 +20,9 @@ function TestApp(div)
 
     this._material = new GLKit.Material();
 
-    var surface = this._surface = new GLKit.ParametricSurface(50);
-        surface.setFunctions('Math.cos(u)*Math.cos(v)*Math.sin(v*t)','Math.sin(u)','Math.cos(u)*Math.sin(v)*Math.sin(v*t)',[-Math.PI,Math.PI],[0,2*Math.PI]);
-    console.log(surface.funcX);
+    var surface = this._surface = new GLKit.ParametricSurface(50,8);
+        surface.setFunctions('u','Math.sin(u*2+t*5)*Math.cos(v*2+t*10)*0.5','v',[-1,1],[-1,1]);
+
 
 }
 
@@ -67,7 +67,7 @@ TestApp.prototype.update = function()
     }
     else
     {
-        rotX = time;
+        rotX = time*0.25;
 
         cam.setPosition3f(Math.cos(rotX) * zoom,
                           zoom,
@@ -98,61 +98,7 @@ TestApp.prototype.update = function()
     var x,y;
 
     gl.color3f(1,1,1);
-
-
-
-    gl.useLighting(true);
-
-
-
-    gl.light(light0);
-    gl.light(light1);
-
-
-    var surface = this._surface;
-
-    gl.drawMode(gl.TRIANGLES);
-    gl.fillColorBuffer(gl.getColorBuffer(),surface.colors);
-    surface.applyFunctionsWithTime(time);
-    surface.updateVertexNormals();
-    gl.drawGeometry(surface);
-
-    gl.useLighting(false);
-
-    gl.drawMode(gl.LINE_STRIP);
-    gl.fillColorBuffer(gl.getColorBuffer(),surface.colors);
-    //gl.drawGeometry(surface);
-
-    gl.useLighting(true);
-    gl.drawMode(gl.TRIANGLES);
-    var a = 300;
-    var length = Math.PI / a;
-
-    var temp0,temp1,temp2;
-
-    var i = -1;
-    while(++i < a)
-    {
-        gl.color3f(1.0,1.0,1.0-i/a);
-
-        temp0 = time - i * length * PI;
-        temp1 = temp0 - length;
-        temp2 = Math.abs(Math.sin(time*i*0.25))*2;
-
-        gl.pushMatrix();
-        gl.translate3f(Math.cos(temp0*3*Math.sin(time*0.025))*(2+temp2),Math.sin(temp0*2),Math.sin(temp0*3*Math.sin(time*0.025))*(2+temp2));
-        gl.box(Math.abs(Math.sin(temp0*2)*0.1),Math.abs(GLKit.Math.sgn(Math.sin(temp0*10)))*0.25,Math.abs(Math.sin(temp0*2)*0.1));
-        gl.popMatrix();
-
-        /*
-        gl.linef(Math.cos(temp0)*2 + Math.cos(temp2)*0.25, Math.sin(temp0*2) + Math.sin(temp2)*0.25, Math.sin(temp0)*2,
-                 Math.cos(temp1)*2 + Math.cos(time*PI)*0.25, Math.sin(temp1*2) + Math.sin(time*PI)*0.25, Math.sin(temp1)*2);
-                 */
-    }
-
-
-    gl.drawMode(gl.TRIANGLE_STRIP);
-
+    gl.drawMode(gl.LINE_LOOP);
 
     gl.pushMatrix();
     gl.translate(light0.position);
@@ -165,8 +111,10 @@ TestApp.prototype.update = function()
     gl.popMatrix();
 
 
+    gl.useLighting(true);
 
-
+    gl.light(light0);
+    gl.light(light1);
 
     gl.useMaterial(true);
 
@@ -181,6 +129,51 @@ TestApp.prototype.update = function()
     gl.drawMode(gl.TRIANGLES);
     gl.cube(8);
 
+    material.setDiffuse3f(0.7,0.7,0.7);
+    material.setAmbient3f(0.7,0.7,0.7);
+    material.setSpecular3f(1,1,1);
+    material.shininess = 20.0;
+
+    gl.material(material);
+
+    gl.pushMatrix();
+    gl.translate3f(0,0.5,0);
+    gl.rotate3f(time,time,time);
+    gl.cube(0.5);
+    gl.popMatrix();
+
+    var surface = this._surface;
+
+
+    surface.applyFunctionsWithTime(time);
+    surface.updateVertexNormals();
+
+    material.setDiffuse3f(0.01,0.01,0.01);
+    material.setAmbient3f(0.01,0.01,0.01);
+    material.setSpecular3f(0.1,0.1,0.1);
+    material.shininess = 200.0;
+
+
+
+    gl.pushMatrix();
+    gl.translate3f(0,-0.5,0);
+    gl.useMaterial(false);
+    //gl.color3f(0.45,0.45,0.45);
+    gl.fillColorBuffer(gl.getColorBuffer(),surface.colors);
+    gl.drawMode(gl.LINES);
+    gl.drawGeometry(surface);
+    gl.useMaterial(true);
+    gl.material(material);
+    gl.translate3f(0,-3,0);
+    gl.drawMode(gl.TRIANGLES);
+    gl.drawGeometry(surface);
+
+    gl.useMaterial(false);
+
+    //gl.drawMode(gl.LINE_LOOP);
+    //gl.drawGeometry(surface);
+    gl.popMatrix();
+
     material.setDiffuse3f(0.0,0.0,0.0);
     material.setAmbient3f(0.0,0.0,0.0);
     material.setSpecular3f(0,0,0);
@@ -188,84 +181,6 @@ TestApp.prototype.update = function()
 
     gl.useLighting(false);
 
-    /*
-    i = -1;
-    var j;
-    while(++i < 4)
-    {
-        j = -1;
-        while(++j < 4)
-        {
-            gl.pushMatrix();
-            gl.translate3f(0.5 + i,0.5 + Math.sin(time*2 + i*j)*0.25,0.5 + j);
-            gl.rotate3f(time*i,time,time*j);
-            gl.cube(0.25 + i*j*0.025);
-            gl.popMatrix();
-        }
-    }
-
-
-
-    gl.useMaterial(false);
-
-
-
-    gl.color3f(1,1,1);
-        gl.pushMatrix();
-        gl.translate3f(-0.5,0.5,-0.5);
-        gl.cube(0.5);
-    gl.popMatrix();
-
-
-    gl.color3f(1,1,1);
-    gl.pushMatrix();
-    gl.translate3f(Math.cos(time)*2,Math.sin(time * 2),Math.sin(time)*2);
-    gl.cube(0.025);
-    gl.popMatrix();
-
-
-
-
-
-
-    gl.useMaterial(true);
-
-
-
-        material.setDiffuse3f(Math.abs(Math.sin(timePI)),
-                              Math.abs(Math.sin(timePI*0.5)),
-                              Math.abs(Math.sin(timePI*0.25)));
-        material.shininess =  50+ Math.abs(Math.sin(timePI)*150);
-
-
-    gl.material(this._material);
-
-        gl.pushMatrix();
-        gl.translate3f(-1.5,0.5,-1.5);
-        gl.cube(1);
-    gl.popMatrix();
-
-
-
-    gl.useMaterial(false);
-
-    gl.useLighting(false);
-
-    gl.color3f(1,1,1);
-    gl.drawMode(gl.LINE_STRIP);
-    gl.pushMatrix();
-        gl.translate3f(0.5,0.5,-0.5);
-        gl.cube(0.5);
-    gl.popMatrix();
-
-    gl.color3f(0.05,0.05,0.05);
-    gl.drawMode(gl.LINE_STRIP);
-    gl.pushMatrix();
-        gl.translate3f(-0.5,0.5,0.5);
-        gl.rotate3f(time,time,time);
-        gl.cube(0.5);
-    gl.popMatrix();
-    */
 
 
 
