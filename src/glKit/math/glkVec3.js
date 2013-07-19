@@ -82,37 +82,17 @@ GLKit.Vec3 =
         return new Float32Array([y0*z1-y1*z0,z0*x1-z1*x0,x0*y1-x1*y0]);
     },
 
-    slerp : function(v0,v1,f)
+    lerp : function(v0,v1,f)
     {
         var x0 = v0[0],
             y0 = v0[1],
-            z0 = v0[2],
-            x1 = v1[0],
-            y1 = v1[1],
-            z1 = v1[2];
+            z0 = v0[2];
 
-        var d = Math.max(-1.0,Math.min((x0*x1 + y0*y1 + z0*z1),1.0)),
-            t = Math.acos(d) * f;
-
-        var x = x0 - (x1 * d),
-            y = y0 - (y1 * d),
-            z = z0 - (z1 * d);
-
-        var l = 1/Math.sqrt(x*x+y*y+z*z);
-
-        x*=l;
-        y*=l;
-        z*=l;
-
-        var ct = Math.cos(t),
-            st = Math.sin(t);
-
-        var xo = x0 * ct + x * st,
-            yo = y0 * ct + y * st,
-            zo = z0 * ct + z * st;
-
-        return new Float32Array([xo,yo,zo]);
+        v0[0] = x0 * (1.0 - f) + v1[0] * f;
+        v0[1] = y0 * (1.0 - f) + v1[1] * f;
+        v0[2] = z0 * (1.0 - f) + v1[2] * f;
     },
+
 
     length : function(v)
     {
