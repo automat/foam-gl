@@ -535,6 +535,11 @@ GLKit.GL.prototype.linef = function(x0,y0,z0,x1,y1,z1)
     this.drawArrays(v,null,this.fillColorBuffer(this._bColor,this._bColorLine),null,this._drawMode,0,2);
 };
 
+GLKit.GL.prototype.line2v = function(v0,v1)
+{
+    this.linef(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);
+}
+
 GLKit.GL.prototype.quadf = function(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3)
 {
     var v = this._bVertexQuad;
