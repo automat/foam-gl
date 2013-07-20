@@ -241,6 +241,16 @@ GLKit.GL = function(gl)
 
 
     this._bScreenCoords = [0,0];
+    this._bPoint0       = [0,0,0];
+    this._bPoint1       = [0,0,0];
+
+    this._axisX = GLKit.Vec3.AXIS_X();
+    this._axisY = GLKit.Vec3.AXIS_Y();
+    this._axisZ = GLKit.Vec3.AXIS_Z();
+
+    this._lineBoxWidth  = 1;
+    this._lineBoxHeight = 1;
+    this._lineCylinderRadius = 0.5;
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init Matrices
@@ -345,22 +355,23 @@ GLKit.GL.prototype._setMatricesUniform = function()
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.GL.prototype.translate   = function(v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(v[0],v[1],v[2]));};
-GLKit.GL.prototype.translate3f = function(x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,y,z));};
-GLKit.GL.prototype.translateX  = function(x)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,0,0));};
-GLKit.GL.prototype.translateY  = function(y)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(0,y,0));};
-GLKit.GL.prototype.translateZ  = function(z)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(0,0,z));};
-GLKit.GL.prototype.scale       = function(v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(v[0],v[1],v[2]));};
-GLKit.GL.prototype.scale3f     = function(x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(x,y,z));};
-GLKit.GL.prototype.scaleX      = function(x)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(x,1,1));};
-GLKit.GL.prototype.scaleY      = function(y)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(1,y,1));};
-GLKit.GL.prototype.scaleZ      = function(z)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(1,1,z));};
-GLKit.GL.prototype.rotate      = function(v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationXYZ(v[0],v[1],v[2]));};
-GLKit.GL.prototype.rotate3f    = function(x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationXYZ(x,y,z));};
-GLKit.GL.prototype.rotateX     = function(x)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationX(x));};
-GLKit.GL.prototype.rotateY     = function(y)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationY(y));};
-GLKit.GL.prototype.rotateZ     = function(z)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationZ(z));};
-
+GLKit.GL.prototype.translate     = function(v)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(v[0],v[1],v[2]));};
+GLKit.GL.prototype.translate3f   = function(x,y,z)      {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,y,z));};
+GLKit.GL.prototype.translateX    = function(x)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,0,0));};
+GLKit.GL.prototype.translateY    = function(y)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(0,y,0));};
+GLKit.GL.prototype.translateZ    = function(z)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(0,0,z));};
+GLKit.GL.prototype.scale         = function(v)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(v[0],v[1],v[2]));};
+GLKit.GL.prototype.scale3f       = function(x,y,z)      {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(x,y,z));};
+GLKit.GL.prototype.scaleX        = function(x)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(x,1,1));};
+GLKit.GL.prototype.scaleY        = function(y)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(1,y,1));};
+GLKit.GL.prototype.scaleZ        = function(z)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeScale(1,1,z));};
+GLKit.GL.prototype.rotate        = function(v)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationXYZ(v[0],v[1],v[2]));};
+GLKit.GL.prototype.rotate3f      = function(x,y,z)      {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationXYZ(x,y,z));};
+GLKit.GL.prototype.rotateX       = function(x)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationX(x));};
+GLKit.GL.prototype.rotateY       = function(y)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationY(y));};
+GLKit.GL.prototype.rotateZ       = function(z)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationZ(z));};
+GLKit.GL.prototype.rotateAxis    = function(angle,v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationOnAxis(angle,v[0],v[1],v[2]));};
+GLKit.GL.prototype.rotateAxis3f  = function(angle,x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationOnAxis(angle,x,y,z));};
 /*---------------------------------------------------------------------------------------------------------*/
 
 
@@ -607,6 +618,45 @@ GLKit.GL.prototype.sphere = function(segments,size)
 
 
 
+
+};
+
+
+GLKit.GL.prototype.lineSize   = function(width,height){this._lineBoxWidth  = width;this._lineBoxHeight = height;};
+GLKit.GL.prototype.lineRadius = function(radius){this._lineCylinderRadius = radius;};
+
+//Temp, change when math done!
+GLKit.GL.prototype.lineBox = function(v0,v1){this.lineBoxf(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);};
+
+GLKit.GL.prototype.lineBoxf = function(x0,y0,z0,x1,y1,z1)
+{
+    var vec3 = GLKit.Vec3;
+
+    var p0 = this._bPoint0,
+        p1 = this._bPoint1,
+        up = this._axisY;
+
+    vec3.set3f(p0,x0,y0,z0);
+    vec3.set3f(p1,x1,y1,z1);
+
+    var len = vec3.distance(p0,p1),
+        mid = vec3.scale(vec3.added(p0,p1),0.5),
+        dir = vec3.normalize(vec3.subbed(p1,p0)),
+        c   = vec3.dot(dir,up);
+
+    var angle = Math.acos(c),
+        axis  = vec3.normalize(vec3.cross(up,dir));
+
+    this.pushMatrix();
+    this.translate(mid);
+    this.rotateAxis(angle,axis);
+    this.box(this._lineBoxWidth,len,this._lineBoxHeight);
+    this.popMatrix();
+};
+
+
+GLKit.GL.prototype.lineCylinder = function(v0,v1)
+{
 
 };
 

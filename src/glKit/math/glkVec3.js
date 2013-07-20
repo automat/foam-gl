@@ -79,7 +79,9 @@ GLKit.Vec3 =
             y1 = v1[1],
             z1 = v1[2];
 
-        return new Float32Array([y0*z1-y1*z0,z0*x1-z1*x0,x0*y1-x1*y0]);
+        return new Float32Array([y0 * z1 - y1 * z0,
+                                 z0 * x1 - z1 * x0,
+                                 x0 * y1 - x1 * y0]);
     },
 
     lerp : function(v0,v1,f)
@@ -147,6 +149,11 @@ GLKit.Vec3 =
         return Math.sqrt(x*x+y*y+z*z);
     },
 
+    distance3f : function(v,x,y,z)
+    {
+        return Math.sqrt(v[0] * x + v[1] * y + v[2] * z);
+    },
+
     distanceSq : function(v0,v1)
     {
         var x = v0[0] - v1[0],
@@ -154,6 +161,11 @@ GLKit.Vec3 =
             z = v0[2] - v1[2];
 
         return x*x+y*y+z*z;
+    },
+
+    distanceSq3f : function(v,x,y,z)
+    {
+        return v[0] * x + v[1] * y + v[2] * z;
     },
 
     limit : function(v,n)
