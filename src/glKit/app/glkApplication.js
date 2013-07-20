@@ -12,6 +12,7 @@ GLKit.Application = function(parentDomElement)
     /*---------------------------------------------------------------------------------*/
 
     this._keyDown         = false;
+    this._keyCode         = '';
     this._mouseDown       = false;
     this._mouseWheelDelta = 0.0;
 
@@ -138,7 +139,7 @@ GLKit.Application.prototype._initListeners = function()
 };
 
 
-GLKit.Application.prototype._onGLCanvasKeyDown    = function(e){this._keyDown = true;this.onKeyDown(e)};
+GLKit.Application.prototype._onGLCanvasKeyDown    = function(e){this._keyDown = true;this._keyCode = e.keyCode;this.onKeyDown(e)};
 GLKit.Application.prototype._onGLCanvasKeyUp      = function(e){this._keyDown = false;this.onKeyUp(e)};
 GLKit.Application.prototype._onGLCanvasMouseUp    = function(e){this._mouseDown = false;this.onMouseUp(e);};
 GLKit.Application.prototype._onGLCanvasMouseDown  = function(e){this._mouseDown = true;this.onMouseDown(e);};
@@ -156,6 +157,7 @@ GLKit.Application.prototype.onMouseMove           = function(e){};
 GLKit.Application.prototype.isKeyDown          = function(){return this._keyDown;};
 GLKit.Application.prototype.isMouseDown        = function(){return this._mouseDown;};
 GLKit.Application.prototype.isMouseMove        = function(){};
+GLKit.Application.prototype.getKeyCode         = function(){return this._keyCode;};
 GLKit.Application.prototype.getMouseWheelDelta = function(){return this._mouseWheelDelta;}
 
 /*---------------------------------------------------------------------------------*/
