@@ -240,7 +240,7 @@ GLKit.GL = function(gl)
     this._bTexCoordCube = null;
 
 
-    this._bScreenCoords = new Float32Array([0,0]);
+    this._bScreenCoords = [0,0];
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init Matrices
@@ -615,9 +615,26 @@ GLKit.GL.prototype.sphere = function(segments,size)
 
 /*---------------------------------------------------------------------------------------------------------*/
 
+GLKit.GL.prototype.getScreenCoord3f = function(x,y,z)
+{
+    var mpm = GLKit.Mat44.mult(this._camera.projectionMatrix,this._mModelView);
+    var p3d = GLKit.Mat44.multVec(mpm,GLKit.Vec3.make(x,y,z));
+
+    var bsc = this._bScreenCoords;
+        bsc[0] = (((p3d[0] + 1) * 0.5) * window.innerWidth);
+        bsc[1] = (((1 - p3d[1]) * 0.5) * window.innerHeight);
+
+    return bsc;
+};
+
+GLKit.GL.prototype.getScreenCoord = function(v)
+{
+    return this.getScreenCoord3f(v[0],v[1],v[1]);
+};
+
 
 GLKit.GL.prototype.getGL     = function(){return this._gl;};
 
-GLKit.GL.prototype.getModelViewMatrix  = function(){return this._camera.modelViewMatrix;};
+GLKit.GL.prototype.getModelViewMatrix  = function(){return this._mModelView;};
 GLKit.GL.prototype.getProjectionMatrix = function(){return this._camera.projectionMatrix;};
 
