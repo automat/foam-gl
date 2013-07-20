@@ -21,7 +21,9 @@ function TestApp(div)
     this._material = new GLKit.Material();
 
     var surface = this._surface = new GLKit.ParametricSurface(50,8);
-        surface.setFunctions('u','Math.sin(u*2+t*5)*Math.cos(v*2+t*10)*0.5','v',[-1,1],[-1,1]);
+        surface.setFunctions(function(u,v,t){return u;},
+                             function(u,v,t){return Math.sin(u*2+t*5)*Math.cos(v*2+t*10)*0.5;},
+                             function(u,v,t){return v;},[-1,1],[-1,1]);
 
 
 }
