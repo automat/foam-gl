@@ -239,6 +239,19 @@ GLKit.GL = function(gl)
                                           20,21,22,20,22,23]);
     this._bTexCoordCube = null;
 
+    this._bVertexSphere    = null;
+    this._bNormalSphere    = null;
+    this._bColorSphere     = null;
+    this._bIndexSphere     = null;
+    this._bTexCoordsSphere = null;
+
+
+    this._bVertexCylinder    = null;
+    this._bNormalCylinder    = null;
+    this._bColorCylinder     = null;
+    this._bIndexCylinder     = null;
+    this._bTexCoordsCylinder = null;
+
 
     this._bScreenCoords = [0,0];
     this._bPoint0       = [0,0,0];
@@ -620,6 +633,8 @@ GLKit.GL.prototype.sphere = function(segments,size)
 
 
 };
+
+
 
 
 GLKit.GL.prototype.lineSize   = function(width,height){this._lineBoxWidth  = width;this._lineBoxHeight = height;};

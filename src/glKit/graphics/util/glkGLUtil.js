@@ -82,6 +82,66 @@ GLKit.GLUtil =
     },
 
 
+    //temp
+    drawVectorf : function(gl,x0,y0,z0,x1,y1,z1)
+    {
+        var vec3 = GLKit.Vec3;
+
+        var p0 = gl._bPoint0,
+            p1 = gl._bPoint1,
+            up = gl._axisY;
+
+        vec3.set3f(p0,x0,y0,z0);
+        vec3.set3f(p1,x1,y1,z1);
+
+        var pw = gl._lineBoxWidth,
+            ph = gl._lineBoxHeight,
+            pd = gl._drawMode;
+
+        var len = vec3.distance(p0,p1),
+            mid = vec3.scale(vec3.added(p0,p1),0.5),
+            dir = vec3.normalize(vec3.subbed(p1,p0)),
+            c   = vec3.dot(dir,up);
+
+        var angle = Math.acos(c),
+            axis  = vec3.normalize(vec3.cross(up,dir));
+
+        gl.drawMode(gl.TRIANGLES);
+
+        gl.lineSize(0.006125,0.006125);
+
+        gl.color3f(0,1,0);
+        gl.pushMatrix();
+        gl.translate(mid);
+        gl.rotateAxis(angle,axis);
+        gl.box(gl._lineBoxWidth,len,gl._lineBoxHeight);
+        gl.popMatrix();
+
+        gl.pushMatrix();
+        gl.translate(p1);
+        gl.rotateAxis(angle,axis);
+        this.pyramid(gl,0.025);
+        gl.popMatrix();
+
+        gl.lineSize(pw,ph);
+        gl.drawMode(pd);
+    },
+
+    drawVector : function(gl,v0,v1)
+    {
+       this.drawVectorf(gl,v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);
+    },
+
+    pyramid : function(gl,size)
+    {
+        gl.pushMatrix();
+        gl.scale3f(size,size,size);
+        gl.drawElements(this.__bVertexPyramid,this.__bNormalPyramid,gl.fillColorBuffer(gl._bColor,this.__bColorPyramid),null,this.__bIndexPyramid,gl._drawMode);
+        gl.popMatrix();
+    },
+
+
+
     octahedron : function(gl,size)
     {
         gl.pushMatrix();
