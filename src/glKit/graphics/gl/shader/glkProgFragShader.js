@@ -22,6 +22,7 @@ GLKit.ProgFragShader="precision mediump float;" +
 "    vec4  halfVector;" + 
 "    vec3  spotDirection;" + 
 "    float spotExponent;" + 
+"    float spotCutoff;" + 
 "    float spotCosCutoff;" + 
 "    float constantAttenuation;" + 
 "    float linearAttenuation;" + 
@@ -67,7 +68,7 @@ GLKit.ProgFragShader="precision mediump float;" +
 
 "void main()" + 
 "{" + 
-"    vec3 tVertexNormal     = (gl_FrontFacing ? -1.0 : 1.0) * normalize(uNormalMatrix * vVertexNormal);" + 
+"    vec3 tVertexNormal     = normalize(uNormalMatrix * vVertexNormal);" + 
 
 "    vec4 vertexColor = vVertexColor * (1.0-uUseMaterial);" + 
 
