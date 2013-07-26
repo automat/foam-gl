@@ -106,17 +106,12 @@ GLKit.GLUtil =
         var angle = Math.acos(c),
             axis  = vec3.normalize(vec3.cross(up,dir));
 
+
+        gl.drawMode(gl.LINES);
+
+        gl.linef(x0,y0,z0,x1,y1,z1);
+
         gl.drawMode(gl.TRIANGLES);
-
-        gl.lineSize(0.006125,0.006125);
-
-        gl.color3f(0,1,0);
-        gl.pushMatrix();
-        gl.translate(mid);
-        gl.rotateAxis(angle,axis);
-        gl.box(gl._lineBoxWidth,len,gl._lineBoxHeight);
-        gl.popMatrix();
-
         gl.pushMatrix();
         gl.translate(p1);
         gl.rotateAxis(angle,axis);
