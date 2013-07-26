@@ -69,7 +69,7 @@
 
         }
 
-        light0.setPosition3f(Math.cos(time), 0, Math.sin(time));
+        light0.setPosition3f(2*Math.cos(time), 0, 2*Math.sin(time));
 
         cam.setTarget3f(0,0,0);
         cam.updateMatrices();
@@ -96,8 +96,6 @@
             scale  = 2,
             scaleijk;
 
-        var x, y,z;
-
         var i = -1, j,k;
         while(++i < len)
         {
@@ -112,20 +110,16 @@
                     jN = j / len;
                     kN = k / len;
 
-                    scaleijk = scale + Math.sin((iN * Math.PI/3 + kN * Math.PI/3 + jN * Math.PI/3)*Math.abs(Math.sin(time*Math.PI*0.025)*5) + time*5);
+                    scaleijk = scale + Math.sin((iN * Math.PI/3 + kN * Math.PI/3 + jN * Math.PI/3)*2 + time * 5);
 
                     material.setAmbient3f(iN,kN,jN);
                     material.setDiffuse3f(iN,kN,jN);
-                    material.shininess = 20 + iN * kN * jN * 1000;
-
-                    x = (-0.5 + iN) * scaleijk;
-                    y = (-0.5 + kN) * scaleijk;
-                    z = (-0.5 + jN) * scaleijk;
+                   // material.shininess = 20 + iN * kN * jN * 1000;
 
                     gl.material(material);
                     gl.pushMatrix();
-                    gl.translate3f(x,y,z);
-                    gl.scale3f(0.05*scaleijk,0.05*scaleijk,0.05*scaleijk);
+                    gl.translate3f((-0.5 + iN) * scaleijk, (-0.5 + kN) * scaleijk, (-0.5 + jN) * scaleijk);
+                    gl.scale3f(0.075*scaleijk,0.075*scaleijk,0.075*scaleijk);
                     gl.drawMode(gl.TRIANGLES);
                     gl.color4f(1,1,1,1);
                     gl.sphere();

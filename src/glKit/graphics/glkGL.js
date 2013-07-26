@@ -324,7 +324,9 @@ GLKit.GL.prototype.light = function(light)
     var id = light.getId(),
         gl = this._gl;
 
-    gl.uniform3fv(this._uLightPosition[id], light.position);
+    var lightPosEyeSpace = GLKit.Mat44.multVec(this._camera.modelViewMatrix,GLKit.Vec3.copy(light.position));
+
+    gl.uniform3fv(this._uLightPosition[id], lightPosEyeSpace);
     gl.uniform3fv(this._uLightAmbient[id],  light.ambient);
     gl.uniform3fv(this._uLightDiffuse[id],  light.diffuse);
     gl.uniform3fv(this._uLightSpecular[id], light.specular);
@@ -661,6 +663,11 @@ GLKit.GL.prototype._genSphere = function(segments)
 
     var i = -1,j;
 
+    var index,
+        indexVertices,
+        indexNormals,
+        indexTexCoords;
+
     while(++i <= segments)
     {
         theta = i * Math.PI / segments;
@@ -677,6 +684,10 @@ GLKit.GL.prototype._genSphere = function(segments)
             x = phiCos * thetaSin;
             y = thetaCos;
             z = phiSin * thetaSin;
+
+            index          = j + segments * i;
+            indexVertices  = indexNormals = index * 3;
+            indexTexCoords = index * 2;
 
             normals.push(x,y,z);
             vertices.push(x,y,z);

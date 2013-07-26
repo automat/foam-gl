@@ -50,14 +50,17 @@ GLKit.ProgFragShader="precision mediump float;" +
 
 "vec4 phongModel(vec4 position, vec3 normal, ColorComponent color, Light light)" + 
 "{" + 
-"    vec3 s        = normalize(light.position - position.xyz);" + 
-"    vec3 v        = normalize(-position.xyz);" + 
-"    vec3 r        = reflect(-s, normal);" + 
-"    float sDotN   = max(dot(s, normal), 0.0);" + 
-"    vec3 ambient  = light.ambient * color.ambient.rgb;" + 
-"    vec3 diffuse  = light.diffuse * color.diffuse.rgb * sDotN;" + 
-"    vec3 specular = (sDotN > 0.0) ? light.specular * pow(max(dot(r, v), 0.0), color.shininess) : vec3(0.0);" + 
-"    return vec4(ambient + diffuse + specular,color.ambient.a);" + 
+"   vec3 s        = normalize(light.position - position.xyz);" + 
+"       vec3 v        = normalize(-position.xyz);" + 
+"       vec3 r        = reflect(-s, normal);" + 
+"       float sDotN   = max(dot(s, normal), 0.0);" + 
+"       vec3 ambient  = light.ambient * color.ambient.rgb;" + 
+"       vec3 diffuse  = light.diffuse * color.diffuse.rgb * sDotN;" + 
+"       vec3 specular = (sDotN > 0.0) ? light.specular * pow(max(dot(r, v), 0.0), color.shininess) : vec3(0.0);" + 
+"       return vec4(ambient + diffuse + specular,color.ambient.a);" + 
+
+
+
 "}" + 
 
 "uniform vec4     uAmbient;" + 
@@ -68,7 +71,7 @@ GLKit.ProgFragShader="precision mediump float;" +
 
 "void main()" + 
 "{" + 
-"    vec3 tVertexNormal     = normalize(uNormalMatrix * vVertexNormal);" + 
+"    vec3 tVertexNormal     = (gl_FrontFacing ? -1.0 : 1.0) * normalize(uNormalMatrix * vVertexNormal);" + 
 
 "    vec4 vertexColor = vVertexColor * (1.0-uUseMaterial);" + 
 
