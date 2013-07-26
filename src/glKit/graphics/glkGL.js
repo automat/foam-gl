@@ -239,11 +239,15 @@ GLKit.GL = function(gl)
                                           20,21,22,20,22,23]);
     this._bTexCoordCube = null;
 
+    this._sphereDetailLast = 10.0;
+
     this._bVertexSphere    = null;
     this._bNormalSphere    = null;
     this._bColorSphere     = null;
     this._bIndexSphere     = null;
     this._bTexCoordsSphere = null;
+
+
 
 
     this._bVertexCylinder    = null;
@@ -264,6 +268,8 @@ GLKit.GL = function(gl)
     this._lineBoxWidth  = 1;
     this._lineBoxHeight = 1;
     this._lineCylinderRadius = 0.5;
+
+    this._genSphere(this._sphereDetailLast);
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init Matrices
@@ -626,10 +632,94 @@ GLKit.GL.prototype.cube = function(size)
     this.popMatrix();
 };
 
-GLKit.GL.prototype.sphere = function(segments,size)
+GLKit.GL.prototype.sphereDetail = function(detail)
 {
+    if(detail != this._sphereDetailLast)
+    {
+        this._genSphere(detail);
+        this._sphereDetailLast = detail;
+    }
+};
+
+GLKit.GL.prototype.sphere = function()
+{
+    this.drawElements(this._bVertexSphere,this._bNormalSphere,this.fillColorBuffer(this._bColor,this._bColorSphere),this._bTexCoordsSphere,this._bIndexSphere,this._drawMode);
+};
+
+GLKit.GL.prototype._genSphere = function(segments)
+{
+    var vertices  = [],
+        normals   = [],
+        texCoords = [],
+        indices   = [];
+
+    var theta,thetaSin,thetaCos;
+    var phi,phiSin,phiCos;
+
+    var x,y,z;
+    var u,v;
+
+    var i = -1,j;
+
+    while(++i <= segments)
+    {
+        theta = i * Math.PI / segments;
+        thetaSin = Math.sin(theta);
+        thetaCos = Math.cos(theta);
+
+        j = -1;
+        while(++j <= segments)
+        {
+            phi    = j * 2 * Math.PI / segments;
+            phiSin = Math.sin(phi);
+            phiCos = Math.cos(phi);
+
+            x = phiCos * thetaSin;
+            y = thetaCos;
+            z = phiSin * thetaSin;
+
+            normals.push(x,y,z);
+            vertices.push(x,y,z);
+
+            u = 1 - j / segments;
+            v = 1 - i / segments;
+
+            texCoords.push(u,v);
+
+        }
 
 
+    }
+
+    var index0,index1,index2;
+
+    i = -1;
+    while(++i < segments)
+    {
+        j = -1;
+        while(++j < segments)
+        {
+            index0 = j + i * (segments + 1);
+            index1 = index0 + segments + 1;
+            index2 = index0 + 1;
+
+            indices.push(index0,index1,index2);
+
+            index2 = index0 + 1;
+            index0 = index1;
+            index1 = index0 + 1;
+
+            indices.push(index0,index1,index2);
+        }
+    }
+
+
+
+    this._bVertexSphere    = new Float32Array(vertices);
+    this._bNormalSphere    = new Float32Array(normals);
+    this._bColorSphere     = new Float32Array(segments * segments * 4);
+    this._bTexCoordsSphere = new Float32Array(indices);
+    this._bIndexSphere     = new Uint16Array(indices);
 
 
 };

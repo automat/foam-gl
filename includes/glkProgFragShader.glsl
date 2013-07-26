@@ -22,6 +22,7 @@ struct Light
     vec4  halfVector;
     vec3  spotDirection;
     float spotExponent;
+    float spotCutoff;
     float spotCosCutoff;
     float constantAttenuation;
     float linearAttenuation;
