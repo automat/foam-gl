@@ -16,12 +16,13 @@ uniform mat4 uProjectionMatrix;
 
 uniform float uPointSize;
 
+
 void main()
 {
-    vVertexPosition = uModelViewMatrix * vec4(aVertexPosition,1.0);
-    vVertexNormal   = aVertexNormal;
-    vVertexColor    = aVertexColor;
-    vVertexUV       = aVertexUV;
+    vVertexPosition  = uModelViewMatrix * vec4(aVertexPosition,1.0);
+    vVertexNormal    = aVertexNormal;
+    vVertexColor     = aVertexColor;
+    vVertexUV        = aVertexUV;
 
     gl_Position  = uProjectionMatrix * vVertexPosition;
     gl_PointSize = uPointSize;

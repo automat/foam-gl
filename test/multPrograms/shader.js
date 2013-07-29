@@ -1,0 +1,5 @@
+Shader =
+{
+    Fragment : '',
+    Vertex   : ''
+};
