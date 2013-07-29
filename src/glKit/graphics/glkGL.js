@@ -180,6 +180,12 @@ GLKit.GL = function(gl)
     this.finish                = _gl.finish.bind(_gl);
     this.scissor               = _gl.scissor.bind(_gl);
 
+    this.uniform1f  = gl.uniform1f.bind(gl);
+    this.uniform1fv = gl.uniform1fv.bind(gl);
+    this.uniform1i  = gl.uniform1i.bind(gl);
+    this.uniform1iv = gl.uniform1iv.bind(gl);
+
+
     /*---------------------------------------------------------------------------------------------------------*/
     // Init Buffers
     /*---------------------------------------------------------------------------------------------------------*/
@@ -299,14 +305,15 @@ GLKit.GL = function(gl)
     _gl.enable(_gl.BLEND);
     _gl.enable(_gl.DEPTH_TEST);
 
+    this.ambient(GLKit.Color.BLACK());
+
 
 };
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.setCamera = function(camera){this._camera = camera;};
 
 /*---------------------------------------------------------------------------------------------------------*/
-
-GLKit.GL.prototype.pointSize = function(value){this._gl.uniform1f(this._uPointSize,value);};
 
 GLKit.GL.prototype.material = function(material)
 {
@@ -338,10 +345,6 @@ GLKit.GL.prototype.useTexture  = function(bool){};
 GLKit.GL.prototype.useMaterial = function(bool){this._gl.uniform1f(this._uUseMaterial,bool ? 1.0 : 0.0);};
 GLKit.GL.prototype.useLighting = function(bool){this._gl.uniform1f(this._uUseLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
 GLKit.GL.prototype.getLighting = function(){return this._bLighting;}
-
-GLKit.GL.prototype.ambient   = function(color){this._gl.uniform3f(this._uAmbient,color[0],color[1],color[2]);};
-GLKit.GL.prototype.ambient3f = function(r,g,b){this._gl.uniform3f(this._uAmbient,r,g,b);};
-GLKit.GL.prototype.ambient1f = function(k)    {this._gl.uniform1f(this._uAmbient,k);};
 
 /*---------------------------------------------------------------------------------------------------------*/
 
@@ -393,6 +396,7 @@ GLKit.GL.prototype.rotateY       = function(y)          {this._mModelView = GLKi
 GLKit.GL.prototype.rotateZ       = function(z)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationZ(z));};
 GLKit.GL.prototype.rotateAxis    = function(angle,v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationOnAxis(angle,v[0],v[1],v[2]));};
 GLKit.GL.prototype.rotateAxis3f  = function(angle,x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationOnAxis(angle,x,y,z));};
+
 /*---------------------------------------------------------------------------------------------------------*/
 
 
@@ -510,6 +514,9 @@ GLKit.GL.prototype.fillVertexBuffer = function(vertices,buffer)
 
 /*---------------------------------------------------------------------------------------------------------*/
 
+GLKit.GL.prototype.ambient   = function(color){this._gl.uniform3f(this._uAmbient,color[0],color[1],color[2]);};
+GLKit.GL.prototype.ambient3f = function(r,g,b){this._gl.uniform3f(this._uAmbient,r,g,b);};
+GLKit.GL.prototype.ambient1f = function(k)    {this._gl.uniform1f(this._uAmbient,k);};
 
 GLKit.GL.prototype.color   = function(color)  {this._bColor = GLKit.Color.set(this._bColor4f,color);};
 GLKit.GL.prototype.color4f = function(r,g,b,a){this._bColor = GLKit.Color.set4f(this._bColor4f,r,g,b,a);};
@@ -517,8 +524,6 @@ GLKit.GL.prototype.color3f = function(r,g,b)  {this._bColor = GLKit.Color.set3f(
 GLKit.GL.prototype.color2f = function(k,a)    {this._bColor = GLKit.Color.set2f(this._bColor4f,k,a);};
 GLKit.GL.prototype.color1f = function(k)      {this._bColor = GLKit.Color.set1f(this._bColor4f,k);};
 GLKit.GL.prototype.colorfv = function(array)  {this._bColor = array;};
-
-
 
 GLKit.GL.prototype.clearColor = function(color){this.clear4f(color[0],color[1],color[2],color[3]);};
 GLKit.GL.prototype.clear      = function()     {this.clear4f(0,0,0,1);};
@@ -537,11 +542,27 @@ GLKit.GL.prototype.clear4f   = function(r,g,b,a)
 GLKit.GL.prototype.getColorBuffer = function(){return this._bColor;};
 GLKit.GL.prototype.getClearBuffer = function(){return this._bColorBg4f;};
 
-
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.drawMode = function(mode){this._drawMode = mode;};
 GLKit.GL.prototype.getDrawMode = function(){return this._drawMode;};
+
+GLKit.GL.prototype.sphereDetail = function(detail)
+{
+    if(detail != this._sphereDetailLast)
+    {
+        this._genSphere(detail);
+        this._sphereDetailLast = detail;
+    }
+};
+
+GLKit.GL.prototype.pointSize = function(value){this._gl.uniform1f(this._uPointSize,value);};
+
+//Temp
+GLKit.GL.prototype.lineSize   = function(width,height){this._lineBoxWidth  = width;this._lineBoxHeight = height;};
+GLKit.GL.prototype.lineRadius = function(radius){this._lineCylinderRadius = radius;};
+
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.point   = function(vector){this.drawArrays(vector,null,this.fillColorBuffer(this._bColor,this._bColorPoint),null,this.POINTS,0,1);};
 GLKit.GL.prototype.point3f = function(x,y,z) {this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;this._bVertexPoint[2] = z;this.point(this._bVertexPoint);};
@@ -634,19 +655,55 @@ GLKit.GL.prototype.cube = function(size)
     this.popMatrix();
 };
 
-GLKit.GL.prototype.sphereDetail = function(detail)
-{
-    if(detail != this._sphereDetailLast)
-    {
-        this._genSphere(detail);
-        this._sphereDetailLast = detail;
-    }
-};
-
 GLKit.GL.prototype.sphere = function()
 {
     this.drawElements(this._bVertexSphere,this._bNormalSphere,this.fillColorBuffer(this._bColor,this._bColorSphere),this._bTexCoordsSphere,this._bIndexSphere,this._drawMode);
 };
+
+
+
+
+
+//Temp, change when math done!
+GLKit.GL.prototype.lineBox = function(v0,v1){this.lineBoxf(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);};
+
+GLKit.GL.prototype.lineBoxf = function(x0,y0,z0,x1,y1,z1)
+{
+    var vec3 = GLKit.Vec3;
+
+    var p0 = this._bPoint0,
+        p1 = this._bPoint1,
+        up = this._axisY;
+
+    vec3.set3f(p0,x0,y0,z0);
+    vec3.set3f(p1,x1,y1,z1);
+
+    var len = vec3.distance(p0,p1),
+        mid = vec3.scale(vec3.added(p0,p1),0.5),
+        dir = vec3.normalize(vec3.subbed(p1,p0)),
+        c   = vec3.dot(dir,up);
+
+    var angle = Math.acos(c),
+        axis  = vec3.normalize(vec3.cross(up,dir));
+
+    this.pushMatrix();
+    this.translate(mid);
+    this.rotateAxis(angle,axis);
+    this.box(this._lineBoxWidth,len,this._lineBoxHeight);
+    this.popMatrix();
+};
+
+
+GLKit.GL.prototype.lineCylinder = function(v0,v1)
+{
+
+};
+
+
+
+
+
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype._genSphere = function(segments)
 {
@@ -724,63 +781,16 @@ GLKit.GL.prototype._genSphere = function(segments)
         }
     }
 
-
-
     this._bVertexSphere    = new Float32Array(vertices);
     this._bNormalSphere    = new Float32Array(normals);
     this._bColorSphere     = new Float32Array(segments * segments * 4);
     this._bTexCoordsSphere = new Float32Array(indices);
     this._bIndexSphere     = new Uint16Array(indices);
-
-
 };
-
-
-
-
-GLKit.GL.prototype.lineSize   = function(width,height){this._lineBoxWidth  = width;this._lineBoxHeight = height;};
-GLKit.GL.prototype.lineRadius = function(radius){this._lineCylinderRadius = radius;};
-
-//Temp, change when math done!
-GLKit.GL.prototype.lineBox = function(v0,v1){this.lineBoxf(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);};
-
-GLKit.GL.prototype.lineBoxf = function(x0,y0,z0,x1,y1,z1)
-{
-    var vec3 = GLKit.Vec3;
-
-    var p0 = this._bPoint0,
-        p1 = this._bPoint1,
-        up = this._axisY;
-
-    vec3.set3f(p0,x0,y0,z0);
-    vec3.set3f(p1,x1,y1,z1);
-
-    var len = vec3.distance(p0,p1),
-        mid = vec3.scale(vec3.added(p0,p1),0.5),
-        dir = vec3.normalize(vec3.subbed(p1,p0)),
-        c   = vec3.dot(dir,up);
-
-    var angle = Math.acos(c),
-        axis  = vec3.normalize(vec3.cross(up,dir));
-
-    this.pushMatrix();
-    this.translate(mid);
-    this.rotateAxis(angle,axis);
-    this.box(this._lineBoxWidth,len,this._lineBoxHeight);
-    this.popMatrix();
-};
-
-
-GLKit.GL.prototype.lineCylinder = function(v0,v1)
-{
-
-};
-
-
-
 
 /*---------------------------------------------------------------------------------------------------------*/
 
+//TODO: Fix me
 GLKit.GL.prototype.getScreenCoord3f = function(x,y,z)
 {
     var mpm = GLKit.Mat44.mult(this._camera.projectionMatrix,this._mModelView);
