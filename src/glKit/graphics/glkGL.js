@@ -52,22 +52,33 @@ GLKit.GL = function(gl)
 
     //temp for debug
 
-    var uLightPosition  = this._uLightPosition  = new Array(l),
-        uLightAmbient   = this._uLightAmbient   = new Array(l),
-        uLightDiffuse   = this._uLightDiffuse   = new Array(l),
-        uLightSpecular  = this._uLightSpecular  = new Array(l),
+    var uLightPosition             = this._uLightPosition  = new Array(l),
+        uLightAmbient              = this._uLightAmbient   = new Array(l),
+        uLightDiffuse              = this._uLightDiffuse   = new Array(l),
+        uLightSpecular             = this._uLightSpecular  = new Array(l),
+        uLightAttenuationConstant  = this._uLightAttenuationConstant = new Array(l),
+        uLightAttenuationLinear    = this._uLightAttenuationLinear = new Array(l),
+        uLightAttenuationQuadratic = this._uLightAttenuationQuadratic = new Array(l),
 
     i = -1;
     while(++i < l)
     {
-        uLightPosition[i]  = gl.getUniformLocation(program,'uLights['+i+'].position');
-        uLightAmbient[i]   = gl.getUniformLocation(program,'uLights['+i+'].ambient');
-        uLightDiffuse[i]   = gl.getUniformLocation(program,'uLights['+i+'].diffuse');
-        uLightSpecular[i]  = gl.getUniformLocation(program,'uLights['+i+'].specular');
+        uLightPosition[i]          = gl.getUniformLocation(program,'uLights['+i+'].position');
+        uLightAmbient[i]           = gl.getUniformLocation(program,'uLights['+i+'].ambient');
+        uLightDiffuse[i]           = gl.getUniformLocation(program,'uLights['+i+'].diffuse');
+        uLightSpecular[i]          = gl.getUniformLocation(program,'uLights['+i+'].specular');
+
+        uLightAttenuationConstant  = gl.getUniformLocation(program,'uLights['+i+'].constantAttenuation');
+        uLightAttenuationLinear    = gl.getUniformLocation(program,'uLights['+i+'].linearAttenuation');
+        uLightAttenuationQuadratic = gl.getUniformLocation(program,'uLights['+i+'].quadraticAttenuation');
 
         _gl.uniform3fv(uLightPosition[i], new Float32Array([0,0,0]));
         _gl.uniform3fv(uLightAmbient[i],  new Float32Array([0,0,0]));
         _gl.uniform3fv(uLightDiffuse[i],  new Float32Array([0,0,0]));
+
+        _gl.uniform1f(uLightAttenuationConstant[1], 1.0);
+        _gl.uniform1f(uLightAttenuationLinear[1],   0.0);
+        _gl.uniform1f(uLightAttenuationQuadratic[1],0.01);
    }
 
     this._uMaterialEmission  = _gl.getUniformLocation(program,'uMaterial.emission');
@@ -337,6 +348,11 @@ GLKit.GL.prototype.light = function(light)
     gl.uniform3fv(this._uLightAmbient[id],  light.ambient);
     gl.uniform3fv(this._uLightDiffuse[id],  light.diffuse);
     gl.uniform3fv(this._uLightSpecular[id], light.specular);
+
+    gl.uniform1f(this._uLightAttenuationConstant[id],   light.constantAttentuation);
+    gl.uniform1f(this._uLightAttenuationLinear[id],     light.linearAttentuation);
+    gl.uniform1f(this._uLightAttenuationQuadratic[id],  light.quadricAttentuation);
+
 };
 
 GLKit.GL.prototype.lightingMode = function(mode){this._lightingMode = mode;};

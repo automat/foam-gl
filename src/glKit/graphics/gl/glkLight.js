@@ -10,9 +10,10 @@ GLKit.Light = function(id)
     this.direction            = null;
     this.spotExponent         = null;
     this.spotCutOff           = null;
-    this.constantAttentuation = null;
-    this.linearAttentuation   = null;
-    this.quadricAttentuation  = null;
+
+    this.constantAttentuation = 1.0;
+    this.linearAttentuation   = 0;
+    this.quadricAttentuation  = 0.01;
 };
 
 
