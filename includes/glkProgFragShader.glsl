@@ -60,18 +60,18 @@ vec4 phongModel(vec4 position, vec3 normal, ColorComponent color, Light light)
 
    float sDotN   = max(dot(s, normal), 0.0);
 
-   float dist    = length(light.position - position.xyz);
+   float dist    = length(diff.xyz);
 
-   float att     = clamp(1.0 / (light.constantAttenuation +
-                                        light.linearAttenuation * dist +
-                                        light.quadraticAttenuation * dist * dist),0.0,1.0);
+   float att     = 1.0 / (light.constantAttenuation +
+                          light.linearAttenuation * dist +
+                          light.quadraticAttenuation * dist * dist);
 
    vec3 ambient  = uAmbient * light.ambient * color.ambient.rgb;
    vec3 diffuse  = light.diffuse * color.diffuse.rgb * sDotN ;
    vec3 specular = ((sDotN > 0.0) ? light.specular * pow(max(dot(r, v), 0.0), color.shininess) : vec3(0.0));
 
 
-   return vec4((ambient+ diffuse + specular) * att,color.ambient.a);
+   return vec4(ambient*att+ diffuse*att + specular*att,color.ambient.a);
 }
 
 
