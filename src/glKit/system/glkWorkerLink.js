@@ -1,6 +1,6 @@
-GLKit.WorkerLink = function()
+GLKit.WorkerLink = function(func)
 {
-    Worker.apply(this,null);
+    Worker.apply(this,func.toString());
 
 };
 
