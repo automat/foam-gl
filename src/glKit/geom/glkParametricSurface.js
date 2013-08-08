@@ -65,11 +65,11 @@ GLKit.ParametricSurface.prototype.setFunctions = function(funcX,funcY,funcZ,vr,u
 
 GLKit.ParametricSurface.prototype.applyFunctions = function()
 {
-    this.applyFunctionsWithTime(0);
+    this.applyFunctionsWithArg(0);
 };
 
 //Override
-GLKit.ParametricSurface.prototype.applyFunctionsWithTime = function(t)
+GLKit.ParametricSurface.prototype.applyFunctionsWithArg = function(arg)
 {
     var size  = this.size;
 
@@ -104,22 +104,22 @@ GLKit.ParametricSurface.prototype.applyFunctionsWithTime = function(t)
             u = (urLower + temp0 * (j / temp2));
             v = (vrLower + temp1 * (i / temp2));
 
-            vertices[indexVertices    ] = funcX(u,v,t);
-            vertices[indexVertices + 1] = funcY(u,v,t);
-            vertices[indexVertices + 2] = funcZ(u,v,t);
+            vertices[indexVertices    ] = funcX(u,v,arg);
+            vertices[indexVertices + 1] = funcY(u,v,arg);
+            vertices[indexVertices + 2] = funcZ(u,v,arg);
         }
     }
 };
 
 GLKit.ParametricSurface.prototype.pointOnSurface = function(u,v)
 {
-    return this.pointOnSurfaceWithTime(u,v,0);
+    return this.pointOnSurfaceWithArg(u,v,0);
 }
 
-GLKit.ParametricSurface.prototype.pointOnSurfaceWithTime = function(u,v,t)
+GLKit.ParametricSurface.prototype.pointOnSurfaceWithArg = function(u,v,arg)
 {
-    return GLKit.Vec3.make(this.funcX(u,v,t),
-                           this.funcY(u,v,t),
-                           this.funcZ(u,v,t));
+    return GLKit.Vec3.make(this.funcX(u,v,arg),
+                           this.funcY(u,v,arg),
+                           this.funcZ(u,v,arg));
 };
 
