@@ -147,7 +147,7 @@ TestApp.prototype.update = function()
     var surface = this._surface;
 
 
-    surface.applyFunctionsWithTime(time);
+    surface.applyFunctionsWithArg(time);
     surface.updateVertexNormals();
 
     material.setDiffuse3f(0.01,0.01,0.01);

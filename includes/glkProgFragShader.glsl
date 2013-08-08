@@ -14,6 +14,9 @@ uniform float uUseMaterial;
 
 uniform vec3     uAmbient;
 
+uniform   float uUseTexture;
+uniform   sampler2D uTexImage;
+
 struct Light
 {
     vec3  position;
