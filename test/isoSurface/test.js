@@ -15,15 +15,15 @@
             light0.setAmbient3f(0,0,0);
             light0.setDiffuse3f(0.8,0.8,0.8);
             light0.setSpecular3f(1,1,1);
-            light0.setPosition3f(1,1,1);
+            light0.setPosition3f(0,0,0);
 
         var material = this._material0 = new GLKit.Material();
-            material.setDiffuse3f(0.7,0.7,0.7);
-            material.setAmbient3f(0.7,0.7,0.7);
+            material.setDiffuse3f(1,1,1);
+            material.setAmbient3f(1,1,1);
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        this._isoSurface = new GLKit.ISOSurface(4);
+        this._isoSurface = new GLKit.ISOSurface(20);
 
     }
 
@@ -82,7 +82,25 @@
         gl.drawMode(gl.TRIANGLES);
         var isoSurface = this._isoSurface;
 
-        isoSurface.drawGrid(gl);
+        light0.constantAttentuation = Math.abs(Math.sin(time * 100));
+
+
+        gl.useLighting(true);
+        gl.useMaterial(true);
+
+        gl.light(light0);
+        gl.material(this._material0);
+
+        isoSurface.applyFunctionWithArg(time);
+        gl.pushMatrix();
+        gl.scale3f(3,3,3);
+        gl.rotate3f(Math.sin(time*Math.PI),Math.sin(time*Math.PI),Math.sin(time*Math.PI));
+        isoSurface.drawGrid(gl,time);
+        gl.popMatrix();
+
+        gl.useMaterial(false);
+        gl.useLighting(false);
+
 
         //STUFF goes here
 

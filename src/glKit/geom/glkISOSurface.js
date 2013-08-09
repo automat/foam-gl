@@ -5,6 +5,8 @@ GLKit.ISOSurface = function(sizeX,sizeY,sizeZ)
     this._vertSizeY = null;
     this._vertSizeZ = null;
 
+    this._func = function(x,y,z,a){return Math.abs(x)+Math.abs(y)+Math.abs(z) - 2.7;};
+
     switch(arguments.length)
     {
         case 1:
@@ -29,7 +31,7 @@ GLKit.ISOSurface = function(sizeX,sizeY,sizeZ)
     this._vertSizeTotal = this._vertSizeX * this._vertSizeY * this._vertSizeZ;
     this._cellSizeTotal = this._cellSizeX * this._cellSizeY * this._cellSizeZ;
 
-    this._verts = new Array(this._vertSizeTotal * GLKit.Vec3.SIZE);
+    this._verts = new Array(this._vertSizeTotal * GLKit.Vec4.SIZE);
     this._cells = new Array(this._cellSizeTotal * GLKit.ISOSurface.CELL_SIZE * GLKit.Vec3.SIZE);
 
     this.vertices = new Float32Array(this._vertSizeTotal * GLKit.Vec3.SIZE);
@@ -62,7 +64,7 @@ GLKit.ISOSurface.prototype._genSurface = function()
     var verts = this._verts;
 
     var vertsIndex,
-        verts3Index,
+        verts4Index,
         cellsIndex,
         cells8Index;
 
@@ -82,11 +84,11 @@ GLKit.ISOSurface.prototype._genSurface = function()
             while(++k < sizeZ)
             {
                 vertsIndex  = i * sizeY * sizeZ + j * sizeZ + k;
-                verts3Index = vertsIndex * 3;
+                verts4Index = vertsIndex * 4;
 
-                verts[verts3Index    ] =  -0.5 + (i / (sizeX - 1));
-                verts[verts3Index + 1] =  -0.5 + (j / (sizeY - 1));
-                verts[verts3Index + 2] =  -0.5 + (k / (sizeZ - 1));
+                verts[verts4Index    ] =  -0.5 + (i / (sizeX - 1));
+                verts[verts4Index + 1] =  -0.5 + (j / (sizeY - 1));
+                verts[verts4Index + 2] =  -0.5 + (k / (sizeZ - 1));
 
                 if(i < cellSizeX && j < cellSizeY && k < cellSizeZ)
                 {
@@ -112,17 +114,11 @@ GLKit.ISOSurface.prototype._genSurface = function()
         }
     }
 
-
-    console.log(cells);
-
-
-
-
 };
 
 //visual debug
 
-GLKit.ISOSurface.prototype.drawGrid = function(gl)
+GLKit.ISOSurface.prototype.drawGrid = function(gl,time)
 {
 
 
@@ -136,6 +132,16 @@ GLKit.ISOSurface.prototype.drawGrid = function(gl)
         vertIndex;
     var verts = this._verts;
 
+    var scaleUnitX = 1/(sizeX-1),
+        scaleUnitY = 1/(sizeY-1),
+        scaleUnitZ = 1/(sizeZ-1);
+    var scale;
+
+    var threshold1 = Math.abs(Math.sin(time*0.25+Math.PI*0.75)) * -2.1,
+        threshold0 = threshold1 - 0.25;
+
+    gl.drawMode(gl.TRIANGLES);
+
     i = -1;
     while(++i < sizeX)
     {
@@ -146,17 +152,67 @@ GLKit.ISOSurface.prototype.drawGrid = function(gl)
             while(++k < sizeZ)
             {
                 index = i * sizeY * sizeZ + j * sizeZ + k;
-                vertIndex = index * 3;
+                vertIndex = index * 4;
+
+                scale = verts[vertIndex+3];
+
+
+
+                if(scale > threshold1 || scale < threshold0)continue;
+
+
 
                 gl.pushMatrix();
-
-                gl.drawMode(gl.TRIANGLES);
-                gl.translate3f(verts[vertIndex]*2,verts[vertIndex+1]*2,verts[vertIndex+2]*2);
-
-                gl.cube(0.025);
+                gl.translate3f(verts[vertIndex],verts[vertIndex+1],verts[vertIndex+2]);
+                gl.scale3f(scaleUnitX,scaleUnitY,scaleUnitZ);
+                gl.cube(1);
 
                 gl.popMatrix();
           }
+        }
+    }
+
+    var CELL_SIZE = GLKit.ISOSurface.CELL_SIZE;
+
+
+
+
+
+};
+
+GLKit.ISOSurface.prototype.applyFunction = function()
+{
+    this.applyFunctionWithArg(0);
+};
+
+GLKit.ISOSurface.prototype.applyFunctionWithArg = function(arg)
+{
+    var sizeX = this._vertSizeX,
+        sizeY = this._vertSizeY,
+        sizeZ = this._vertSizeZ;
+
+    var index,
+        verts4Index;
+
+    var verts = this._verts;
+
+    var i , j , k;
+
+    i = -1;
+    while(++i < sizeX)
+    {
+        j = -1;
+        while(++j < sizeY)
+        {
+            k = -1;
+            while(++k < sizeZ)
+            {
+                index  = i * sizeY * sizeZ + j * sizeZ + k;
+                verts4Index = index * 4;
+
+                verts[verts4Index + 3] = this._func(verts[verts4Index],verts[verts4Index+1],verts[verts4Index+2],arg);
+
+            }
         }
     }
 
