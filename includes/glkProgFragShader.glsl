@@ -11,10 +11,11 @@ const int   MAX_LIGHTS = 8;
 
 uniform float uUseLighting;
 uniform float uUseMaterial;
+uniform float uUseTexture;
 
 uniform vec3     uAmbient;
 
-uniform   float uUseTexture;
+
 uniform   sampler2D uTexImage;
 
 struct Light
@@ -85,14 +86,21 @@ uniform mat3 uNormalMatrix;
 
 void main()
 {
+    float useLightingInv = 1.0 - uUseLighting;
+    float useMaterialInv = 1.0 - uUseMaterial;
+    float useTextureInv  = 1.0 - uUseTexture;
+
     vec3 tVertexNormal     = (gl_FrontFacing ? -1.0 : 1.0) * normalize(uNormalMatrix * vVertexNormal);
 
-    vec4 vertexColor = vVertexColor * (1.0-uUseMaterial);
+    vec4 vertexColor  = vVertexColor * useMaterialInv;
+    vec4 textureColor = texture2D(uTexImage,vVertexUV);
+    vec4 resultColor  = vertexColor * useTextureInv + textureColor * uUseTexture;
 
-    ColorComponent color  = ColorComponent(uMaterial.ambient   * uUseMaterial + vertexColor,
-                                           uMaterial.diffuse   * uUseMaterial + vertexColor,
-                                           uMaterial.specular  * uUseMaterial + vertexColor,
-                                           uMaterial.shininess * uUseMaterial + (1.0 - uUseMaterial));
+
+    ColorComponent color  = ColorComponent(uMaterial.ambient   * uUseMaterial + resultColor,
+                                           uMaterial.diffuse   * uUseMaterial + resultColor,
+                                           uMaterial.specular  * uUseMaterial + resultColor,
+                                           uMaterial.shininess * uUseMaterial + useMaterialInv);
 
     vec4 lightingColor = vec4(0,0,0,0);
 
@@ -101,5 +109,5 @@ void main()
         lightingColor+=phongModel(vVertexPosition,tVertexNormal,color,uLights[i]);
     }
 
-    gl_FragColor = uUseLighting * lightingColor + (1.0-uUseLighting) * vVertexColor;
+    gl_FragColor = uUseLighting * lightingColor + useLightingInv * (vVertexColor * useTextureInv + textureColor * uUseTexture);
 }

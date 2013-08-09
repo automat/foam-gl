@@ -255,7 +255,10 @@ GLKit.GL = function(gl)
     this._bNormalQuad          = new Float32Array(SIZE_OF_QUAD);
     this._bColorQuad           = new Float32Array(4 * SIZE_OF_COLOR);
     this._bIndexQuad           = new Uint16Array([0,1,2,1,2,3]);
-    this._bTexCoordQuadDefault = new Float32Array([0.0,0.0,1.0,0.0,0.0,1.0,1.0,1.0]);
+    this._bTexCoordQuadDefault = new Float32Array([0.0,0.0,
+                                                   1.0,0.0,
+                                                   1.0,1.0,
+                                                   0.0,1.0]);
     this._bTexCoordQuad        = new Float32Array(this._bTexCoordQuadDefault.length);
 
     this._bVertexRect          = new Float32Array(SIZE_OF_QUAD);
@@ -396,53 +399,67 @@ GLKit.GL.prototype.disableLight = function(light)
     gl.uniform1f(this._uLightAttenuationQuadratic[id],0.0);
 };
 
-GLKit.GL.prototype.loadTexture = function(src,targetTexture,callback)
+GLKit.GL.prototype.loadTextureWithImage = function(img)
+{
+    var gl = this._gl,
+        glTex = gl.createTexture();
+        glTex.image = img;
+
+    var tex = new GLKit.Texture(glTex);
+    this._bindTexImage(tex._tex);
+
+    return tex;
+
+};
+
+GLKit.GL.prototype.loadTexture = function(src,texture,callback)
 {
     var gl  = this._gl,
-        tex = gl.createTexture();
-        tex.image = new Image();
+        glTex = gl.createTexture();
+        glTex.image = new Image();
 
-    tex.image.addEventListener('load',function()
+    glTex.image.addEventListener('load',function()
     {
-        var img = tex.image;
-
-        if(!img)throw ('Texture image is null.');
-
-        var width  = img.width,
-            height = img.height;
-
-        if((width&(width-1)!=0))       {throw 'Texture image width is not power of 2.'; }
-        else if((height&(height-1))!=0){throw 'Texture image height is not power of 2.';}
-
-        gl.bindTexture(gl.TEXTURE_2D,tex);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-
-        targetTexture.setTexSource(tex);
-
+        texture.setTexSource(this._bindTexImage(glTex));
         callback();
-
     });
 
-    tex.image.src = src;
+    glTex.image.src = src;
+};
+
+GLKit.GL.prototype._bindTexImage = function(glTex)
+{
+    if(!glTex.image)throw ('Texture image is null.');
+
+    var width  = glTex.image.width,
+        height = glTex.image.height;
+
+    if((width&(width-1)!=0))       {throw 'Texture image width is not power of 2.'; }
+    else if((height&(height-1))!=0){throw 'Texture image height is not power of 2.';}
+
+    var gl = this._gl;
+
+    gl.bindTexture(gl.TEXTURE_2D,glTex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glTex.image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.bindTexture(gl.TEXTURE_2D,null);
+
+
+    return glTex;
 };
 
 GLKit.GL.prototype.texture = function(texture)
 {
     var gl = this._gl;
 
-    if(this._tex != texture._tex)
-    {
-        this._tex = texture._tex;
-        gl.bindTexture(gl.TEXTURE_2D,this._tex);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this._texMode );
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this._texMode );
-
-        this._texSet = true;
-    }
+    this._tex = texture._tex;
+    gl.bindTexture(gl.TEXTURE_2D,this._tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this._texMode );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this._texMode );
+    gl.uniform1i(this._uTexImage,0);
 };
 
 GLKit.GL.prototype.disableTextures = function()
@@ -451,16 +468,14 @@ GLKit.GL.prototype.disableTextures = function()
     gl.bindTexture(gl.TEXTURE_2D,this._texEmpty);
     gl.vertexAttribPointer(this._aTexCoord,GLKit.Vec2.SIZE,gl.FLOAT,false,0,0);
     gl.uniform1f(this._uUseTexture,0.0);
-
-    this._texSet = false;
 };
 
 GLKit.GL.prototype.lightingMode = function(mode){this._lightingMode = mode;};
 
-GLKit.GL.prototype.useTexture  = function(bool){};
+GLKit.GL.prototype.useTexture  = function(bool){this._gl.uniform1f(this._uUseTexture, bool ? 1.0 : 0.0);};
 GLKit.GL.prototype.useMaterial = function(bool){this._gl.uniform1f(this._uUseMaterial,bool ? 1.0 : 0.0);};
 GLKit.GL.prototype.useLighting = function(bool){this._gl.uniform1f(this._uUseLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
-GLKit.GL.prototype.getLighting = function(){return this._bLighting;}
+GLKit.GL.prototype.getLighting = function(){return this._bLighting;};
 
 /*---------------------------------------------------------------------------------------------------------*/
 
@@ -730,7 +745,7 @@ GLKit.GL.prototype.rect = function(width,height)
     v[0] = v[1] = v[2] = v[4] = v[5] = v[7] = v[9] = v[10] = 0;
     v[3] = v[6] = width; v[8] = v[11] = height;
 
-    this.drawArrays(v,this._bNormalRect,this.fillColorBuffer(this._bColor,this._bColorRect),null,this._drawMode,0,4);
+    this.drawArrays(v,this._bNormalRect,this.fillColorBuffer(this._bColor,this._bColorRect),this._bTexCoordQuadDefault,this._drawMode,0,4);
 };
 
 GLKit.GL.prototype.triangle = function(v0,v1,v2)

@@ -4,11 +4,12 @@ GLKit.Texture = function()
     this._width = null;
     this._height = null;
 
+    if(arguments.length == 1)this.setTexSource(arguments[0]);
 };
 
-GLKit.Texture.prototype.setTexSource = function(texSrc)
+GLKit.Texture.prototype.setTexSource = function(glTex)
 {
-    var tex = this._tex = texSrc;
+    var tex = this._tex = glTex;
     this._width  = tex.image.width;
     this._height = tex.image.height;
 };
