@@ -2,6 +2,7 @@
 .idea/
 
 .DS_STORE
-.BAK
 
 sketch
+
+*.BAK
