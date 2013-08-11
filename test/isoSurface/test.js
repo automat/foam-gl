@@ -9,7 +9,7 @@
         this.setSize(window.innerWidth,window.innerHeight);
         this.setTargetFPS(60);
 
-        this._zoom = 3;
+        this._zoom = 8;
 
         var light0 = this._light0 = new GLKit.Light(this.gl.LIGHT_0);
             light0.setAmbient3f(0,0,0);
@@ -23,7 +23,7 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        this._isoSurface = new GLKit.ISOSurface(20);
+        this._isoSurface = new GLKit.ISOSurface(13);
 
     }
 
@@ -40,7 +40,7 @@
 
         var light0 = this._light0;
 
-        var zoom = this._zoom = GLKit.Math.lerp(this._zoom, 3 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
+        var zoom = this._zoom = GLKit.Math.lerp(this._zoom, 8 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
 
 
         gl.clear3f(0.1,0.1,0.1);
@@ -82,7 +82,8 @@
         gl.drawMode(gl.TRIANGLES);
         var isoSurface = this._isoSurface;
 
-        light0.constantAttentuation = Math.abs(Math.sin(time * 100));
+
+
 
 
         gl.useLighting(true);
@@ -93,8 +94,7 @@
 
         isoSurface.applyFunctionWithArg(time);
         gl.pushMatrix();
-        gl.scale3f(3,3,3);
-        gl.rotate3f(Math.sin(time*Math.PI),Math.sin(time*Math.PI),Math.sin(time*Math.PI));
+        gl.scale3f(6,6,6);
         isoSurface.drawGrid(gl,time);
         gl.popMatrix();
 
