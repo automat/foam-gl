@@ -23,7 +23,7 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        this._isoSurface = new GLKit.ISOSurface(13);
+        this._isoSurface = new GLKit.ISOSurface(28);
 
     }
 
