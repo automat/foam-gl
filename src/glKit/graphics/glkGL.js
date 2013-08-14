@@ -552,7 +552,7 @@ GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,c
 
 GLKit.GL.prototype.drawGeometry = function(geom)
 {
-    this.drawElements(geom.vertices,geom.normals,geom.colors,geom.texCoords,geom.indices,this._drawMode);
+    geom._draw(this);
 };
 
 
@@ -766,7 +766,7 @@ GLKit.GL.prototype.triangle = function(v0,v1,v2)
 GLKit.GL.prototype.trianglef = function(v0,v1,v2,v3,v4,v5,v6,v7,v8)
 {
     var v = this._bVertexTriangle;
-    v[0] = v0;v[1] = v0;v[2] = v2;
+    v[0] = v0;v[1] = v1;v[2] = v2;
     v[3] = v3;v[4] = v4;v[5] = v5;
     v[6] = v6;v[7] = v7;v[8] = v8;
 

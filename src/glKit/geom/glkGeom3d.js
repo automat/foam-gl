@@ -7,6 +7,8 @@ GLKit.Geom3d = function()
     this.texCoords = null;
 };
 
+
+
 //TODO merge
 GLKit.Geom3d.prototype.updateVertexNormals = function()
 {
@@ -103,4 +105,9 @@ GLKit.Geom3d.prototype.updateVertexNormals = function()
         i+=3;
     }
 
+};
+
+GLKit.Geom3d.prototype._draw = function(gl)
+{
+    gl.drawElements(this.vertices,this.normals,this.colors,this.texCoords,this.indices,gl._drawMode);
 };
