@@ -15,15 +15,15 @@
             light0.setAmbient3f(0,0,0);
             light0.setDiffuse3f(0.8,0.8,0.8);
             light0.setSpecular3f(1,1,1);
-            light0.setPosition3f(0,0,0);
+            light0.setPosition3f(3,3,3);
 
         var material = this._material0 = new GLKit.Material();
             material.setDiffuse3f(1,1,1);
             material.setAmbient3f(1,1,1);
             material.setSpecular3f(1,1,1);
-            material.shininess = 20.0;
+            material.shininess = 200.0;
 
-        this._isoSurface = new GLKit.ISOSurface(28);
+        this._isoSurface = new GLKit.ISOSurface(30);
 
     }
 
@@ -74,6 +74,8 @@
         cam.setTarget3f(0,0,0);
         cam.updateMatrices();
 
+        light0.setPosition3f(Math.cos(time*3)*6,2,Math.sin(time*3)*6);
+
         gl.drawMode(gl.LINE_LOOP);
 
         this.drawSystem();
@@ -95,7 +97,7 @@
         isoSurface.applyFunctionWithArg(time);
         gl.pushMatrix();
         gl.scale3f(6,6,6);
-        isoSurface.drawGrid(gl,time);
+        gl.drawGeometry(isoSurface);
         gl.popMatrix();
 
         gl.useMaterial(false);

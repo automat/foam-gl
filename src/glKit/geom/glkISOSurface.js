@@ -24,16 +24,27 @@ GLKit.ISOSurface = function(sizeX,sizeY,sizeZ)
     this._cubeSizeY = this._vertSizeY - 1;
     this._cubeSizeZ = this._vertSizeZ - 1;
 
-    this._func     = function(x,y,z,a){return Math.abs(x)*Math.sin(a)+Math.abs(y)*Math.sin(a*2)+Math.abs(z) - 2.7;};
-    this._isoLevel = -1.95;
+    this._func     = function(x,y,z,a){return  (x*x + y*y + z*z)*4 + Math.abs(x)*Math.sin(a*5)+Math.abs(y)*Math.sin(a*10)+Math.abs(z)*Math.sin(a)- 0.25;};
+    this._isoLevel = 0;
 
-    this._numTriangles = 0;
-    this._tempVertices = new Array(12);
-    this._tempNormals  = new Array(12);
+
+    var incr = [16.0/this._vertSizeX,16.0/this._vertSizeY,16.0/this._vertSizeY];
+    this._factors = [1.0/(incr[0]*2.0),1.0/(incr[1]*2.0),1.0/(incr[2]*2.0)]
 
 
     this._verts = new Array(this._vertSizeX*this._vertSizeY*this._vertSizeZ);
     this._cubes = new Array(this._cubeSizeX*this._cubeSizeY*this._cubeSizeZ);
+
+    this._numTriangles = 0;
+
+    var cubesLen = this._cubes.length;
+
+    this._bVertices = new Float32Array((cubesLen*4)*3*3);
+    this._bNormals  = new Float32Array((cubesLen*4)*3*3);
+    this._bColors   = new Float32Array((cubesLen*4)*3*4);
+
+    this._tempVertices = new Array(12);
+    this._tempNormals  = new Array(12);
 
     this._genSurface();
 
@@ -75,9 +86,9 @@ GLKit.ISOSurface.prototype._genSurface = function()
             {
                 vertsIndex        = i * vertSizeZ * vertSizeY + j * vertSizeZ + k;
                 verts[vertsIndex] = [(-0.5 + ( k / (vertSizeX - 1))),
-                    (-0.5 + ( j / (vertSizeY - 1))),
-                    (-0.5 + ( i / (vertSizeZ - 1))),
-                    (-99.0)];
+                                     (-0.5 + ( j / (vertSizeY - 1))),
+                                     (-0.5 + ( i / (vertSizeZ - 1))),
+                                     (-99.0)];
 
 
                 if(i < cubeSizeX && j < cubeSizeY && k  < cubeSizeZ)
@@ -96,19 +107,14 @@ GLKit.ISOSurface.prototype._genSurface = function()
                     ]
 
                 }
-
-
-
-
             }
         }
     }
 
 };
 
-//visual debug
 
-GLKit.ISOSurface.prototype.drawGrid = function(gl,time)
+GLKit.ISOSurface.prototype._marchSurface = function()
 {
     var vertSizeX  = this._vertSizeX,
         vertSizeY  = this._vertSizeY,
@@ -118,64 +124,45 @@ GLKit.ISOSurface.prototype.drawGrid = function(gl,time)
         verts = this._verts,
         vert;
 
-    gl.drawMode(gl.TRIANGLES);
-    gl.color1f(1);
-
     var i, j, k;
-    /*
-    i = -1;
-    while(++i < vertSizeZ)
-    {
-        j = -1;
-        while(++j < vertSizeY)
-        {
-            k = -1;
-            while(++k < vertSizeX)
-            {
-                vertsIndex = i * vertSizeZ * vertSizeY + j * vertSizeZ + k;
-                vert       = verts[vertsIndex];
 
 
 
-                gl.pushMatrix();
-                gl.translate3f(vert[0],vert[1],vert[2]);
-                gl.cube(vert[3] < this._isoLevel && vert[3] > this._isoLevel -0.25 ? 0.025 : 0.00625);
-
-                gl.popMatrix();
-
-
-            }
-        }
-    }
-    */
-
-
-
-    var cubeIndex = Math.floor(Math.abs(Math.sin(time * 0.05))*this._cubeSizeX*this._cubeSizeY*this._cubeSizeZ);
-
-    var cube = this._cubes[cubeIndex];
-
-    if(!cube)return;
-
-
-    gl.useMaterial(false);
-    gl.useLighting(false);
-    gl.drawMode(gl.TRIANGLES);
-    gl.color1f(1.0);
-
-
-    gl.quadv(verts[cube[0]],verts[cube[1]],verts[cube[3]],verts[cube[2]]);
-    gl.quadv(verts[cube[3]],verts[cube[2]],verts[cube[6]],verts[cube[7]]);
-    gl.quadv(verts[cube[4]],verts[cube[5]],verts[cube[7]],verts[cube[6]]);
-    gl.quadv(verts[cube[5]],verts[cube[4]],verts[cube[0]],verts[cube[1]]);
-
-
-    this._march(cube,gl);
+    this._numTriangles = 0;
 
     var cubeSizeX = this._cubeSizeX,
         cubeSizeY = this._cubeSizeY,
         cubeSizeZ = this._cubeSizeZ;
 
+    var marchIndex;
+    var cubes = this._cubes,
+        cube;
+
+    var v0,v1,v2,v3,v4,v5,v6,v7;
+    var val0,val1,val2,val3,val4,val5,val6,val7;
+    var cubeIndex;
+    var EDGE_TABLE = GLKit.ISOSurface.EDGE_TABLE;
+    var isoLevel = this._isoLevel;
+    var bits;
+
+    var bVertices = this._bVertices,
+        bNormals  = this._bNormals,
+        bVertIndex;
+
+    var vertIndex0,vertIndex1,vertIndex2,vertIndex3,
+        vertIndex4,vertIndex5,vertIndex6,vertIndex7,vertIndex8;
+
+    var e2x, e2y, e2z,
+        e1x, e1y, e1z;
+
+    var nx, ny, nz,
+        vbx, vby, vbz;
+
+    var TRI_TABLE = GLKit.ISOSurface.TRI_TABLE;
+
+
+    i = -1;
+    while(++i<bNormals.length)bNormals[i]=0.0;
 
     i = -1;
     while(++i < cubeSizeZ)
@@ -186,20 +173,187 @@ GLKit.ISOSurface.prototype.drawGrid = function(gl,time)
             k = -1;
             while(++k < cubeSizeX)
             {
-                gl.color3f(i/cubeSizeZ,j/cubeSizeY,k/cubeSizeX);
-                cubeIndex = i * cubeSizeZ * cubeSizeY + j * cubeSizeZ + k;
-                this._march(this._cubes[cubeIndex],gl);
+                marchIndex = i * cubeSizeZ * cubeSizeY + j * cubeSizeZ + k;
+                cube       = cubes[marchIndex];
+
+
+                v0 = verts[cube[0]];
+                v1 = verts[cube[1]];
+                v2 = verts[cube[2]];
+                v3 = verts[cube[3]];
+                v4 = verts[cube[4]];
+                v5 = verts[cube[5]];
+                v6 = verts[cube[6]];
+                v7 = verts[cube[7]];
+
+                val0 = v0[3];
+                val1 = v1[3];
+                val2 = v2[3];
+                val3 = v3[3];
+                val4 = v4[3];
+                val5 = v5[3];
+                val6 = v6[3];
+                val7 = v7[3];
+
+                cubeIndex = 0;
+
+                if(val0<isoLevel) cubeIndex |= 1;
+                if(val1<isoLevel) cubeIndex |= 2;
+                if(val2<isoLevel) cubeIndex |= 8;
+                if(val3<isoLevel) cubeIndex |= 4;
+                if(val4<isoLevel) cubeIndex |= 16;
+                if(val5<isoLevel) cubeIndex |= 32;
+                if(val6<isoLevel) cubeIndex |= 128;
+                if(val7<isoLevel) cubeIndex |= 64;
+
+
+
+
+                bits = EDGE_TABLE[cubeIndex];
+
+                if(bits === 0)continue;
+
+                var tempVertices = this._tempVertices,
+                    tempNormals  = this._tempNormals;
+
+                if (bits & 1)
+                {
+                    this._intrpl(v0, v1, tempVertices, 0);
+                }
+                if (bits & 2)
+                {
+                    this._intrpl(v1, v3, tempVertices, 1);
+                }
+                if (bits & 4)
+                {
+                    this._intrpl(v2, v3, tempVertices, 2);
+                }
+                if (bits & 8)
+                {
+                    this._intrpl(v0, v2, tempVertices, 3);
+                }
+
+                if (bits & 16)
+                {
+                    this._intrpl(v4, v5, tempVertices, 4);
+                }
+                if (bits & 32)
+                {
+                    this._intrpl(v5, v7, tempVertices, 5);
+                }
+                if (bits & 64)
+                {
+                    this._intrpl(v6, v7, tempVertices, 6);
+                }
+                if (bits & 128)
+                {
+                    this._intrpl(v4, v6, tempVertices, 7);
+                }
+
+                if (bits & 256)
+                {
+                    this._intrpl(v0, v4, tempVertices, 8);
+                }
+                if (bits & 512)
+                {
+                    this._intrpl(v1, v5, tempVertices, 9);
+                }
+                if (bits & 1024)
+                {
+                    this._intrpl(v3, v7, tempVertices, 10);
+                }
+                if (bits & 2048)
+                {
+                    this._intrpl(v2, v6, tempVertices, 11);
+                }
+
+                var l = 0;
+                cubeIndex <<= 4;
+
+
+
+                while(TRI_TABLE[cubeIndex + l] != -1)
+                {
+                    v0 = tempVertices[TRI_TABLE[cubeIndex + l]];
+                    v1 = tempVertices[TRI_TABLE[cubeIndex + l + 1]];
+                    v2 = tempVertices[TRI_TABLE[cubeIndex + l + 2]];
+
+                    bVertIndex = this._numTriangles * 9;
+
+                    vertIndex0 = bVertIndex;
+                    vertIndex1 = bVertIndex+1;
+                    vertIndex2 = bVertIndex+2;
+                    vertIndex3 = bVertIndex+3;
+                    vertIndex4 = bVertIndex+4;
+                    vertIndex5 = bVertIndex+5;
+                    vertIndex6 = bVertIndex+6;
+                    vertIndex7 = bVertIndex+7;
+                    vertIndex8 = bVertIndex+8;
+
+                    bVertices[vertIndex0] = v0[0];
+                    bVertices[vertIndex1] = v0[1];
+                    bVertices[vertIndex2] = v0[2];
+
+                    bVertices[vertIndex3] = v1[0];
+                    bVertices[vertIndex4] = v1[1];
+                    bVertices[vertIndex5] = v1[2];
+
+                    bVertices[vertIndex6] = v2[0];
+                    bVertices[vertIndex7] = v2[1];
+                    bVertices[vertIndex8] = v2[2];
+
+
+                    vbx = v1[0];
+                    vby = v1[1];
+                    vbz = v1[2];
+
+                    e1x = v0[0]-vbx;
+                    e1y = v0[1]-vby;
+                    e1z = v0[2]-vbz;
+
+                    e2x = v2[0]-vbx;
+                    e2y = v2[1]-vby;
+                    e2z = v2[2]-vbz;
+
+                    nx = e1y * e2z - e1z * e2y;
+                    ny = e1z * e2x - e1x * e2z;
+                    nz = e1x * e2y - e1y * e2x;
+
+                    bNormals[vertIndex0] += nx;
+                    bNormals[vertIndex1] += ny;
+                    bNormals[vertIndex2] += nz;
+                    bNormals[vertIndex3] += nx;
+                    bNormals[vertIndex4] += ny;
+                    bNormals[vertIndex5] += nz;
+                    bNormals[vertIndex6] += nx;
+                    bNormals[vertIndex7] += ny;
+                    bNormals[vertIndex8] += nz;
+
+
+
+                    l+=3;
+                    this._numTriangles++;
+                }
+
+
+
 
 
             }
+
+
         }
     }
 
 
 
+
+
+
+
 };
 
-GLKit.ISOSurface.prototype._march = function(cube,gl)
+GLKit.ISOSurface.prototype._march = function(cube)
 {
     var verts = this._verts;
 
@@ -244,45 +398,120 @@ GLKit.ISOSurface.prototype._march = function(cube,gl)
     var tempVertices = this._tempVertices,
         tempNormals  = this._tempNormals;
 
-    if(bits&1)   {this._intrpl(v0,v1,tempVertices,0 );}
-    if(bits&2)   {this._intrpl(v1,v3,tempVertices,1 );}
-    if(bits&4)   {this._intrpl(v2,v3,tempVertices,2 );}
-    if(bits&8)   {this._intrpl(v0,v2,tempVertices,3 );}
+    if (bits & 1)
+    {
+        this._intrpl(v0, v1, tempVertices, 0);
+    }
+    if (bits & 2)
+    {
+        this._intrpl(v1, v3, tempVertices, 1);
+    }
+    if (bits & 4)
+    {
+        this._intrpl(v2, v3, tempVertices, 2);
+    }
+    if (bits & 8)
+    {
+        this._intrpl(v0, v2, tempVertices, 3);
+    }
 
-    if(bits&16)  {this._intrpl(v4,v5,tempVertices,4 );}
-    if(bits&32)  {this._intrpl(v5,v7,tempVertices,5 );}
-    if(bits&64)  {this._intrpl(v6,v7,tempVertices,6 );}
-    if(bits&128) {this._intrpl(v4,v6,tempVertices,7 );}
+    if (bits & 16)
+    {
+        this._intrpl(v4, v5, tempVertices, 4);
+    }
+    if (bits & 32)
+    {
+        this._intrpl(v5, v7, tempVertices, 5);
+    }
+    if (bits & 64)
+    {
+        this._intrpl(v6, v7, tempVertices, 6);
+    }
+    if (bits & 128)
+    {
+        this._intrpl(v4, v6, tempVertices, 7);
+    }
 
-    if(bits&256) {this._intrpl(v0,v4,tempVertices,8 );}
-    if(bits&512) {this._intrpl(v1,v5,tempVertices,9 );}
-    if(bits&1024){this._intrpl(v3,v7,tempVertices,10);}
-    if(bits&2048){this._intrpl(v2,v6,tempVertices,11);}
+    if (bits & 256)
+    {
+        this._intrpl(v0, v4, tempVertices, 8);
+    }
+    if (bits & 512)
+    {
+        this._intrpl(v1, v5, tempVertices, 9);
+    }
+    if (bits & 1024)
+    {
+        this._intrpl(v3, v7, tempVertices, 10);
+    }
+    if (bits & 2048)
+    {
+        this._intrpl(v2, v6, tempVertices, 11);
+    }
 
-    var i = 0;
+    var l = 0;
     cubeIndex <<= 4;
+
+    var bVertices = this._bVertices,
+        bNormals  = this._bNormals,
+        bVertIndex;
+
+    var vertIndex0,vertIndex1,vertIndex2,vertIndex3,
+        vertIndex4,vertIndex5,vertIndex6,vertIndex7,vertIndex8;
 
     var TRI_TABLE = GLKit.ISOSurface.TRI_TABLE;
 
-    while(TRI_TABLE[cubeIndex + i] != -1)
+    while(TRI_TABLE[cubeIndex + l] != -1)
     {
-        v0 = tempVertices[TRI_TABLE[cubeIndex + i]];
-        v1 = tempVertices[TRI_TABLE[cubeIndex + i + 1]];
-        v2 = tempVertices[TRI_TABLE[cubeIndex + i + 2]];
+        v0 = tempVertices[TRI_TABLE[cubeIndex + l]];
+        v1 = tempVertices[TRI_TABLE[cubeIndex + l + 1]];
+        v2 = tempVertices[TRI_TABLE[cubeIndex + l + 2]];
 
-        gl.triangle(v0,v1,v2);
+        bVertIndex = this._numTriangles * 9;
 
-        i+=3;
+        vertIndex0 = bVertIndex;
+        vertIndex1 = bVertIndex+1;
+        vertIndex2 = bVertIndex+2;
+        vertIndex3 = bVertIndex+3;
+        vertIndex4 = bVertIndex+4;
+        vertIndex5 = bVertIndex+5;
+        vertIndex6 = bVertIndex+6;
+        vertIndex7 = bVertIndex+7;
+        vertIndex8 = bVertIndex+8;
+
+
+
+        bVertices[vertIndex0] = v0[0];
+        bVertices[vertIndex1] = v0[1];
+        bVertices[vertIndex2] = v0[2];
+        bVertices[vertIndex3] = v1[0];
+        bVertices[vertIndex4] = v1[1];
+        bVertices[vertIndex5] = v1[2];
+        bVertices[vertIndex6] = v2[0];
+        bVertices[vertIndex7] = v2[1];
+        bVertices[vertIndex8] = v2[2];
+
+        bNormals[vertIndex0] = 1.0;
+        bNormals[vertIndex1] = 1.0;
+        bNormals[vertIndex2] = 1.0;
+        bNormals[vertIndex3] = 1.0;
+        bNormals[vertIndex4] = 1.0;
+        bNormals[vertIndex5] = 1.0;
+        bNormals[vertIndex6] = 1.0;
+        bNormals[vertIndex7] = 1.0;
+        bNormals[vertIndex8] = 1.0;
+
+
+
+        l+=3;
         this._numTriangles++;
     }
 
+};
 
-
-
-
-
-
-
+GLKit.ISOSurface.prototype._draw = function(gl)
+{
+    gl.drawArrays(this._bVertices,this._bNormals,this._bColors,null,gl.TRIANGLES,0,this._numTriangles*3);
 };
 
 GLKit.ISOSurface.prototype._intrpl = function(v0,v1,vertList,index)
@@ -329,6 +558,9 @@ GLKit.ISOSurface.prototype.applyFunctionWithArg = function(arg)
             }
         }
     }
+
+
+    this._marchSurface();
 
 
 };
