@@ -44,6 +44,7 @@
             material.shininess = 200.0;
 
         var isoSurface = this._isoSurface = new GLKit.ISOSurface(36);
+
             isoSurface.setFunction(function(x,y,z,arg0)
                                   {
                                       var s = 0.035 + Math.abs(Math.sin(arg0)) * 0.015;
