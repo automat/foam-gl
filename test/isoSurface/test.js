@@ -11,11 +11,31 @@
 
         this._zoom = 8;
 
+        this.camera.setPosition3f(6,6,6);
+
         var light0 = this._light0 = new GLKit.Light(this.gl.LIGHT_0);
-            light0.setAmbient3f(0,0,0);
-            light0.setDiffuse3f(0.8,0.8,0.8);
+            light0.setAmbient3f(1,1,1);
+            light0.setDiffuse3f(0.25,0,0);
             light0.setSpecular3f(1,1,1);
             light0.setPosition3f(3,3,3);
+
+        var light1 = this._light1 = new GLKit.Light(this.gl.LIGHT_1);
+            light1.setAmbient3f(0,0,0);
+            light1.setDiffuse3f(0.8,0.2,0.4);
+            light1.setSpecular3f(1,1,1);
+            light1.setPosition3f(3,3,3);
+
+        var light2 = this._light2 = new GLKit.Light(this.gl.LIGHT_2);
+            light2.setAmbient3f(1,1,1);
+            light2.setDiffuse3f(1,1,1);
+            light2.setSpecular3f(1,1,1);
+            light2.setPosition3f(0,5,0);
+
+        var light3 = this._light3 = new GLKit.Light(this.gl.LIGHT_3);
+            light3.setAmbient3f(0,0,0);
+            light3.setDiffuse3f(0.1,0.1,0.6);
+            light3.setSpecular3f(1,1,1);
+            light3.setPosition3f(0,5,0);
 
         var material = this._material0 = new GLKit.Material();
             material.setDiffuse3f(1,1,1);
@@ -23,7 +43,40 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 200.0;
 
-        this._isoSurface = new GLKit.ISOSurface(30);
+        var isoSurface = this._isoSurface = new GLKit.ISOSurface(32);
+            isoSurface.setFunction(function(x,y,z,arg0)
+                                  {
+                                      var s = 0.035 + Math.abs(Math.sin(arg0)) * 0.015;
+
+                                      //lazy
+
+                                      var sint    = Math.sin(arg0),
+                                          sint2   = Math.sin(arg0 * 2),
+                                          sint025 = Math.sin(arg0 * 0.25),
+                                          sint05  = Math.sin(arg0) * 0.5,
+                                          sint5   = Math.sin(arg0 * 5);
+
+                                      var m0  = s / Math.sqrt(Math.pow(x + sint2*0.5,2) + Math.pow(y+sint025*0.5,2) + Math.pow(z,2)),
+                                          m1  = s / Math.sqrt(Math.pow(x + sint *0.5,2  ) + Math.pow(y+sint025*0.5,2) + Math.pow(z+sint*0.25,2)),
+                                          m2  = s / Math.sqrt(Math.pow(x - sint5*0.5,2) + Math.pow(y-sint025*0.5,2) + Math.pow(z+sint*0.25,2)),
+                                          m3  = s / Math.sqrt(Math.pow(x - sint025*0.25,2) + Math.pow(y-sint05*0.25,2) + Math.pow(z+sint*0.25,2)),
+                                          m4  = s / Math.sqrt(Math.pow(x - sint025*0.5,2) + Math.pow(y-Math.sin(arg0*0.125)*0.5,2) + Math.pow(z+Math.sin(arg0*2)*0.25,2)),
+                                          m5  = s / Math.sqrt(Math.pow(x - Math.sin(arg0*2.4)*0.5,2) + Math.pow(y-sint025*0.5,2) + Math.pow(z+sint5*0.25,2)),
+                                          m6  = s / Math.sqrt(Math.pow(x - Math.sin(arg0*1.25)*0.5,2) + Math.pow(y-Math.sin(arg0*0.125)*0.5,2) + Math.pow(z+sint025*0.25,2)),
+                                          m7  = s / Math.sqrt(Math.pow(x + sint2*0.5,2) + Math.pow(y+Math.sin(arg0*0.525)*0.25,2) + Math.pow(z,2)),
+                                          m8  = s / Math.sqrt(Math.pow(x + sint*0.5,2  ) + Math.pow(y+Math.sin(arg0*0.625)*0.35,2) + Math.pow(z+sint*0.25,2)),
+                                          m9  = s / Math.sqrt(Math.pow(x - sint5*0.5,2) + Math.pow(y-Math.sin(arg0*0.225)*0.5,2) + Math.pow(z+sint*0.25,2)),
+                                          m10 = s / Math.sqrt(Math.pow(x - Math.sin(arg0 *0.224)*0.255,2) + Math.pow(y-sint05*0.25,2) + Math.pow(z+sint*0.25,2)),
+                                          m11 = s / Math.sqrt(Math.pow(x - sint025*0.15,2) + Math.pow(y-sint025*0.35,2) + Math.pow(z+Math.sin(arg0*2)*0.25,2)),
+                                          m12 = s / Math.sqrt(Math.pow(x - Math.sin(arg0*2.4)*0.45,2) + Math.pow(y-Math.sin(arg0*0.2)*0.15,2) + Math.pow(z+sint5*0.25,2)),
+                                          m13 = s / Math.sqrt(Math.pow(x - Math.sin(arg0*1.25)*0.35,2) + Math.pow(y-sint05*0.5,2) + Math.pow(z+sint025*0.25,2));
+
+
+                                      return m0 + m1 + m2 + m3 + m4 + m5 + m6 + m7 + m8 + m9 + m10 + m11 + m12 + m13  - 1.5
+
+                                  },0);
+
+
 
     }
 
@@ -38,7 +91,10 @@
             time      = this.getSecondsElapsed(),
             timeDelta = this.getTimeDelta();
 
-        var light0 = this._light0;
+        var light0 = this._light0,
+            light1 = this._light1,
+            light2 = this._light2,
+            light3 = this._light3;
 
         var zoom = this._zoom = GLKit.Math.lerp(this._zoom, 8 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
 
@@ -49,6 +105,7 @@
         gl.drawMode(gl.LINES);
 
         var camRotX,camRotY;
+
 
         if(this.isMouseDown())
         {
@@ -71,40 +128,56 @@
 
         }
 
+        if(!this.isKeyDown())
+        {
+            this._isoSurface.applyFunction1f(time);
+        }
+
         cam.setTarget3f(0,0,0);
         cam.updateMatrices();
 
-        light0.setPosition3f(Math.cos(time*3)*6,2,Math.sin(time*3)*6);
+        light0.setPosition3f(Math.cos(time*3)*6,Math.sin(time)*2,Math.sin(time*3)*6);
+        light1.setPosition3f(Math.cos(time*3+Math.PI)*6,Math.sin(time)*2,Math.sin(time*3+Math.PI)*6);
+        light2.setPosition3f(0,Math.sin(time)*5,0);
+        light3.setPosition3f(Math.cos(time*3)*5,Math.sin(time)*3,0);
+
+
+
 
         gl.drawMode(gl.LINE_LOOP);
+       this.drawSystem();
 
-        this.drawSystem();
+
 
         /*---------------------------------------------------------------------------------------------------------*/
-        gl.drawMode(gl.TRIANGLES);
         var isoSurface = this._isoSurface;
 
 
 
 
+        gl.drawMode(gl.TRIANGLES);
 
         gl.useLighting(true);
         gl.useMaterial(true);
-
-        gl.light(light0);
         gl.material(this._material0);
 
-        isoSurface.applyFunctionWithArg(time);
+
+        gl.cube(20);
+
+        gl.light(light0);
+        gl.light(light1);
+        gl.light(light2);
+        gl.light(light3);
+
         gl.pushMatrix();
-        gl.scale3f(6,6,6);
+        gl.scale1f(8);
+
         gl.drawGeometry(isoSurface);
         gl.popMatrix();
 
         gl.useMaterial(false);
         gl.useLighting(false);
 
-
-        //STUFF goes here
 
 
 
@@ -117,25 +190,29 @@
     {
         var gl = this.gl;
 
-        gl.color1f(0.15);
-        GLKit.GLUtil.drawGridCube(gl,8,1);
-
-        gl.color1f(0.25);
-        gl.pushMatrix();
-        {
-            gl.translate3f(0,-0.01,0);
-            GLKit.GLUtil.drawGrid(gl,8,1);
-        }
-        gl.popMatrix();
-
-        GLKit.GLUtil.drawAxes(gl,4);
+        gl.color1f(0.35);
+        GLKit.GLUtil.drawGridCube(gl,10,2);
 
         gl.color1f(1);
 
         gl.pushMatrix();
         {
             gl.translate(this._light0.position);
-            GLKit.GLUtil.octahedron(gl,0.075);
+            GLKit.GLUtil.octahedron(gl,0.125);
+        }
+        gl.popMatrix();
+
+        gl.pushMatrix();
+        {
+            gl.translate(this._light1.position);
+            GLKit.GLUtil.octahedron(gl,0.125);
+        }
+        gl.popMatrix();
+
+        gl.pushMatrix();
+        {
+            gl.translate(this._light2.position);
+            GLKit.GLUtil.octahedron(gl,0.125);
         }
         gl.popMatrix();
     };
