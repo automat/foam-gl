@@ -43,7 +43,7 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 200.0;
 
-        var isoSurface = this._isoSurface = new GLKit.ISOSurface(32);
+        var isoSurface = this._isoSurface = new GLKit.ISOSurface(36);
             isoSurface.setFunction(function(x,y,z,arg0)
                                   {
                                       var s = 0.035 + Math.abs(Math.sin(arg0)) * 0.015;
@@ -56,20 +56,30 @@
                                           sint05  = Math.sin(arg0) * 0.5,
                                           sint5   = Math.sin(arg0 * 5);
 
-                                      var m0  = s / Math.sqrt(Math.pow(x + sint2*0.5,2) + Math.pow(y+sint025*0.5,2) + Math.pow(z,2)),
-                                          m1  = s / Math.sqrt(Math.pow(x + sint *0.5,2  ) + Math.pow(y+sint025*0.5,2) + Math.pow(z+sint*0.25,2)),
-                                          m2  = s / Math.sqrt(Math.pow(x - sint5*0.5,2) + Math.pow(y-sint025*0.5,2) + Math.pow(z+sint*0.25,2)),
-                                          m3  = s / Math.sqrt(Math.pow(x - sint025*0.25,2) + Math.pow(y-sint05*0.25,2) + Math.pow(z+sint*0.25,2)),
-                                          m4  = s / Math.sqrt(Math.pow(x - sint025*0.5,2) + Math.pow(y-Math.sin(arg0*0.125)*0.5,2) + Math.pow(z+Math.sin(arg0*2)*0.25,2)),
-                                          m5  = s / Math.sqrt(Math.pow(x - Math.sin(arg0*2.4)*0.5,2) + Math.pow(y-sint025*0.5,2) + Math.pow(z+sint5*0.25,2)),
-                                          m6  = s / Math.sqrt(Math.pow(x - Math.sin(arg0*1.25)*0.5,2) + Math.pow(y-Math.sin(arg0*0.125)*0.5,2) + Math.pow(z+sint025*0.25,2)),
-                                          m7  = s / Math.sqrt(Math.pow(x + sint2*0.5,2) + Math.pow(y+Math.sin(arg0*0.525)*0.25,2) + Math.pow(z,2)),
-                                          m8  = s / Math.sqrt(Math.pow(x + sint*0.5,2  ) + Math.pow(y+Math.sin(arg0*0.625)*0.35,2) + Math.pow(z+sint*0.25,2)),
-                                          m9  = s / Math.sqrt(Math.pow(x - sint5*0.5,2) + Math.pow(y-Math.sin(arg0*0.225)*0.5,2) + Math.pow(z+sint*0.25,2)),
-                                          m10 = s / Math.sqrt(Math.pow(x - Math.sin(arg0 *0.224)*0.255,2) + Math.pow(y-sint05*0.25,2) + Math.pow(z+sint*0.25,2)),
-                                          m11 = s / Math.sqrt(Math.pow(x - sint025*0.15,2) + Math.pow(y-sint025*0.35,2) + Math.pow(z+Math.sin(arg0*2)*0.25,2)),
-                                          m12 = s / Math.sqrt(Math.pow(x - Math.sin(arg0*2.4)*0.45,2) + Math.pow(y-Math.sin(arg0*0.2)*0.15,2) + Math.pow(z+sint5*0.25,2)),
-                                          m13 = s / Math.sqrt(Math.pow(x - Math.sin(arg0*1.25)*0.35,2) + Math.pow(y-sint05*0.5,2) + Math.pow(z+sint025*0.25,2));
+                                      var m0  = s / Math.sqrt(Math.pow(x + sint2*0.5,2) + Math.pow(y+sint025*0.5,2) + Math.pow(z,2));
+
+                                      var m1 = s / Math.sqrt(Math.pow(x + sint * 0.5, 2) + Math.pow(y + sint025 * 0.5, 2) + Math.pow(z + sint * 0.25, 2));
+
+                                      s = 0.035 + Math.abs(sint2) * 0.015;
+
+                                      var m2 = s / Math.sqrt(Math.pow(x - sint5 * 0.5, 2) + Math.pow(y - sint025 * 0.5, 2) + Math.pow(z + sint * 0.25, 2));
+
+                                      s = 0.035 + Math.abs(sint5) * 0.015;
+
+                                      var m3 = s / Math.sqrt(Math.pow(x - sint025 * 0.25, 2) + Math.pow(y - sint05 * 0.25, 2) + Math.pow(z + sint * 0.25, 2));
+
+                                      s = 0.035 + Math.abs(sint025) * 0.015;
+
+                                      var m4 = s / Math.sqrt(Math.pow(x - sint025 * 0.5, 2) + Math.pow(y - Math.sin(arg0 * 0.125) * 0.5, 2) + Math.pow(z + Math.sin(arg0 * 2) * 0.25, 2));
+                                      var m5 = s / Math.sqrt(Math.pow(x - Math.sin(arg0 * 2.4) * 0.5, 2) + Math.pow(y - sint025 * 0.5, 2) + Math.pow(z + sint5 * 0.25, 2));
+                                      var m6 = s / Math.sqrt(Math.pow(x - Math.sin(arg0 * 1.25) * 0.5, 2) + Math.pow(y - Math.sin(arg0 * 0.125) * 0.5, 2) + Math.pow(z + sint025 * 0.25, 2));
+                                      var m7 = s / Math.sqrt(Math.pow(x + sint2 * 0.5, 2) + Math.pow(y + Math.sin(arg0 * 0.525) * 0.25, 2) + Math.pow(z, 2));
+                                      var m8 = s / Math.sqrt(Math.pow(x + sint * 0.5, 2) + Math.pow(y + Math.sin(arg0 * 0.625) * 0.35, 2) + Math.pow(z + sint * 0.25, 2));
+                                      var m9 = s / Math.sqrt(Math.pow(x - sint5 * 0.5, 2) + Math.pow(y - Math.sin(arg0 * 0.225) * 0.5, 2) + Math.pow(z + sint * 0.25, 2));
+                                      var m10 = s / Math.sqrt(Math.pow(x - Math.sin(arg0 * 0.224) * 0.255, 2) + Math.pow(y - sint05 * 0.25, 2) + Math.pow(z + sint * 0.25, 2));
+                                      var m11 = s / Math.sqrt(Math.pow(x - sint025 * 0.15, 2) + Math.pow(y - sint025 * 0.35, 2) + Math.pow(z + Math.sin(arg0 * 2) * 0.25, 2));
+                                      var m12 = s / Math.sqrt(Math.pow(x - Math.sin(arg0 * 2.4) * 0.45, 2) + Math.pow(y - Math.sin(arg0 * 0.2) * 0.15, 2) + Math.pow(z + sint5 * 0.25, 2));
+                                      var m13 = s / Math.sqrt(Math.pow(x - Math.sin(arg0 * 1.25) * 0.35, 2) + Math.pow(y - sint05 * 0.5, 2) + Math.pow(z + sint025 * 0.25, 2));
 
 
                                       return m0 + m1 + m2 + m3 + m4 + m5 + m6 + m7 + m8 + m9 + m10 + m11 + m12 + m13  - 1.5
@@ -131,6 +141,7 @@
         if(!this.isKeyDown())
         {
             this._isoSurface.applyFunction1f(time);
+            this._isoSurface.update();
         }
 
         cam.setTarget3f(0,0,0);
@@ -192,6 +203,9 @@
 
         gl.color1f(0.35);
         GLKit.GLUtil.drawGridCube(gl,10,2);
+
+        gl.color1f(0.35);
+        GLKit.GLUtil.drawGridCube(gl,1,8);
 
         gl.color1f(1);
 

@@ -23,6 +23,8 @@ GLKit.ISOSurface = function(sizeX,sizeY,sizeZ)
     this._cubeSizeY = this._vertSizeY - 1;
     this._cubeSizeZ = this._vertSizeZ - 1;
 
+    this._delayedClear = false;
+
     //TODO:FIX!!
     this._func      = function(x,y,z,arg0,arg1,arg2){return 0;};
     this._funcArg0  = 0;
@@ -47,76 +49,14 @@ GLKit.ISOSurface = function(sizeX,sizeY,sizeZ)
     this._tempVertices = new Array(SIZE_OF_CUBE_EDGES*GLKit.Vec3.SIZE);
     this._tempNormals  = new Array(SIZE_OF_CUBE_EDGES);
 
+    this._scaleXYZ = [1,1,1];
+
     this._genSurface();
 
 };
 
 GLKit.ISOSurface.prototype = Object.create(GLKit.Geom3d.prototype);
 
-/*---------------------------------------------------------------------------------------------------------*/
-
-
-GLKit.ISOSurface.prototype._genSurface = function()
-{
-    var vertSizeX  = this._vertSizeX,
-        vertSizeY  = this._vertSizeY,
-        vertSizeZ  = this._vertSizeZ,
-        vertSizeZY = vertSizeZ * vertSizeY,
-        vertSizeXY = vertSizeX * vertSizeY;
-
-    var verts = this._verts,
-        vertsIndex;
-
-    var cubeSizeX  = this._cubeSizeX,
-        cubeSizeY  = this._cubeSizeY,
-        cubeSizeZ  = this._cubeSizeZ,
-        cubeSizeZY = cubeSizeY * cubeSizeZ;
-
-    var cubes = this._cubes,
-        cellsIndex;
-
-    var i, j, k;
-
-    i = -1;
-
-    while(++i < vertSizeZ)
-    {
-        j = -1;
-        while(++j < vertSizeY)
-        {
-            k = -1;
-            while(++k < vertSizeX)
-            {
-                vertsIndex        = i * vertSizeZY + j * vertSizeZ + k;
-
-                verts[vertsIndex] = [-0.5 + ( k / (vertSizeX - 1)),
-                                     -0.5 + ( j / (vertSizeY - 1)),
-                                     -0.5 + ( i / (vertSizeZ - 1)),
-                                     0.0];
-
-
-                if(i < cubeSizeX && j < cubeSizeY && k  < cubeSizeZ)
-                {
-                    cellsIndex = i * cubeSizeZY + j * cubeSizeX + k;
-
-                    cubes[cellsIndex] = [
-                                          vertsIndex,
-                                          vertsIndex + 1,
-                                          vertsIndex + vertSizeZ,
-                                          vertsIndex + vertSizeZ + 1,
-
-                                          vertsIndex + vertSizeXY,
-                                          vertsIndex + vertSizeXY + 1,
-                                          vertsIndex + vertSizeZ + vertSizeXY,
-                                          vertsIndex + vertSizeZ + vertSizeXY + 1
-                                        ];
-
-                }
-            }
-        }
-    }
-
-};
 
 /*---------------------------------------------------------------------------------------------------------*/
 //
@@ -143,7 +83,7 @@ GLKit.ISOSurface.prototype._genSurface = function()
 //
 
 
-GLKit.ISOSurface.prototype._marchCubes = function()
+GLKit.ISOSurface.prototype.update = function()
 {
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -200,10 +140,9 @@ GLKit.ISOSurface.prototype._marchCubes = function()
 
     /*---------------------------------------------------------------------------------------------------------*/
 
-
-
     i = -1;
     while(++i<bNormalsLen)bNormals[i]=0.0;
+
 
     i = -1;
     while(++i < cubeSizeZ)
@@ -470,7 +409,6 @@ GLKit.ISOSurface.prototype._intrpl = function(v0,v1,vertList,index)
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-//QUICKFIX: taken from philogb //TODO:FIX!
 GLKit.ISOSurface.prototype._normal = function(vertList,vertIndex,normList,normIndex)
 {
     vertIndex *= 3;
@@ -483,10 +421,15 @@ GLKit.ISOSurface.prototype._normal = function(vertList,vertIndex,normList,normIn
         arg1 = this._funcArg1,
         arg2 = this._funcArg2;
 
-    var nx = this._func(x - 0.01, y, z,arg0,arg1,arg2) - this._func(x + 0.01,y,z,arg0,arg1,arg2),
-        ny = this._func(x, y - 0.01, z,arg0,arg1,arg2) - this._func(x,y + 0.01,z,arg0,arg1,arg2),
-        nz = this._func(x, y, z - 0.01,arg0,arg1,arg2) - this._func(x,y,z + 0.01,arg0,arg1,arg2),
-        d = 1 / Math.sqrt(nx*nx+ny*ny+nz*nz);
+    var eps = 0.0003;
+
+    var val = this._func(x,y,z,arg0,arg1,arg2);
+
+    var nx = this._func(x + eps,y , z, arg0, arg1, arg2) - val,
+        ny = this._func(x, y + eps, z, arg0, arg1, arg2) - val,
+        nz = this._func(x, y, z + eps, arg0, arg1, arg2) - val,
+        d  = 1 / Math.sqrt(nx*nx+ny*ny+nz*nz);
+
 
     normIndex *= 3;
 
@@ -562,9 +505,73 @@ GLKit.ISOSurface.prototype.applyFunction3f = function(arg0,arg1,arg2)
             }
         }
     }
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
 
 
-    this._marchCubes();
+GLKit.ISOSurface.prototype._genSurface = function()
+{
+    var vertSizeX  = this._vertSizeX,
+        vertSizeY  = this._vertSizeY,
+        vertSizeZ  = this._vertSizeZ,
+        vertSizeZY = vertSizeZ * vertSizeY,
+        vertSizeXY = vertSizeX * vertSizeY;
+
+    var verts = this._verts,
+        vertsIndex;
+
+    var cubeSizeX  = this._cubeSizeX,
+        cubeSizeY  = this._cubeSizeY,
+        cubeSizeZ  = this._cubeSizeZ,
+        cubeSizeZY = cubeSizeY * cubeSizeZ;
+
+    var cubes = this._cubes,
+        cellsIndex;
+
+    var scaleXYZ = this._scaleXYZ;
+
+    var i, j, k;
+
+    i = -1;
+
+    while(++i < vertSizeZ)
+    {
+        j = -1;
+        while(++j < vertSizeY)
+        {
+            k = -1;
+            while(++k < vertSizeX)
+            {
+                vertsIndex        = i * vertSizeZY + j * vertSizeZ + k;
+
+                verts[vertsIndex] = [(-0.5 + ( k / (vertSizeX - 1))) * scaleXYZ[0],
+                                     (-0.5 + ( j / (vertSizeY - 1))) * scaleXYZ[1],
+                                     (-0.5 + ( i / (vertSizeZ - 1))) * scaleXYZ[2],
+                    -1];
+
+
+                if(i < cubeSizeX && j < cubeSizeY && k  < cubeSizeZ)
+                {
+                    cellsIndex = i * cubeSizeZY + j * cubeSizeX + k;
+
+                    cubes[cellsIndex] = [
+                        vertsIndex,
+                        vertsIndex + 1,
+                        vertsIndex + vertSizeZ,
+                        vertsIndex + vertSizeZ + 1,
+
+                        vertsIndex + vertSizeXY,
+                        vertsIndex + vertSizeXY + 1,
+                        vertsIndex + vertSizeZ + vertSizeXY,
+                        vertsIndex + vertSizeZ + vertSizeXY + 1
+                    ];
+
+                }
+            }
+        }
+    }
+
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
