@@ -30,8 +30,6 @@ GLKit.Application = function(parentDomElement)
     this._timeElapsed;
     this._timeDelta;
 
-
-
     /*---------------------------------------------------------------------------------*/
 
     this._initListeners();
@@ -92,7 +90,7 @@ GLKit.Application.prototype._updateLoop = function()
         timeDelta    = time - this._timeNext,
         timeInterval = this._timeInterval;
 
-    this._timeDelta = timeDelta / timeInterval;
+    this._timeDelta  = Math.min(timeDelta / timeInterval,1);
 
     var timeNext;
 
