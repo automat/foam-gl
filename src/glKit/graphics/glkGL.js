@@ -532,7 +532,7 @@ GLKit.GL.prototype.rotateAxis3f  = function(angle,x,y,z){this._mModelView = GLKi
 /*---------------------------------------------------------------------------------------------------------*/
 
 
-GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,indexUInt16Array,mode)
+GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,indexUInt16Array,mode,count)
 {
     mode = mode || this.TRIANGLES;
     this.fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
@@ -540,7 +540,7 @@ GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array
 
     var gl = this._gl;
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexUInt16Array,gl.DYNAMIC_DRAW);
-    gl.drawElements(mode,indexUInt16Array.length,gl.UNSIGNED_SHORT,0);
+    gl.drawElements(mode,count || indexUInt16Array.length,gl.UNSIGNED_SHORT,0);
 };
 
 GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,mode,first,count)
@@ -551,10 +551,8 @@ GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,c
     this._gl.drawArrays(mode,first,count);
 };
 
-GLKit.GL.prototype.drawGeometry = function(geom)
-{
-    geom._draw(this);
-};
+GLKit.GL.prototype.drawGeometry = function(geom) {geom._draw(this);};
+GLKit.GL.prototype.drawBatch    = function(batch){batch._draw(this);}
 
 
 /*---------------------------------------------------------------------------------------------------------*/

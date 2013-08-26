@@ -190,6 +190,10 @@
         gl.useMaterial(false);
         gl.useLighting(false);
 
+        var batch = this._batch;
+
+        batch.begin();
+
 
 
 

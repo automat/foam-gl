@@ -23,6 +23,8 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
+        var batch = this._batch = new GLKit.Batch(50000 * 3);
+
     }
 
     TestApp.prototype = Object.create(GLKit.Application.prototype);
@@ -75,6 +77,29 @@
         gl.drawMode(gl.LINE_LOOP);
 
         this.drawSystem();
+
+        var i = -1;
+
+        var batch = this._batch;
+            batch.begin();
+
+        var l = batch.getVerticesNumAllocated();
+
+        var ra = (Math.PI * 2) / (l-1);
+        var a;
+
+
+        while(++i < l)
+        {
+            a = Math.sin(time) * (i / (l - 1)) * 10;
+            batch.setVertex3f(Math.cos(ra * i) * a,0,Math.sin(ra * i) * a);
+        }
+
+        gl.drawBatch(batch);
+
+
+
+
 
         /*---------------------------------------------------------------------------------------------------------*/
 
