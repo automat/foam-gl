@@ -32,6 +32,10 @@ GLKit.Application = function(parentDomElement)
 
     /*---------------------------------------------------------------------------------*/
 
+    window.requestAnimationFrame = window.requestAnimationFrame ||
+                                   window.webkitRequestAnimationFrame ||
+                                   window.mozRequestAnimationFrame;
+
     this._initListeners();
 
     if(GLKit.Application._instance)throw 'fdfdf';
@@ -84,7 +88,8 @@ GLKit.Application.prototype.setUpdate = function(bool){this._update = bool;};
 GLKit.Application.prototype._updateLoop = function()
 {
     if(!this._update)return;
-    webkitRequestAnimationFrame(this._updateLoop.bind(this),null);
+
+    requestAnimationFrame(this._updateLoop.bind(this),null);
 
     var time         = this._time      = Date.now(),
         timeDelta    = time - this._timeNext,

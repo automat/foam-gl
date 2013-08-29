@@ -97,10 +97,6 @@ GLKit.ProgFragShader="precision mediump float;" +
 "    vec4 resultColor  = vertexColor * useTextureInv + textureColor * uUseTexture;" + 
 
 
-
-
-
-
 "    ColorComponent color  = ColorComponent(uMaterial.ambient   * uUseMaterial + resultColor," + 
 "                                           uMaterial.diffuse   * uUseMaterial + resultColor," + 
 "                                           uMaterial.specular  * uUseMaterial + resultColor," + 

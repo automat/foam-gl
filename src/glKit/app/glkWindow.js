@@ -5,8 +5,9 @@ GLKit.Window = function(parentDomElement)
     this._glCanvas = document.createElement('canvas');
     this._glCanvas.setAttribute('tabindex','0');
     this._glCanvas.focus();
-    this._gl       = this._glCanvas.getContext('webkit-3d');
-    //anvas.getContext("webgl") || canvas.getContext("experimental-webgl")
+    this._gl       = this._glCanvas.getContext('webkit-3d') ||
+                     this._glCanvas.getContext("webgl") ||
+                     this._glCanvas.getContext("experimental-webgl");
 
     this._width  = 0;
     this._height = 0;

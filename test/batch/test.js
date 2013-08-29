@@ -23,30 +23,7 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var buffer = this._buffer = new GLKit.LineBuffer(this.gl);
-            buffer.allocate(3);
-
-        console.log(buffer.getSizeAllocated());
-
-            buffer.allocate(3);
-
-        console.log(buffer.getSizeAllocated());
-
-            buffer.pushVertex3f(1,2,3);
-        buffer.pushVertex3f(1,2,3);
-
-        buffer.allocate(10);
-
-        console.log(buffer.getVertexArray());
-
-        buffer.dispose();
-
-
-        buffer.allocate(3);
-
-        console.log(buffer.getVertexArray());
-
-        //var batch = this._batch = new GLKit.VBOBatch(10 * 3);
+        var buffer = this._buffer = new GLKit.LineBuffer(this.gl,20 * 3);
 
     }
 
@@ -99,59 +76,36 @@
 
         gl.drawMode(gl.LINE_LOOP);
 
-        var buffer = this._buffer;
-
-
         this.drawSystem();
 
+        var buffer = this._buffer;
+
         buffer.bind();
+        buffer.buffer();
+
+        buffer.reset();
+
+        var i = -1,
+            l = buffer.getSizeAllocated() / 3,
+            s = Math.PI * 2 / (l - 1);
+
+
+
+        while(++i < l)
+        {
+            buffer.pushVertex3f(Math.cos(s*i),0,Math.sin(s*i));
+            buffer.pushColor4f(1,1,1,1);
+        }
 
 
 
 
+
+
+        //buffer.draw();
         buffer.unbind();
 
-        /*
-        var i = -1;
-
-        var batch = this._batch;
-            batch.begin();
-
-        var l = batch.getVerticesNumAllocated() * 0.5;
-
-        var ra = (Math.PI * 2) / l;
-        var a;
-
-
-        while(++i < l)
-        {
-            batch.pushVertex3f(Math.cos(ra * i),0,Math.sin(ra * i));
-        }
-
-        i = -1;
-
-        batch.beginSubBatch();
-
-        while(++i < l)
-        {
-            batch.pushVertex3f(Math.cos(ra * i), 1, Math.sin(ra * i));
-        }
-
-
-
-        gl.drawBatch(batch);
-        */
-
-
-
-
-        /*---------------------------------------------------------------------------------------------------------*/
-
-
-
-        //STUFF goes here
-
-
+        //gl.drawArrays(buffer.vertices,null,buffer.colors,null);
 
         /*---------------------------------------------------------------------------------------------------------*/
     };
