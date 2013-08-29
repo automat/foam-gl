@@ -23,7 +23,30 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var batch = this._batch = new GLKit.Batch(50000 * 3);
+        var buffer = this._buffer = new GLKit.LineBuffer(this.gl);
+            buffer.allocate(3);
+
+        console.log(buffer.getSizeAllocated());
+
+            buffer.allocate(3);
+
+        console.log(buffer.getSizeAllocated());
+
+            buffer.pushVertex3f(1,2,3);
+        buffer.pushVertex3f(1,2,3);
+
+        buffer.allocate(10);
+
+        console.log(buffer.getVertexArray());
+
+        buffer.dispose();
+
+
+        buffer.allocate(3);
+
+        console.log(buffer.getVertexArray());
+
+        //var batch = this._batch = new GLKit.VBOBatch(10 * 3);
 
     }
 
@@ -76,27 +99,48 @@
 
         gl.drawMode(gl.LINE_LOOP);
 
+        var buffer = this._buffer;
+
+
         this.drawSystem();
 
+        buffer.bind();
+
+
+
+
+        buffer.unbind();
+
+        /*
         var i = -1;
 
         var batch = this._batch;
             batch.begin();
 
-        var l = batch.getVerticesNumAllocated();
+        var l = batch.getVerticesNumAllocated() * 0.5;
 
-        var ra = (Math.PI * 2) / (l-1);
+        var ra = (Math.PI * 2) / l;
         var a;
 
 
         while(++i < l)
         {
-            a = Math.sin(time) * (i / (l - 1)) * 10;
-            batch.setVertex3f(Math.cos(ra * i) * a,0,Math.sin(ra * i) * a);
+            batch.pushVertex3f(Math.cos(ra * i),0,Math.sin(ra * i));
         }
 
-        gl.drawBatch(batch);
+        i = -1;
 
+        batch.beginSubBatch();
+
+        while(++i < l)
+        {
+            batch.pushVertex3f(Math.cos(ra * i), 1, Math.sin(ra * i));
+        }
+
+
+
+        gl.drawBatch(batch);
+        */
 
 
 
