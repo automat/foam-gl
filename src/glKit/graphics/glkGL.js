@@ -2,14 +2,36 @@ GLKit.GL = function(gl)
 {
     /*---------------------------------------------------------------------------------------------------------*/
 
-    var gl = this.gl = gl;
+    this.gl = gl;
 
-    this._progVertexShader = GLKit.ShaderLoader.loadShaderFromString(gl,GLKit.ProgVertexShader,gl.VERTEX_SHADER);
-    this._progFragShader   = GLKit.ShaderLoader.loadShaderFromString(gl,GLKit.ProgFragShader,  gl.FRAGMENT_SHADER);
+    /*---------------------------------------------------------------------------------------------------------*/
 
-    var program = this._program = GLKit.ProgLoader.loadProgram(gl,this._progVertexShader,this._progFragShader);
+    var program = this._program = gl.createProgram();
 
-    gl.bindAttribLocation(program,0,'vVertexPosition');
+    gl.bindAttribLocation(program,0,'aVertexPosition');
+
+    var progVertexShader = this._progVertexShader = gl.createShader(gl.VERTEX_SHADER),
+        progFragShader   = this._progFragShader   = gl.createShader(gl.FRAGMENT_SHADER);
+
+    gl.shaderSource(progVertexShader,GLKit.ProgVertexShader);
+    gl.compileShader(progVertexShader);
+
+    if(!gl.getShaderParameter(progVertexShader,gl.COMPILE_STATUS))
+      throw gl.getShaderInfoLog(progVertexShader);
+
+    gl.shaderSource(progFragShader,GLKit.ProgFragShader);
+    gl.compileShader(progFragShader);
+
+    if(!gl.getShaderParameter(progFragShader,gl.COMPILE_STATUS))
+      throw gl.getShaderInfoLog(progFragShader);
+
+    gl.attachShader(program,progVertexShader);
+    gl.attachShader(program,progFragShader);
+    gl.linkProgram(program);
+
+    if(!gl.getProgramParameter(program,gl.LINK_STATUS))
+       throw gl.getProgramInfoLog(program);
+
     gl.useProgram(program);
 
     /*---------------------------------------------------------------------------------------------------------*/

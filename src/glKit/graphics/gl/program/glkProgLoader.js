@@ -10,9 +10,7 @@ GLKit.ProgLoader =
 
         if(!gl.getProgramParameter(program,gl.LINK_STATUS))
         {
-            console.log("Could not link program.");
-            gl.deleteProgram(program);
-            program = null;
+            throw gl.getProgramInfoLog(program);
         }
 
         return program;
