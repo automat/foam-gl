@@ -1,10 +1,10 @@
-GLKit.GL = function(gl)
+GLKit.GL = function(context3d,context2d)
 {
     /*---------------------------------------------------------------------------------------------------------*/
     // Init
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this.gl = gl;
+    var gl = this.gl = context3d;
 
     /*---------------------------------------------------------------------------------------------------------*/
     // create shaders/program + bind
@@ -331,9 +331,22 @@ GLKit.GL = function(gl)
     // Init Matrices
     /*---------------------------------------------------------------------------------------------------------*/
 
+    this._bLighting     = false;
+    this._bBillboarding = false;
+    this._bBillBoadingLast = false;
+    this._bBVecRight    = GLKit.Vec3.make();
+    this._bBVecUp       = GLKit.Vec3.make();
+    this._bBVertices    = new Float32Array(4 * 3);
 
-    this._bLighting = false;
+    this._bBVec0        = GLKit.Vec3.make();
+    this._bBVec1        = GLKit.Vec3.make();
+    this._bBVec2        = GLKit.Vec3.make();
+    this._bBVec3        = GLKit.Vec3.make();
 
+    this._bBRectWidthLast  = 0;
+    this._bBRectHeightLast = 0;
+    this._rectWidthLast    = 0;
+    this._rectHeightLast   = 0;
 
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -347,6 +360,14 @@ GLKit.GL = function(gl)
     this._mStack       = [];
 
     this._drawMode = this.LINES;
+
+
+
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Setup context 2d
+    /*---------------------------------------------------------------------------------------------------------*/
+
+
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init presets
@@ -792,10 +813,7 @@ GLKit.GL.prototype.point   = function(vector)
 
 GLKit.GL.prototype.points = function(vertices,colors)
 {
-    if(!colors)
-    {
-        colors = this.fillColorBuffer(this._bColor4f,new Float32Array(vertices.length / 3 * 4));
-    }
+    colors = colors || this.fillColorBuffer(this._bColor4f,new Float32Array(vertices.length / 3 * 4));
 
     var gl = this.gl,
         glArrayBuffer = gl.ARRAY_BUFFER,
@@ -823,10 +841,6 @@ GLKit.GL.prototype.points = function(vertices,colors)
 
     gl.enableVertexAttribArray(this._aVertexNormal);
     gl.enableVertexAttribArray(this._aVertexUV);
-
-
-
-
 };
 
 GLKit.GL.prototype.point3f = function(x,y,z) {this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;this._bVertexPoint[2] = z;this.point(this._bVertexPoint);};
@@ -855,7 +869,7 @@ GLKit.GL.prototype.linef = function(x0,y0,z0,x1,y1,z1)
 GLKit.GL.prototype.line2v = function(v0,v1)
 {
     this.linef(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);
-}
+};
 
 GLKit.GL.prototype.quadf = function(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3)
 {
@@ -876,15 +890,62 @@ GLKit.GL.prototype.quadv = function(v0,v1,v2,v3)
 
 GLKit.GL.prototype.quad = function(vertices,normals,texCoords){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexQuad),normals,this.fillColorBuffer(this._bColor,this._bColorQuad),texCoords,this._drawMode,0,4);};
 
+
+//TODO:cleanup
 GLKit.GL.prototype.rect = function(width,height)
 {
-    var v = this._bVertexRect;
+    height = height || width;
 
-    v[0] = v[1] = v[2] = v[4] = v[5] = v[7] = v[9] = v[10] = 0;
-    v[3] = v[6] = width; v[8] = v[11] = height;
+    var vertices = this._bVertexRect;
 
-    this.drawArrays(v,this._bNormalRect,this.fillColorBuffer(this._bColor,this._bColorRect),this._bTexCoordQuadDefault,this._drawMode,0,4);
+    if(this._bBillboarding && !this._bBillBoadingLast &&
+       this._bBRectWidthLast != width && this._bBRectHeightLast != height)
+    {
+        //23
+        //01
+
+        var bBVec0 = this._bBVec0,
+            bBVec1 = this._bBVec1,
+            bBVec2 = this._bBVec2,
+            bBVec3 = this._bBVec3;
+
+
+        vertices[ 0] = bBVec0[ 0] * width;
+        vertices[ 1] = bBVec0[ 1] * width;
+        vertices[ 2] = bBVec0[ 2] * width;
+
+        vertices[ 3] = bBVec1[ 0] * width;
+        vertices[ 4] = bBVec1[ 1] * width;
+        vertices[ 5] = bBVec1[ 2] * width;
+
+        vertices[ 6] = bBVec2[ 0] * width;
+        vertices[ 7] = bBVec2[ 1] * width;
+        vertices[ 8] = bBVec2[ 2] * width;
+
+        vertices[ 9] = bBVec3[ 0] * width;
+        vertices[10] = bBVec3[ 1] * width;
+        vertices[11] = bBVec3[ 2] * width;
+
+
+        this._bBRectWidthLast  = width;
+        this._bBRectHeightLast = height;
+
+    }
+    else if(width != this._rectWidthLast || height != this._rectHeightLast)
+    {
+        vertices[0] = vertices[1] = vertices[2] = vertices[4] = vertices[5] = vertices[7] = vertices[9] = vertices[10] = 0;
+        vertices[3] = vertices[6] = width; vertices[8] = vertices[11] = height;
+
+        this._rectWidthLast  = width;
+        this._rectHeightLast = height;
+    }
+
+    this.drawArrays(vertices,this._bNormalRect,this.fillColorBuffer(this._bColor,this._bColorRect),this._bTexCoordQuadDefault,this._drawMode,0,4);
 };
+
+
+
+
 
 GLKit.GL.prototype.triangle = function(v0,v1,v2)
 {
@@ -911,6 +972,56 @@ GLKit.GL.prototype.trianglev = function(vertices,normals,texCoords){this.drawArr
 /*---------------------------------------------------------------------------------------------------------*/
 // convenience draw
 /*---------------------------------------------------------------------------------------------------------*/
+
+//TODO:cleanup
+GLKit.GL.prototype.useBillboard = function(bool)
+{
+    this._bBillBoadingLast = this._bBillboarding;
+    this._bBillboarding    = bool;
+
+    if(bool)
+    {
+
+        var modelViewMatrix = this._mModelView,
+            bBVecUp         = this._bBVecUp,
+            bBVecRight      = this._bBVecRight;
+
+            bBVecRight[0] = modelViewMatrix[0];
+            bBVecRight[1] = modelViewMatrix[4];
+            bBVecRight[2] = modelViewMatrix[8];
+
+            bBVecUp[0] = modelViewMatrix[1];
+            bBVecUp[1] = modelViewMatrix[5];
+            bBVecUp[2] = modelViewMatrix[9];
+
+        var bBVec0 = this._bBVec0,
+            bBVec1 = this._bBVec1,
+            bBVec2 = this._bBVec2,
+            bBVec3 = this._bBVec3;
+
+        bBVec0[0] = -bBVecRight[0] - bBVecUp[0];
+        bBVec0[1] = -bBVecRight[1] - bBVecUp[1];
+        bBVec0[2] = -bBVecRight[2] - bBVecUp[2];
+
+        bBVec1[0] =  bBVecRight[0] - bBVecUp[0];
+        bBVec1[1] =  bBVecRight[1] - bBVecUp[1];
+        bBVec1[2] =  bBVecRight[2] - bBVecUp[2];
+
+        bBVec2[0] =  bBVecRight[0] + bBVecUp[0];
+        bBVec2[1] =  bBVecRight[1] + bBVecUp[1];
+        bBVec2[2] =  bBVecRight[2] + bBVecUp[2];
+
+        bBVec3[0] = -bBVecRight[0] + bBVecUp[0];
+        bBVec3[1] = -bBVecRight[1] + bBVecUp[1];
+        bBVec3[2] = -bBVecRight[2] + bBVecUp[2];
+
+        this._bBRectWidthLast  = null;
+        this._bBRectHeightLast = null;
+
+
+    }
+
+};
 
 
 GLKit.GL.prototype.box = function(width,height,depth)

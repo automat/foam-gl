@@ -2,24 +2,28 @@ GLKit.Window = function(parentDomElement)
 {
     this._parent   = parentDomElement;
 
-    this._glCanvas = document.createElement('canvas');
-    this._glCanvas.setAttribute('tabindex','0');
-    this._glCanvas.focus();
-    this._gl       = this._glCanvas.getContext('webkit-3d') ||
-                     this._glCanvas.getContext("webgl") ||
-                     this._glCanvas.getContext("experimental-webgl");
+    this._canvas3d = document.createElement('canvas');
+    this._canvas3d.setAttribute('tabindex','0');
+    this._canvas3d.focus();
+    this.context3d = this._canvas3d.getContext('webkit-3d') ||
+                     this._canvas3d.getContext("webgl") ||
+                     this._canvas3d.getContext("experimental-webgl");
+
+    this._canvas2d = document.createElement('canvas');
+    this.context2d = this._canvas2d.getContext('2d');
+
+
 
     this._width  = 0;
     this._height = 0;
 
-    this._parent.appendChild(this._glCanvas);
+    this._parent.appendChild(this._canvas3d);
 };
 
 /*---------------------------------------------------------------------------------*/
 
 GLKit.Window.prototype.getParent = function(){return this._parent;};
-GLKit.Window.prototype.getCanvas = function(){return this._glCanvas;};
-GLKit.Window.prototype.getGL     = function(){return this._gl};
+GLKit.Window.prototype.getCanvas3d = function(){return this._canvas3d;};
 
 /*---------------------------------------------------------------------------------*/
 
@@ -37,7 +41,7 @@ GLKit.Window.prototype.setSize = function(width,height)
 
 GLKit.Window.prototype._updateSize = function()
 {
-    var glCanvas = this._glCanvas,
+    var glCanvas = this._canvas3d,
         width    = this._width,
         height   = this._height;
 

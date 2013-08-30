@@ -1,7 +1,7 @@
 GLKit.Application = function(parentDomElement)
 {
     var glWindow = this.glWindow = new GLKit.Window(parentDomElement);
-    var gl       = this.gl       = new GLKit.GL(glWindow.getGL());
+    var gl       = this.gl       = new GLKit.GL(glWindow.context3d);
     var camera   = this.camera   = new GLKit.CameraBasic();
 
     /*---------------------------------------------------------------------------------*/
@@ -131,7 +131,7 @@ GLKit.Application.prototype.getTargetFPS = function(){return this._targetFPS;};
 
 GLKit.Application.prototype._initListeners = function()
 {
-    var glCanvas = this.glWindow.getCanvas();
+    var glCanvas = this.glWindow.getCanvas3d();
         glCanvas.addEventListener('mousedown', this._onMouseDown.bind(this));
         glCanvas.addEventListener('mouseup',   this._onMouseUp.bind(this));
         glCanvas.addEventListener('mousemove', this._onMouseMove.bind(this));
