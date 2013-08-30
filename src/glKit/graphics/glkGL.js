@@ -752,7 +752,83 @@ GLKit.GL.prototype.lineRadius = function(radius){this._lineCylinderRadius = radi
 // Methods draw primitives
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.GL.prototype.point   = function(vector){this.drawArrays(vector,null,this.fillColorBuffer(this._bColor,this._bColorPoint),null,this.POINTS,0,1);};
+GLKit.GL.prototype.point   = function(vector)
+{
+    var bColorPoint = this._bColorPoint,
+        bColor      = this._bColor;
+
+    bColorPoint[0] = bColor[0];
+    bColorPoint[1] = bColor[1];
+    bColorPoint[2] = bColor[2];
+    bColorPoint[3] = bColor[3];
+
+    var gl = this.gl,
+        glArrayBuffer = gl.ARRAY_BUFFER,
+        glFloat       = gl.FLOAT;
+
+    var vblen = vector.byteLength,
+        cblen = bColor.byteLength;
+
+    var offsetV = 0,
+        offsetC = vblen;
+
+    gl.bufferData(glArrayBuffer,vblen + cblen,gl.DYNAMIC_DRAW);
+
+    gl.bufferSubData(glArrayBuffer, offsetV, vector);
+    gl.bufferSubData(glArrayBuffer, offsetC, bColor);
+
+    gl.disableVertexAttribArray(this._aVertexNormal);
+    gl.disableVertexAttribArray(this._aVertexUV);
+
+    gl.vertexAttribPointer(this._aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
+    gl.vertexAttribPointer(this._aVertexColor,    this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
+
+    this.setMatricesUniform();
+    gl.drawArrays(this._drawMode,0,1);
+
+    gl.enableVertexAttribArray(this._aVertexNormal);
+    gl.enableVertexAttribArray(this._aVertexUV);
+};
+
+GLKit.GL.prototype.points = function(vertices,colors)
+{
+    if(!colors)
+    {
+        colors = this.fillColorBuffer(this._bColor4f,new Float32Array(vertices.length / 3 * 4));
+    }
+
+    var gl = this.gl,
+        glArrayBuffer = gl.ARRAY_BUFFER,
+        glFloat       = gl.FLOAT;
+
+    var vblen = vertices.byteLength,
+        cblen = colors.byteLength;
+
+    var offsetV = 0,
+        offsetC = vblen;
+
+    gl.bufferData(glArrayBuffer,vblen + cblen,gl.DYNAMIC_DRAW);
+
+    gl.bufferSubData(glArrayBuffer, offsetV, vertices);
+    gl.bufferSubData(glArrayBuffer, offsetC, colors);
+
+    gl.disableVertexAttribArray(this._aVertexNormal);
+    gl.disableVertexAttribArray(this._aVertexUV);
+
+    gl.vertexAttribPointer(this._aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
+    gl.vertexAttribPointer(this._aVertexColor,    this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
+
+    this.setMatricesUniform();
+    gl.drawArrays(this._drawMode,0,vertices.length/3);
+
+    gl.enableVertexAttribArray(this._aVertexNormal);
+    gl.enableVertexAttribArray(this._aVertexUV);
+
+
+
+
+};
+
 GLKit.GL.prototype.point3f = function(x,y,z) {this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;this._bVertexPoint[2] = z;this.point(this._bVertexPoint);};
 GLKit.GL.prototype.point2f = function(x,y){this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;his._bVertexPoint[2] = 0;this.point(this._bVertexPoint);};
 GLKit.GL.prototype.pointv  = function(arr){this._bVertexPoint[0] = arr[0];this._bVertexPoint[1] = arr[1];this._bVertexPoint[2] = arr[2];this.point(this._bVertexPoint);};

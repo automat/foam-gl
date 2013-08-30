@@ -78,11 +78,34 @@
 
         /*---------------------------------------------------------------------------------------------------------*/
 
+        gl.drawMode(gl.POINTS);
 
+        var l = 60000,
+            i = -1,
+            ni,
+            nt,
+            sy  = 1.0 + Math.abs(Math.sin(time))*3,
+            sxz = 1.0 + Math.abs(Math.sin(time))*1000,
+            iv,
+            ic;
 
-        //STUFF goes here
+        var vertices = new Float32Array(l * 3);
 
+        while(++i < l)
+        {
+            iv = i * 3;
+            ic = i * 4;
 
+            ni = i / l;
+            nt = -time - ni*Math.PI*128;
+
+            vertices[iv  ] = Math.cos(nt)*sxz*ni;
+            vertices[iv+1] = -0.5*sy + ni*sy;
+            vertices[iv+2] = Math.sin(nt)*sxz*ni;
+
+        }
+
+        gl.points(vertices);
 
         /*---------------------------------------------------------------------------------------------------------*/
     };

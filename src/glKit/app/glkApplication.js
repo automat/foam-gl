@@ -38,7 +38,7 @@ GLKit.Application = function(parentDomElement)
 
     this._initListeners();
 
-    if(GLKit.Application._instance)throw 'fdfdf';
+    if(GLKit.Application._instance)throw 'Application is singleton. Get via getInstance().';
        GLKit.Application._instance = this;
 };
 
