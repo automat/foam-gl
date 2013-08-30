@@ -27,8 +27,7 @@ GLKit.LineBuffer.prototype.bind   = function()
 
 GLKit.LineBuffer.prototype.unbind = function()
 {
-    var glkgl = this._gl,
-        gl    = glkgl.gl;
+    var glkgl = this._gl;
 
     glkgl.enableDefaultNormalAttribArray();
     glkgl.enableDefaultTexCoordsAttribArray();
