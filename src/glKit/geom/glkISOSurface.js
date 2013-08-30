@@ -578,7 +578,38 @@ GLKit.ISOSurface.prototype._genSurface = function()
 
 GLKit.ISOSurface.prototype._draw = function(gl)
 {
-    gl.drawArrays(this._bVertices,this._bNormals,this._bColors,null,gl.TRIANGLES,0,this._numTriangles*3);
+    gl.disableDefaultTexCoordsAttribArray();
+    gl.enableDefaultNormalAttribArray();
+
+    var _gl = gl.gl;
+
+    var glArrayBuffer = _gl.ARRAY_BUFFER,
+        glFloat       = _gl.FLOAT;
+
+    var vertices = this._bVertices,
+        normals  = this._bNormals,
+        colors   = this._bColors;
+
+    var vblen = vertices.byteLength,
+        nblen = normals.byteLength,
+        cblen = colors.byteLength;
+
+    var offsetV = 0,
+        offsetN = offsetV + vblen,
+        offsetC = offsetN + nblen;
+
+    _gl.bufferData(glArrayBuffer, vblen + nblen + cblen, _gl.DYNAMIC_DRAW);
+
+    _gl.bufferSubData(glArrayBuffer, offsetV,  vertices);
+    _gl.bufferSubData(glArrayBuffer, offsetN,  normals);
+    _gl.bufferSubData(glArrayBuffer, offsetC,  colors);
+
+    _gl.vertexAttribPointer(gl.getDefaultVertexAttrib(), 3, glFloat, false, 0, offsetV);
+    _gl.vertexAttribPointer(gl.getDefaultNormalAttrib(), 3, glFloat, false, 0, offsetN);
+    _gl.vertexAttribPointer(gl.getDefaultColorAttrib(),  4, glFloat, false, 0, offsetC);
+
+    gl.setMatricesUniform();
+    _gl.drawArrays(_gl.TRIANGLES,0,this._numTriangles * 3);
 };
 
 /*---------------------------------------------------------------------------------------------------------*/

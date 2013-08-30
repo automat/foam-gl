@@ -23,8 +23,6 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var isoBand = this._isoBand = new GLKit.ISOBand(30,30,4,4);
-
     }
 
     TestApp.prototype = Object.create(GLKit.Application.prototype);
@@ -77,8 +75,6 @@
         gl.drawMode(gl.LINE_LOOP);
 
         this.drawSystem();
-
-        gl.drawGeometry(this._isoBand);
 
         /*---------------------------------------------------------------------------------------------------------*/
 

@@ -120,7 +120,7 @@ GLKit.Quaternion =
     rotateVec : function(q,v)
     {
         var t = this.zero();
-        this.set(t,this.multVec(this.multVec(this.copy(q),v),this.conjugate(this.copy(q))));
+        this.set(t,this.multVec3(this.multVec3(this.copy(q),v),this.conjugate(this.copy(q))));
     },
 
     fromAngles : function(ax,ay,az)

@@ -20,7 +20,7 @@ uniform   sampler2D uTexImage;
 
 struct Light
 {
-    vec3  position;
+    vec4  position;
     vec3  ambient;
     vec3  diffuse;
     vec3  specular;
@@ -56,7 +56,7 @@ struct ColorComponent
 
 vec4 phongModel(vec4 position, vec3 normal, ColorComponent color, Light light)
 {
-   vec3  diff    = light.position - position.xyz;
+   vec3  diff    = light.position.xyz - position.xyz;
 
    vec3 s        = normalize(diff);
    vec3 v        = normalize(-position.xyz);

@@ -328,7 +328,7 @@ GLKit.Mat44 =
 
     },
 
-    multVec : function(m,v)
+    multVec3 : function(m,v)
     {
         var x = v[0],
             y = v[1],
@@ -339,6 +339,23 @@ GLKit.Mat44 =
         v[2] = m[ 2] * x + m[ 6] * y + m[10] * z + m[14];
 
         return v;
+    },
+
+    multVec4 : function(m,v)
+    {
+        var x = v[0],
+            y = v[1],
+            z = v[2],
+            w = v[3];
+
+        v[0] = m[ 0] * x + m[ 4] * y + m[ 8] * z + m[12] * w;
+        v[1] = m[ 1] * x + m[ 5] * y + m[ 9] * z + m[13] * w;
+        v[2] = m[ 2] * x + m[ 6] * y + m[10] * z + m[14] * w;
+        v[3] = m[ 3] * x + m[ 7] * y + m[11] * z + m[15] * w;
+
+        return v;
+
+
     },
 
     isFloatEqual : function(m0,m1)

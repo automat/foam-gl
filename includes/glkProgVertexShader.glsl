@@ -1,4 +1,3 @@
-
 attribute vec3 aVertexPosition;
 attribute vec3 aVertexNormal;
 attribute vec4 aVertexColor;

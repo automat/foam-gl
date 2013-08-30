@@ -23,8 +23,6 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var isoBand = this._isoBand = new GLKit.ISOBand(30,30,4,4);
-
     }
 
     TestApp.prototype = Object.create(GLKit.Application.prototype);
@@ -38,7 +36,8 @@
             time      = this.getSecondsElapsed(),
             timeDelta = this.getTimeDelta();
 
-        var light0 = this._light0;
+        var light0   = this._light0,
+            material = this._material0;
 
         var zoom = this._zoom = GLKit.Math.lerp(this._zoom, 3 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
 
@@ -78,13 +77,23 @@
 
         this.drawSystem();
 
-        gl.drawGeometry(this._isoBand);
-
         /*---------------------------------------------------------------------------------------------------------*/
 
+        gl.useLighting(true);
+        gl.useMaterial(true);
 
+        gl.light(light0);
+        gl.material(material);
 
-        //STUFF goes here
+        gl.drawMode(gl.TRIANGLE_STRIP);
+        gl.pushMatrix();
+        gl.translate3f(-0.5,0,-0.5);
+        gl.rect(0,0,1,1);
+        gl.popMatrix();
+
+        gl.useMaterial(false);
+        gl.useLighting(false);
+
 
 
 

@@ -3,7 +3,7 @@
 GLKit.Vec4 =
 {
     SIZE : 4,
-    ZERO : new Float32Array([0,0,0,1.0]),
+    ZERO : function(){return new Float32Array([0,0,0,1.0])},
 
     make : function(x,y,z,w)
     {

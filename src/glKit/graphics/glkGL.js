@@ -10,56 +10,84 @@ GLKit.GL = function(gl)
     // create shaders/program + bind
     /*---------------------------------------------------------------------------------------------------------*/
 
-    var program = this._program = gl.createProgram();
+    var sceneProgram = this._sceneProgram = gl.createProgram();
 
-    gl.bindAttribLocation(program,0,'aVertexPosition');
 
-    var progVertexShader = this._progVertexShader = gl.createShader(gl.VERTEX_SHADER),
-        progFragShader   = this._progFragShader   = gl.createShader(gl.FRAGMENT_SHADER);
+    var vertexShader = gl.createShader(gl.VERTEX_SHADER),
+        fragShader  = gl.createShader(gl.FRAGMENT_SHADER);
 
-    gl.shaderSource(progVertexShader,GLKit.ProgVertexShader);
-    gl.compileShader(progVertexShader);
+    gl.shaderSource(vertexShader,GLKit.ProgVertexShader);
+    gl.compileShader(vertexShader);
 
-    if(!gl.getShaderParameter(progVertexShader,gl.COMPILE_STATUS))
-      throw gl.getShaderInfoLog(progVertexShader);
+    if(!gl.getShaderParameter(vertexShader,gl.COMPILE_STATUS))
+      throw gl.getShaderInfoLog(vertexShader);
 
-    gl.shaderSource(progFragShader,GLKit.ProgFragShader);
-    gl.compileShader(progFragShader);
+    gl.shaderSource(fragShader,GLKit.ProgFragShader);
+    gl.compileShader(fragShader);
 
-    if(!gl.getShaderParameter(progFragShader,gl.COMPILE_STATUS))
-      throw gl.getShaderInfoLog(progFragShader);
+    if(!gl.getShaderParameter(fragShader,gl.COMPILE_STATUS))
+      throw gl.getShaderInfoLog(fragShader);
 
-    gl.attachShader(program,progVertexShader);
-    gl.attachShader(program,progFragShader);
-    gl.linkProgram(program);
+    gl.bindAttribLocation(sceneProgram,0,'aVertexPosition');
 
-    if(!gl.getProgramParameter(program,gl.LINK_STATUS))
-       throw gl.getProgramInfoLog(program);
 
-    gl.useProgram(program);
+    gl.attachShader(sceneProgram,vertexShader);
+    gl.attachShader(sceneProgram,fragShader);
+    gl.linkProgram(sceneProgram);
+
+
+
+    if(!gl.getProgramParameter(sceneProgram,gl.LINK_STATUS))
+       throw gl.getProgramInfoLog(sceneProgram);
+
+    gl.useProgram(sceneProgram);
+
+    /*
+    var screenProgram = this._screenProgram = gl.createProgram();
+
+    vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    fragShader   = gl.createShader(gl.FRAGMENT_SHADER);
+
+    gl.shaderSource(vertexShader,GLKit.ProgVertexImgShader);
+    gl.compileShader(vertexShader);
+
+    if(!gl.getShaderParameter(vertexShader,gl.COMPILE_STATUS))
+      throw gl.getShaderInfoLog(vertexShader);
+
+    gl.shaderSource(fragShader,GLKit.ProgVertexImgShader);
+    gl.compileShader(fragShader);
+
+    gl.attachShader(screenProgram,vertexShader);
+    gl.attachShader(screenProgram,fragShader);
+    gl.linkProgram(screenProgram);
+
+    if(!gl.getProgramParameter(screenProgram,gl.LINK_STATUS));
+        throw gl.getProgramInfoLog(screenProgram);
+    */
+
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Bind & enable shader attributes & uniforms
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this._aVertexPosition    = gl.getAttribLocation(program,'aVertexPosition');
-    this._aVertexNormal      = gl.getAttribLocation(program,'aVertexNormal');
-    this._aVertexColor       = gl.getAttribLocation(program,'aVertexColor');
-    this._aVertexUV          = gl.getAttribLocation(program,'aVertexUV');
-    this._aTexCoord          = gl.getAttribLocation(program,'aTexCoord');
+    this._aVertexPosition    = gl.getAttribLocation(sceneProgram,'aVertexPosition');
+    this._aVertexNormal      = gl.getAttribLocation(sceneProgram,'aVertexNormal');
+    this._aVertexColor       = gl.getAttribLocation(sceneProgram,'aVertexColor');
+    this._aVertexUV          = gl.getAttribLocation(sceneProgram,'aVertexUV');
+    this._aTexCoord          = gl.getAttribLocation(sceneProgram,'aTexCoord');
 
-    this._uModelViewMatrix   = gl.getUniformLocation(program,'uModelViewMatrix');
-    this._uProjectionMatrix  = gl.getUniformLocation(program,'uProjectionMatrix');
-    this._uNormalMatrix      = gl.getUniformLocation(program,'uNormalMatrix');
-    this._uTexImage          = gl.getUniformLocation(program,'uTexImage');
+    this._uModelViewMatrix   = gl.getUniformLocation(sceneProgram,'uModelViewMatrix');
+    this._uProjectionMatrix  = gl.getUniformLocation(sceneProgram,'uProjectionMatrix');
+    this._uNormalMatrix      = gl.getUniformLocation(sceneProgram,'uNormalMatrix');
+    this._uTexImage          = gl.getUniformLocation(sceneProgram,'uTexImage');
 
-    this._uPointSize         = gl.getUniformLocation(program,'uPointSize');
+    this._uPointSize         = gl.getUniformLocation(sceneProgram,'uPointSize');
 
-    this._uUseLighting       = gl.getUniformLocation(program,'uUseLighting');
-    this._uUseMaterial       = gl.getUniformLocation(program,'uUseMaterial');
-    this._uUseTexture        = gl.getUniformLocation(program,'uUseTexture');
+    this._uUseLighting       = gl.getUniformLocation(sceneProgram,'uUseLighting');
+    this._uUseMaterial       = gl.getUniformLocation(sceneProgram,'uUseMaterial');
+    this._uUseTexture        = gl.getUniformLocation(sceneProgram,'uUseTexture');
 
-    this._uAmbient           = gl.getUniformLocation(program,'uAmbient');
+    this._uAmbient           = gl.getUniformLocation(sceneProgram,'uAmbient');
 
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -104,16 +132,16 @@ GLKit.GL = function(gl)
         light = 'uLights['+i+'].';
 
 
-        uLightPosition[i]             = gl.getUniformLocation(program,light + 'position');
-        uLightAmbient[i]              = gl.getUniformLocation(program,light + 'ambient');
-        uLightDiffuse[i]              = gl.getUniformLocation(program,light + 'diffuse');
-        uLightSpecular[i]             = gl.getUniformLocation(program,light + 'specular');
+        uLightPosition[i]             = gl.getUniformLocation(sceneProgram,light + 'position');
+        uLightAmbient[i]              = gl.getUniformLocation(sceneProgram,light + 'ambient');
+        uLightDiffuse[i]              = gl.getUniformLocation(sceneProgram,light + 'diffuse');
+        uLightSpecular[i]             = gl.getUniformLocation(sceneProgram,light + 'specular');
 
-        uLightAttenuationConstant[i]  = gl.getUniformLocation(program,light + 'constantAttenuation');
-        uLightAttenuationLinear[i]    = gl.getUniformLocation(program,light + 'linearAttenuation');
-        uLightAttenuationQuadratic[i] = gl.getUniformLocation(program,light + 'quadraticAttenuation');
+        uLightAttenuationConstant[i]  = gl.getUniformLocation(sceneProgram,light + 'constantAttenuation');
+        uLightAttenuationLinear[i]    = gl.getUniformLocation(sceneProgram,light + 'linearAttenuation');
+        uLightAttenuationQuadratic[i] = gl.getUniformLocation(sceneProgram,light + 'quadraticAttenuation');
 
-        gl.uniform3fv(uLightPosition[i], new Float32Array([0,0,0]));
+        gl.uniform4fv(uLightPosition[i], new Float32Array([0,0,0,0]));
         gl.uniform3fv(uLightAmbient[i],  new Float32Array([0,0,0]));
         gl.uniform3fv(uLightDiffuse[i],  new Float32Array([0,0,0]));
 
@@ -122,11 +150,11 @@ GLKit.GL = function(gl)
         gl.uniform1f(uLightAttenuationQuadratic[i],0.0);
    }
 
-    this._uMaterialEmission  = gl.getUniformLocation(program,'uMaterial.emission');
-    this._uMaterialAmbient   = gl.getUniformLocation(program,'uMaterial.ambient');
-    this._uMaterialDiffuse   = gl.getUniformLocation(program,'uMaterial.diffuse');
-    this._uMaterialSpecular  = gl.getUniformLocation(program,'uMaterial.specular');
-    this._uMaterialShininess = gl.getUniformLocation(program,'uMaterial.shininess');
+    this._uMaterialEmission  = gl.getUniformLocation(sceneProgram,'uMaterial.emission');
+    this._uMaterialAmbient   = gl.getUniformLocation(sceneProgram,'uMaterial.ambient');
+    this._uMaterialDiffuse   = gl.getUniformLocation(sceneProgram,'uMaterial.diffuse');
+    this._uMaterialSpecular  = gl.getUniformLocation(sceneProgram,'uMaterial.specular');
+    this._uMaterialShininess = gl.getUniformLocation(sceneProgram,'uMaterial.shininess');
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Setup Basic Material
@@ -142,6 +170,7 @@ GLKit.GL = function(gl)
     gl.uniform1f(this._uUseMaterial, 0.0);
     gl.uniform1f(this._uUseLighting, 0.0);
 
+    this._tempLightPos = GLKit.Vec4.make();
     this._lightingMode = 0;
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -203,31 +232,6 @@ GLKit.GL = function(gl)
 
     var ELLIPSE_DETAIL_MAX = this.ELLIPSE_DETAIL_MAX = 30;
 
-    /*---------------------------------------------------------------------------------------------------------*/
-    // Bind methods
-    /*---------------------------------------------------------------------------------------------------------*/
-
-    this.sampleCoverage        = gl.sampleCoverage.bind(gl);
-
-    this.blendFunc             = gl.blendFunc.bind(gl);
-    this.blendFuncSeparate     = gl.blendFuncSeparate.bind(gl);
-    this.blendEquation         = gl.blendEquation.bind(gl);
-    this.blendEquationSeparate = gl.blendEquationSeparate.bind(gl);
-    this.blendColor            = gl.blendColor.bind(gl);
-
-    this.viewport              = gl.viewport.bind(gl);
-    this.enable                = gl.enable.bind(gl);
-    this.disable               = gl.disable.bind(gl);
-    this.lineWidth             = gl.lineWidth.bind(gl);
-    this.flush                 = gl.flush.bind(gl);
-    this.finish                = gl.finish.bind(gl);
-    this.scissor               = gl.scissor.bind(gl);
-
-    this.uniform1f  = gl.uniform1f.bind(gl);
-    this.uniform1fv = gl.uniform1fv.bind(gl);
-    this.uniform1i  = gl.uniform1i.bind(gl);
-    this.uniform1iv = gl.uniform1iv.bind(gl);
-
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init Buffers
@@ -236,8 +240,8 @@ GLKit.GL = function(gl)
 
     this._bEmpty3f = new Float32Array([0,0,0]);
 
-    this._bColor4f   = GLKit.Color.copy(GLKit.Color.WHITE);
-    this._bColorBg4f = GLKit.Color.copy(GLKit.Color.BLACK);
+    this._bColor4f   = GLKit.Color.WHITE();
+    this._bColorBg4f = GLKit.Color.BLACK();
 
     this._bVertex   = null;
     this._bNormal   = null;
@@ -402,9 +406,15 @@ GLKit.GL.prototype.light = function(light)
     var id = light.getId(),
         gl = this.gl;
 
-    var lightPosEyeSpace = GLKit.Mat44.multVec(this._camera.modelViewMatrix,GLKit.Vec3.copy(light.position));
+    var tempVec4 = this._tempLightPos;
+        tempVec4[0] = light.position[0];
+        tempVec4[1] = light.position[1];
+        tempVec4[2] = light.position[2];
+        tempVec4[3] = light.position[3];
 
-    gl.uniform3fv(this._uLightPosition[id], lightPosEyeSpace);
+    var lightPosEyeSpace = GLKit.Mat44.multVec4(this._camera.modelViewMatrix,tempVec4);
+
+    gl.uniform4fv(this._uLightPosition[id], lightPosEyeSpace);
     gl.uniform3fv(this._uLightAmbient[id],  light.ambient);
     gl.uniform3fv(this._uLightDiffuse[id],  light.diffuse);
     gl.uniform3fv(this._uLightSpecular[id], light.specular);
@@ -574,7 +584,7 @@ GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array
 {
     var gl = this.gl;
 
-    this.fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
+    this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
     this.setMatricesUniform();
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexUInt16Array,gl.DYNAMIC_DRAW);
     gl.drawElements(mode  || this.TRIANGLES,
@@ -583,10 +593,12 @@ GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array
                     offset || 0);
 };
 
+
+
 GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,mode,first,count)
 {
 
-    this.fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
+    this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
     this.setMatricesUniform();
     this.gl.drawArrays(mode  || this._drawMode,
                        first || 0,
@@ -600,7 +612,7 @@ GLKit.GL.prototype.drawGeometry = function(geom) {geom._draw(this);};
 // convenience filling default vbo
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.GL.prototype.fillArrayBuffer = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array)
+GLKit.GL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array)
 {
 
     var na  = normalFloat32Array ? true : false,
@@ -683,7 +695,7 @@ GLKit.GL.prototype.fillVertexBuffer = function(vertices,buffer)
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
-// Methods color
+// Convenience Methods color
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.ambient   = function(color){this.gl.uniform3f(this._uAmbient,color[0],color[1],color[2]);};
@@ -981,7 +993,7 @@ GLKit.GL.prototype._genSphere = function(segments)
 GLKit.GL.prototype.getScreenCoord3f = function(x,y,z)
 {
     var mpm = GLKit.Mat44.mult(this._camera.projectionMatrix,this._mModelView);
-    var p3d = GLKit.Mat44.multVec(mpm,GLKit.Vec3.make(x,y,z));
+    var p3d = GLKit.Mat44.multVec3(mpm,GLKit.Vec3.make(x,y,z));
 
     var bsc = this._bScreenCoords;
         bsc[0] = (((p3d[0] + 1) * 0.5) * window.innerWidth);

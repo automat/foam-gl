@@ -1,4 +1,5 @@
-GLKit.ProgFragShader="precision mediump float;" + 
+GLKit.ProgFragShader=
+"precision mediump float;" + 
 
 "varying vec4 vColor;" + 
 
@@ -20,7 +21,7 @@ GLKit.ProgFragShader="precision mediump float;" +
 
 "struct Light" + 
 "{" + 
-"    vec3  position;" + 
+"    vec4  position;" + 
 "    vec3  ambient;" + 
 "    vec3  diffuse;" + 
 "    vec3  specular;" + 
@@ -56,7 +57,7 @@ GLKit.ProgFragShader="precision mediump float;" +
 
 "vec4 phongModel(vec4 position, vec3 normal, ColorComponent color, Light light)" + 
 "{" + 
-"   vec3  diff    = light.position - position.xyz;" + 
+"   vec3  diff    = light.position.xyz - position.xyz;" + 
 
 "   vec3 s        = normalize(diff);" + 
 "   vec3 v        = normalize(-position.xyz);" + 

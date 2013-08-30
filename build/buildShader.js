@@ -16,7 +16,7 @@ function shader2String(shaderSource,shaderClassName,dist)
 
 function shader2String(shaderSource,shaderClassName,dist)
 {
-    var string = '';
+    var string = '\n';
     var arr    =  fs.readFileSync(shaderSource,'utf-8').toString().split('\n');
     var i      = -1;
     var l      = arr.length;
@@ -36,5 +36,7 @@ function shader2String(shaderSource,shaderClassName,dist)
 }
 
 
-shader2String(inPath + 'glkProgFragShader.glsl',   'GLKit.ProgFragShader',   outPath +'glkProgFragShader.js');
-shader2String(inPath + 'glkProgVertexShader.glsl', 'GLKit.ProgVertexShader', outPath +'glkProgVertexShader.js');
+shader2String(inPath + 'glkProgFragShader.glsl',      'GLKit.ProgFragShader',     outPath + 'glkProgFragShader.js');
+shader2String(inPath + 'glkProgVertexShader.glsl',    'GLKit.ProgVertexShader',   outPath + 'glkProgVertexShader.js');
+shader2String(inPath + 'glkProgFragImgShader.glsl',   'GLKit.ProgFragImgShader',  outPath + 'glkProgFragImgShader.js');
+shader2String(inPath + 'glkProgVertexImgShader.glsl', 'GLKit.ProgVertexImgShader',outPath + 'glkProgVertexImgShader.js');

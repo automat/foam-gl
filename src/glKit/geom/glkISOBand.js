@@ -72,9 +72,7 @@ GLKit.ISOBand.prototype._genSurface = function()
         }
     }
 
-    console.log(this._verts);
-
-}
+};
 
 GLKit.ISOBand.prototype._draw = function(gl)
 {
@@ -86,23 +84,61 @@ GLKit.ISOBand.prototype._draw = function(gl)
 
     var i,j;
 
+    var vertices = new Float32Array(verts.length / 4 * 3);
+
+
+
     i = -1;
     while(++i < vertSizeZ)
     {
         j = -1;
         while(++j < vertSizeX)
         {
-            vertsIndex = (vertSizeX * i + j)*4;
+            vertsIndex = (vertSizeX * i + j);
 
-            gl.pushMatrix();
-            gl.translate3f(verts[vertsIndex],verts[vertsIndex+1],verts[vertsIndex+2]);
-            gl.cube(0.0125);
-            gl.popMatrix();
+            vertices[vertsIndex*3  ] = verts[vertsIndex*4  ];
+            vertices[vertsIndex*3+1] = verts[vertsIndex*4+1];
+            vertices[vertsIndex*3+2] = verts[vertsIndex*4+2];
+
+            //gl.pushMatrix();
+            //gl.translate3f(verts[vertsIndex],verts[vertsIndex+1],verts[vertsIndex+2]);
+            //gl.point3f(verts[vertsIndex],verts[vertsIndex+1],verts[vertsIndex+2])
+            //gl.cube(0.0125);
+            //gl.popMatrix();
 
         }
     }
 
 
+    var _gl = gl.gl;
+
+    gl.disableDefaultNormalAttribArray();
+    gl.disableDefaultTexCoordsAttribArray();
+
+    var glArrayBuffer = _gl.ARRAY_BUFFER,
+        glFloat       = _gl.FLOAT;
+
+    var colors   = new Float32Array(this._verts.length);
+
+    var vblen = vertices.byteLength,
+        cblen = colors.byteLength;
+
+    var offsetV = 0,
+        offsetC = offsetV + vblen;
+
+    _gl.bufferData(_gl.ARRAY_BUFFER,vblen + cblen, _gl.DYNAMIC_DRAW);
+
+    _gl.bufferSubData(glArrayBuffer, offsetV,  vertices);
+    _gl.bufferSubData(glArrayBuffer, offsetC,  colors);
+
+    _gl.vertexAttribPointer(gl.getDefaultVertexAttrib(), 3, glFloat, false, 0, offsetV);
+    _gl.vertexAttribPointer(gl.getDefaultColorAttrib(),  4, glFloat, false, 0, offsetC);
+
+    gl.setMatricesUniform();
+    _gl.drawArrays(_gl.POINTS,0,vertices.length);
+
+    gl.enableDefaultNormalAttribArray();
+    gl.enableDefaultTexCoordsAttribArray();
 };
 
 GLKit.ISOBand.TOP_TABLE =

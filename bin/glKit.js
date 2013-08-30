@@ -247,7 +247,7 @@ GLKit.Quaternion =
     rotateVec : function(q,v)
     {
         var t = this.zero();
-        this.set(t,this.multVec(this.multVec(this.copy(q),v),this.conjugate(this.copy(q))));
+        this.set(t,this.multVec3(this.multVec3(this.copy(q),v),this.conjugate(this.copy(q))));
     },
 
     fromAngles : function(ax,ay,az)
@@ -1167,7 +1167,7 @@ GLKit.Mat44 =
 
     },
 
-    multVec : function(m,v)
+    multVec3 : function(m,v)
     {
         var x = v[0],
             y = v[1],
@@ -1730,7 +1730,7 @@ GLKit.GL = function(gl)
     this._progVertexShader = GLKit.ShaderLoader.loadShaderFromString(_gl,GLKit.ProgVertexShader,_gl.VERTEX_SHADER);
     this._progFragShader   = GLKit.ShaderLoader.loadShaderFromString(_gl,GLKit.ProgFragShader,  _gl.FRAGMENT_SHADER);
 
-    var program = this._program = GLKit.ProgLoader.loadProgram(_gl,this._progVertexShader,this._progFragShader);
+    var program = this._sceneProgram = GLKit.ProgLoader.loadProgram(_gl,this._progVertexShader,this._progFragShader);
 
     _gl.useProgram(program);
 
@@ -2087,7 +2087,7 @@ GLKit.GL.prototype.light = function(light)
     var id = light.getId(),
         gl = this.gl;
 
-    var lightPosEyeSpace = GLKit.Mat44.multVec(this._camera.modelViewMatrix,GLKit.Vec3.copy(light.position));
+    var lightPosEyeSpace = GLKit.Mat44.multVec3(this._camera.modelViewMatrix,GLKit.Vec3.copy(light.position));
 
     gl.uniform3fv(this._uLightPosition[id], lightPosEyeSpace);
     gl.uniform3fv(this._uLightAmbient[id],  light.ambient);
@@ -2251,7 +2251,7 @@ GLKit.GL.prototype.rotateAxis3f  = function(angle,x,y,z){this._mModelView = GLKi
 
 GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,indexUInt16Array,mode,count,offset)
 {
-    this.fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
+    this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
     this._setMatricesUniform();
 
     var gl = this.gl;
@@ -2266,7 +2266,7 @@ GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array
 GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,mode,first,count)
 {
 
-    this.fillArrayBuffer(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
+    this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
     this._setMatricesUniform();
     this.gl.drawArrays(mode,first,count);
 };
@@ -2278,7 +2278,7 @@ GLKit.GL.prototype.drawGeometry = function(geom) {geom._draw(this);};
 /*---------------------------------------------------------------------------------------------------------*/
 
 
-GLKit.GL.prototype.fillArrayBuffer = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array)
+GLKit.GL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array)
 {
 
     var na  = normalFloat32Array ? true : false,
@@ -2649,7 +2649,7 @@ GLKit.GL.prototype._genSphere = function(segments)
 GLKit.GL.prototype.getScreenCoord3f = function(x,y,z)
 {
     var mpm = GLKit.Mat44.mult(this._camera.projectionMatrix,this._mModelView);
-    var p3d = GLKit.Mat44.multVec(mpm,GLKit.Vec3.make(x,y,z));
+    var p3d = GLKit.Mat44.multVec3(mpm,GLKit.Vec3.make(x,y,z));
 
     var bsc = this._bScreenCoords;
         bsc[0] = (((p3d[0] + 1) * 0.5) * window.innerWidth);
@@ -4337,29 +4337,30 @@ GLKit.Application.prototype.getTargetFPS = function(){return this._targetFPS;};
 GLKit.Application.prototype._initListeners = function()
 {
     var glCanvas = this.glWindow.getCanvas();
-        glCanvas.addEventListener('mousedown', this._onGLCanvasMouseDown.bind(this));
-        glCanvas.addEventListener('mouseup',   this._onGLCanvasMouseUp.bind(this));
-        glCanvas.addEventListener('mousemove', this._onGLCanvasMouseMove.bind(this));
-        glCanvas.addEventListener('keydown',   this._onGLCanvasKeyDown.bind(this));
-        glCanvas.addEventListener('keyup',     this._onGLCanvasKeyUp.bind(this));
-        glCanvas.addEventListener('mousewheel',this._onGLCanvasMouseWheel.bind(this));
+        glCanvas.addEventListener('mousedown', this._onMouseDown.bind(this));
+        glCanvas.addEventListener('mouseup',   this._onMouseUp.bind(this));
+        glCanvas.addEventListener('mousemove', this._onMouseMove.bind(this));
+        glCanvas.addEventListener('keydown',   this._onKeyDown.bind(this));
+        glCanvas.addEventListener('keyup',     this._onKeyUp.bind(this));
+        glCanvas.addEventListener('mousewheel',this._onMouseWheel.bind(this));
 
-    window.addEventListener('resize',this._onWindowResize.bind(this));
+     document.addEventListener('mousemove',this._onMouseMove.bind(this));
+     window.addEventListener('resize',this._onWindowResize.bind(this));
 };
 
 
-GLKit.Application.prototype._onGLCanvasKeyDown    = function(e){this._keyDown = true;this._keyCode = e.keyCode;this.onKeyDown(e)};
-GLKit.Application.prototype._onGLCanvasKeyUp      = function(e){this._keyDown = false;this.onKeyUp(e)};
-GLKit.Application.prototype._onGLCanvasMouseUp    = function(e){this._mouseDown = false;this.onMouseUp(e);};
-GLKit.Application.prototype._onGLCanvasMouseDown  = function(e){this._mouseDown = true;this.onMouseDown(e);};
-GLKit.Application.prototype._onGLCanvasMouseMove  = function(e){this.onMouseMove(e);};
-GLKit.Application.prototype._onGLCanvasMouseWheel = function(e){this._mouseWheelDelta += Math.max(-1,Math.min(1, e.wheelDelta)) * -1;this.onMouseWheel(e);};
-GLKit.Application.prototype.onKeyDown             = function(e){};
-GLKit.Application.prototype.onKeyUp               = function(e){};
-GLKit.Application.prototype.onMouseUp             = function(e){};
-GLKit.Application.prototype.onMouseDown           = function(e){};
-GLKit.Application.prototype.onMouseWheel          = function(e){};
-GLKit.Application.prototype.onMouseMove           = function(e){};
+GLKit.Application.prototype._onKeyDown    = function(e){this._keyDown = true;this._keyCode = e.keyCode;this.onKeyDown(e)};
+GLKit.Application.prototype._onKeyUp      = function(e){this._keyDown = false;this.onKeyUp(e)};
+GLKit.Application.prototype._onMouseUp    = function(e){this._mouseDown = false;this.onMouseUp(e);};
+GLKit.Application.prototype._onMouseDown  = function(e){this._mouseDown = true;this.onMouseDown(e);};
+GLKit.Application.prototype._onMouseMove  = function(e){this.mouse._position[0] = e.pageX; this.mouse._position[1] = e.pageY;this.onMouseMove(e);};
+GLKit.Application.prototype._onMouseWheel = function(e){this._mouseWheelDelta += Math.max(-1,Math.min(1, e.wheelDelta)) * -1;this.onMouseWheel(e);};
+GLKit.Application.prototype.onKeyDown     = function(e){};
+GLKit.Application.prototype.onKeyUp       = function(e){};
+GLKit.Application.prototype.onMouseUp     = function(e){};
+GLKit.Application.prototype.onMouseDown   = function(e){};
+GLKit.Application.prototype.onMouseWheel  = function(e){};
+GLKit.Application.prototype.onMouseMove   = function(e){};
 
 
 
