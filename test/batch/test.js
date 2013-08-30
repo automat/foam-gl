@@ -23,7 +23,7 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var buffer = this._buffer = new GLKit.LineBuffer(this.gl,20 * 3);
+        var buffer = this._buffer = new GLKit.LineBuffer(this.gl,1500 * 100 * 3);
 
     }
 
@@ -85,27 +85,34 @@
 
         buffer.reset();
 
+        var objNum  = 1500,
+            objSize = 100;
+
         var i = -1,
-            l = buffer.getSizeAllocated() / 3,
-            s = Math.PI * 2 / (l - 1);
+            ni,
+            s = Math.PI * 2 / (objSize - 1);
 
+        var j;
 
-
-        while(++i < l)
+        while(++i < objNum)
         {
-            buffer.pushVertex3f(Math.cos(s*i),0,Math.sin(s*i));
-            buffer.pushColor4f(1,1,1,1);
+            j = -1;
+            while(++j < objSize)
+            {
+                ni = i/objNum;
+
+                buffer.pushVertex3f(Math.cos(s*j)*(1+ni*3),(i/objNum)*1.25 + Math.sin(j/(objSize-1)*Math.PI*10 + time * 0.25)*0.25,Math.sin(s*j)*(1+ni*3));
+                if(i > 0)buffer.pushColor4f(ni,ni*0.25,1,1);else buffer.pushColor4f(1,1,1,1);
+            }
         }
 
+        i = -1;
+        while(++i < objNum)
+        {
+            buffer.draw(i * objSize,objSize)
+        }
 
-
-
-
-
-        //buffer.draw();
         buffer.unbind();
-
-        //gl.drawArrays(buffer.vertices,null,buffer.colors,null);
 
         /*---------------------------------------------------------------------------------------------------------*/
     };

@@ -1,9 +1,13 @@
 GLKit.GL = function(gl)
 {
     /*---------------------------------------------------------------------------------------------------------*/
+    // Init
+    /*---------------------------------------------------------------------------------------------------------*/
 
     this.gl = gl;
 
+    /*---------------------------------------------------------------------------------------------------------*/
+    // create shaders/program + bind
     /*---------------------------------------------------------------------------------------------------------*/
 
     var program = this._program = gl.createProgram();
@@ -38,11 +42,11 @@ GLKit.GL = function(gl)
     // Bind & enable shader attributes & uniforms
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this._aVertexPosition   = gl.getAttribLocation(program,'aVertexPosition');
-    this._aVertexNormal     = gl.getAttribLocation(program,'aVertexNormal');
-    this._aVertexColor      = gl.getAttribLocation(program,'aVertexColor');
-    this._aVertexUV         = gl.getAttribLocation(program,'aVertexUV');
-    this._aTexCoord         = gl.getAttribLocation(program,'aTexCoord');
+    this._aVertexPosition    = gl.getAttribLocation(program,'aVertexPosition');
+    this._aVertexNormal      = gl.getAttribLocation(program,'aVertexNormal');
+    this._aVertexColor       = gl.getAttribLocation(program,'aVertexColor');
+    this._aVertexUV          = gl.getAttribLocation(program,'aVertexUV');
+    this._aTexCoord          = gl.getAttribLocation(program,'aTexCoord');
 
     this._uModelViewMatrix   = gl.getUniformLocation(program,'uModelViewMatrix');
     this._uProjectionMatrix  = gl.getUniformLocation(program,'uProjectionMatrix');
@@ -51,8 +55,16 @@ GLKit.GL = function(gl)
 
     this._uPointSize         = gl.getUniformLocation(program,'uPointSize');
 
+    this._uUseLighting       = gl.getUniformLocation(program,'uUseLighting');
+    this._uUseMaterial       = gl.getUniformLocation(program,'uUseMaterial');
+    this._uUseTexture        = gl.getUniformLocation(program,'uUseTexture');
+
+    this._uAmbient           = gl.getUniformLocation(program,'uAmbient');
 
 
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Setup Lights
+    /*---------------------------------------------------------------------------------------------------------*/
 
 
     this.LIGHT_0    = 0;
@@ -71,11 +83,6 @@ GLKit.GL = function(gl)
     this.MODEL_BLINN       = 3;
     this.MODEL_FLAT        = 4;
 
-    this._uUseLighting = gl.getUniformLocation(program,'uUseLighting');
-    this._uUseMaterial = gl.getUniformLocation(program,'uUseMaterial');
-    this._uUseTexture  = gl.getUniformLocation(program,'uUseTexture');
-
-    this._uAmbient     = gl.getUniformLocation(program,'uAmbient');
 
     var l = this.MAX_LIGHTS;
 
@@ -121,6 +128,11 @@ GLKit.GL = function(gl)
     this._uMaterialSpecular  = gl.getUniformLocation(program,'uMaterial.specular');
     this._uMaterialShininess = gl.getUniformLocation(program,'uMaterial.shininess');
 
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Setup Basic Material
+    /*---------------------------------------------------------------------------------------------------------*/
+
+
     gl.uniform4f(this._uMaterialEmission, 0.0,0.0,0.0,1.0);
     gl.uniform4f(this._uMaterialAmbient,  1.0,0.5,0.5,1.0);
     gl.uniform4f(this._uMaterialDiffuse,  0.0,0.0,0.0,1.0);
@@ -131,6 +143,10 @@ GLKit.GL = function(gl)
     gl.uniform1f(this._uUseLighting, 0.0);
 
     this._lightingMode = 0;
+
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Setup Shader Misc
+    /*---------------------------------------------------------------------------------------------------------*/
 
     gl.uniform1f(this._uPointSize, 1.0);
 
@@ -152,15 +168,11 @@ GLKit.GL = function(gl)
 
     this._tex      = null;
 
-
     this._defaultVBO = gl.createBuffer();
     this._defaultIBO = gl.createBuffer();
 
-
     gl.bindBuffer(gl.ARRAY_BUFFER,         this._defaultVBO);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._defaultIBO);
-
-
 
     gl.enableVertexAttribArray(this._aVertexPosition);
     gl.enableVertexAttribArray(this._aVertexNormal);
@@ -498,6 +510,8 @@ GLKit.GL.prototype.useLighting = function(bool){this.gl.uniform1f(this._uUseLigh
 GLKit.GL.prototype.getLighting = function(){return this._bLighting;};
 
 /*---------------------------------------------------------------------------------------------------------*/
+// Matrix stack
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.loadIdentity = function(){this._mModelView = GLKit.Mat44.identity(this._camera.modelViewMatrix);};
 GLKit.GL.prototype.pushMatrix   = function(){this._mStack.push(GLKit.Mat44.copy(this._mModelView));};
@@ -529,6 +543,8 @@ GLKit.GL.prototype.setMatricesUniform = function()
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
+// Matrix stack transformations
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.translate     = function(v)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(v[0],v[1],v[2]));};
 GLKit.GL.prototype.translate3f   = function(x,y,z)      {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(x,y,z));};
@@ -549,6 +565,8 @@ GLKit.GL.prototype.rotateZ       = function(z)          {this._mModelView = GLKi
 GLKit.GL.prototype.rotateAxis    = function(angle,v)    {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationOnAxis(angle,v[0],v[1],v[2]));};
 GLKit.GL.prototype.rotateAxis3f  = function(angle,x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationOnAxis(angle,x,y,z));};
 
+/*---------------------------------------------------------------------------------------------------------*/
+// convenience draw
 /*---------------------------------------------------------------------------------------------------------*/
 
 
@@ -578,9 +596,9 @@ GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,c
 GLKit.GL.prototype.drawGeometry = function(geom) {geom._draw(this);};
 
 
-
 /*---------------------------------------------------------------------------------------------------------*/
-
+// convenience filling default vbo
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.fillArrayBuffer = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array)
 {
@@ -664,8 +682,8 @@ GLKit.GL.prototype.fillVertexBuffer = function(vertices,buffer)
     return buffer;
 };
 
-
-
+/*---------------------------------------------------------------------------------------------------------*/
+// Methods color
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.ambient   = function(color){this.gl.uniform3f(this._uAmbient,color[0],color[1],color[2]);};
@@ -697,6 +715,8 @@ GLKit.GL.prototype.getColorBuffer = function(){return this._bColor;};
 GLKit.GL.prototype.getClearBuffer = function(){return this._bColorBg4f;};
 
 /*---------------------------------------------------------------------------------------------------------*/
+// Methods draw properties
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.drawMode = function(mode){this._drawMode = mode;};
 GLKit.GL.prototype.getDrawMode = function(){return this._drawMode;};
@@ -716,6 +736,8 @@ GLKit.GL.prototype.pointSize = function(value){this.gl.uniform1f(this._uPointSiz
 GLKit.GL.prototype.lineSize   = function(width,height){this._lineBoxWidth  = width;this._lineBoxHeight = height;};
 GLKit.GL.prototype.lineRadius = function(radius){this._lineCylinderRadius = radius;};
 
+/*---------------------------------------------------------------------------------------------------------*/
+// Methods draw primitives
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.point   = function(vector){this.drawArrays(vector,null,this.fillColorBuffer(this._bColor,this._bColorPoint),null,this.POINTS,0,1);};
@@ -798,6 +820,11 @@ GLKit.GL.prototype.trianglef = function(v0,v1,v2,v3,v4,v5,v6,v7,v8)
 
 GLKit.GL.prototype.trianglev = function(vertices,normals,texCoords){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexTriangle),normals,this.fillColorBuffer(this._bColor,this._bColorTriangle),texCoords,this._drawMode,0,3);}
 
+/*---------------------------------------------------------------------------------------------------------*/
+// convenience draw
+/*---------------------------------------------------------------------------------------------------------*/
+
+
 GLKit.GL.prototype.box = function(width,height,depth)
 {
     this.pushMatrix();
@@ -818,8 +845,6 @@ GLKit.GL.prototype.sphere = function()
 {
     this.drawElements(this._bVertexSphere,this._bNormalSphere,this.fillColorBuffer(this._bColor,this._bColorSphere),this._bTexCoordsSphere,this._bIndexSphere,this._drawMode);
 };
-
-
 
 
 
@@ -862,7 +887,10 @@ GLKit.GL.prototype.lineCylinder = function(v0,v1)
 
 
 
-/*---------------------------------------------------------------------------------------------------------*/
+
+
+
+
 
 GLKit.GL.prototype._genSphere = function(segments)
 {

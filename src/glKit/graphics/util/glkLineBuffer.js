@@ -15,8 +15,25 @@ GLKit.LineBuffer = function(gl,size)
 /*---------------------------------------------------------------------------------------------------------*/
 
 //probably shouldnt do this
-GLKit.LineBuffer.prototype.bind   = function(){this._gl.gl.bindBuffer(this._gl.gl.ARRAY_BUFFER,this._vbo);};
-GLKit.LineBuffer.prototype.unbind = function(){this._gl.bindDefaultVBO();};
+GLKit.LineBuffer.prototype.bind   = function()
+{
+    var glkgl = this._gl,
+        gl    = glkgl.gl;
+
+    glkgl.disableDefaultNormalAttribArray();
+    glkgl.disableDefaultTexCoordsAttribArray();
+    gl.bindBuffer(gl.ARRAY_BUFFER,this._vbo);
+};
+
+GLKit.LineBuffer.prototype.unbind = function()
+{
+    var glkgl = this._gl,
+        gl    = glkgl.gl;
+
+    glkgl.enableDefaultNormalAttribArray();
+    glkgl.enableDefaultTexCoordsAttribArray();
+    glkgl.bindDefaultVBO();
+};
 
 GLKit.LineBuffer.prototype.pushVertex3f = function(x,y,z)
 {
@@ -27,7 +44,6 @@ GLKit.LineBuffer.prototype.pushVertex3f = function(x,y,z)
     vertices[this._vertIndex++] = x;
     vertices[this._vertIndex++] = y;
     vertices[this._vertIndex++] = z;
-
 };
 
 GLKit.LineBuffer.prototype.pushColor4f = function(r,g,b,a)
@@ -40,11 +56,9 @@ GLKit.LineBuffer.prototype.pushColor4f = function(r,g,b,a)
     colors[this._colIndex++] = a;
 };
 
-
 GLKit.LineBuffer.prototype.setVertex3f = function(x,y,z,index3)
 {
     index3*=3;
-
     var vertices = this.vertices;
 
     vertices[index3  ] = x;
@@ -52,11 +66,9 @@ GLKit.LineBuffer.prototype.setVertex3f = function(x,y,z,index3)
     vertices[index3+2] = z;
 };
 
-
 GLKit.LineBuffer.prototype.setColor4f = function(r,g,b,a,index4)
 {
     index4*=4;
-
     var colors = this.colors;
 
     colors[index4  ] = r;
@@ -78,6 +90,8 @@ GLKit.LineBuffer.prototype.buffer = function()
         gl            = glkl.gl,
         glArrayBuffer = gl.ARRAY_BUFFER,
         glFloat       = gl.FLOAT;
+
+
 
     var vblen = this.vertices.byteLength,
         cblen = this.colors.byteLength;
