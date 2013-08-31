@@ -45,6 +45,10 @@ GLKit.ISOBand = function(sizeX,sizeZ,unitScaleX,unitScaleZ)
     this._verts = new Float32Array(this._vertSizeX * this._vertSizeZ * 4);
     this._cells = new Array(this._cellSizeX * this._cellSizeZ);
 
+    this._tempCellVertices     = new Float32Array(4 * 3);
+    this._tempCellVerticesVals = new Float32Array(4);
+    this._tempCellConVertices  = new Float32Array(6);
+
     this._genSurface();
 
 
@@ -150,21 +154,22 @@ GLKit.ISOBand.prototype._draw = function(gl)
 {
     var time = GLKit.Application.getInstance().getSecondsElapsed();
 
-    this._numTriangles;
+
 
     this.applyFunction(time);
 
     var vertSizeX = this._vertSizeX,
         vertSizeZ = this._vertSizeZ;
 
+    var cellSizeX = this._cellSizeX,
+        cellSizeZ = this._cellSizeZ;
+
     var verts = this._verts,
         vertsIndex;
 
     var i,j;
-
+    /*
     var vertices = new Float32Array(verts.length / 4 * 3);
-
-    var x,y;
 
     i = -1;
     while(++i < vertSizeZ)
@@ -182,148 +187,129 @@ GLKit.ISOBand.prototype._draw = function(gl)
         }
     }
 
-    var val;
     gl.drawMode(gl.POINTS);
+    gl.points(vertices);
+    */
+    i = -1;
+    var k;
 
-    var i = -1;
-    while(++i < verts.length)
-    {
-        //gl.pointSize(1);
-        //gl.point3f(verts[i*4],verts[i*4+1],verts[i*4+2]);
+    var cells = this._cells;
 
-        val = verts[i*4+3];
+    var cellIndex,
+        cell,
+        cellState;
 
-        if(val <= 0)continue;
+    var cellVertices = this._tempCellVertices;
 
-        gl.pointSize(val*5);
-        gl.point3f(verts[i*4],verts[i*4+1],verts[i*4+2]);
-    }
+    //Cell vertex indices in global vertices
+    var v0Index,  // 0 1
+        v1Index,  // 3 2
+        v2Index,
+        v3Index;
 
-    //gl.points(vertices);
+    //Cell vertex values ...,x,y,z,VALUE,...
+    var vVals = this._tempCellVerticesVals,
+        v0Val,v1Val,v2Val,v3Val;
 
+    //Topologic entry / lookup
+    var entryTopLu,
+        ISOBAND_TOP_LU = GLKit.ISOBand.TOP_TABLE;
 
-    var tick = Math.sin(time*0.125);
-    var cellIndex = Math.floor(Math.abs(tick) * this._cells.length);
-    var cell = this._cells[cellIndex];
-
-    if(!cell)return;
-
-    //console.log(cell);
+    //value interpolated vertices of cell
+    var conVertices = this._tempCellConVertices;
 
     gl.drawMode(gl.LINE_LOOP);
-    //gl.quadf(verts[])
-    var v0Index = cell[0],
-        v1Index = cell[1],
-        v2Index = cell[2],
-        v3Index = cell[3];
 
-    var cellVertices = new Float32Array(4 * 3);
-    var cellVerticesValues = new Float32Array(4);
-
-    cellVertices[ 0] = verts[v0Index    ];
-    cellVertices[ 1] = verts[v0Index + 1];
-    cellVertices[ 2] = verts[v0Index + 2];
-    cellVerticesValues[0] = verts[v0Index + 3];
-
-    cellVertices[ 3] = verts[v1Index    ];
-    cellVertices[ 4] = verts[v1Index + 1];
-    cellVertices[ 5] = verts[v1Index + 2];
-    cellVerticesValues[1] = verts[v1Index + 3];
-
-    cellVertices[ 6] = verts[v2Index    ];
-    cellVertices[ 7] = verts[v2Index + 1];
-    cellVertices[ 8] = verts[v2Index + 2];
-    cellVerticesValues[2] = verts[v2Index + 3];
-
-    cellVertices[ 9] = verts[v3Index    ];
-    cellVertices[10] = verts[v3Index + 1];
-    cellVertices[11] = verts[v3Index + 2];
-    cellVerticesValues[3] = verts[v3Index + 3];
-
-    gl.color1f(0.5);
-    gl.quadf(cellVertices[0],cellVertices[1],cellVertices[2],
-             cellVertices[3],cellVertices[4],cellVertices[5],
-             cellVertices[6],cellVertices[7],cellVertices[8],
-             cellVertices[9],cellVertices[10],cellVertices[11]);
-
-    gl.color1f(1);
-    gl.drawMode(gl.POINTS);
-    gl.color3f(1,0,0);
-    gl.pointSize(5);
-    gl.points(cellVertices);
-    //gl.point3f(Math.sin(time),1,1);
-    gl.pointSize(1);
-
-    var cellState  = (cellVerticesValues[0] > 0) << 3 |
-                     (cellVerticesValues[1] > 0) << 2 |
-                     (cellVerticesValues[2] > 0) << 1 |
-                     (cellVerticesValues[3] > 0);
-
-    var top = GLKit.ISOBand.TOP_TABLE[cellState];
-
-    var vi0,vi1,vi2,vi3;
-
-    var v0,v1;
-    var vertsIntrpld = new Float32Array(6);
-
-    gl.drawMode(gl.LINES);
-    gl.color3f(0,0,1);
-
-    i = 0;
-    while(i < top.length)
+    while(++i < cellSizeZ)
     {
-        vi0 = top[i  ];
-        vi1 = top[i+1];
-        vi2 = top[i+2];
-        vi3 = top[i+3];
+        j = -1;
+        while(++j < cellSizeX)
+        {
+            cellIndex = cellSizeX * i + j;
+            cell      = cells[cellIndex];
 
-        //console.log(cell[vi0]);
+            v0Index = cell[0];
+            v1Index = cell[1];
+            v2Index = cell[2];
+            v3Index = cell[3];
 
-        v0 = this._intrpl(verts[cell[vi0]],verts[cell[vi0]+2],verts[cell[vi1]],verts[cell[vi1]+2],cellVerticesValues[vi0],cellVerticesValues[vi1]);
-        v1 = this._intrpl(verts[cell[vi2]],verts[cell[vi2]+2],verts[cell[vi3]],verts[cell[vi3]+2],cellVerticesValues[vi2],cellVerticesValues[vi3]);
 
-        //gl.linef(verts[cell[vi0]],verts[cell[vi0]+1],verts[cell[vi0]+2],0,0,0);
-        //gl.linef(verts[cell[vi0]],verts[cell[vi0]+1],verts[cell[vi0]+2],0,0,0);
+            v0Val = vVals[0] = verts[v0Index + 3];
+            v1Val = vVals[1] = verts[v1Index + 3];
+            v2Val = vVals[2] = verts[v2Index + 3];
+            v3Val = vVals[3] = verts[v3Index + 3];
 
-        gl.linef(v0[0],0,v0[1],v1[0],0,v1[1]);
+            cellState = (v0Val > 0) << 3 |
+                        (v1Val > 0) << 2 |
+                        (v2Val > 0) << 1 |
+                        (v3Val > 0);
 
-        i += 4;
+            if(cellState == 0)continue;
+
+            cellVertices[ 0] = verts[v0Index    ];
+            cellVertices[ 1] = verts[v0Index + 1];
+            cellVertices[ 2] = verts[v0Index + 2];
+
+            cellVertices[ 3] = verts[v1Index    ];
+            cellVertices[ 4] = verts[v1Index + 1];
+            cellVertices[ 5] = verts[v1Index + 2];
+
+            cellVertices[ 6] = verts[v2Index    ];
+            cellVertices[ 7] = verts[v2Index + 1];
+            cellVertices[ 8] = verts[v2Index + 2];
+
+            cellVertices[ 9] = verts[v3Index    ];
+            cellVertices[10] = verts[v3Index + 1];
+            cellVertices[11] = verts[v3Index + 2];
+
+            entryTopLu = ISOBAND_TOP_LU[cellState];
+
+            gl.drawMode(gl.LINES);
+            gl.color3f(0,0,1);
+
+            k = 0;
+            while(k < entryTopLu.length)
+            {
+                this._intrpl(cell[entryTopLu[k  ]],cell[entryTopLu[k+1]],conVertices,0);
+                this._intrpl(cell[entryTopLu[k+2]],cell[entryTopLu[k+3]],conVertices,3);
+
+                gl.line(conVertices);
+
+                k += 4;
+            }
+
+        }
     }
 
 
-
-
-
-
-
-
-    if(tick < 0 && cellIndex > this._cellSizeZ) return;
-
-
-
-
-
-
-
-    //gl.linef(verts[v0Index],verts[v0Index+1],verts[v0Index+2],verts[v1Index],verts[v1Index+1],verts[v1Index+2])
-    //gl.linef(verts[v2Index],verts[v2Index+1],verts[v2Index+2],verts[v3Index],verts[v3Index+1],verts[v3Index+2])
-
-
 };
 
-GLKit.ISOBand.prototype._intrpl = function(x0,z0,x1,z1,val0,val1)
+GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
 {
-    //return [GLKit.Math.lerp(x0,x1,0.5),GLKit.Math.lerp(z0,z1,0.5)];
-    if(val0 == 0 || val1 == 0)return [x0,z0];
+    var verts = this._verts;
 
-    return [ -val0*(x1-x0)/(val1-val0) + x0,-val0*(z1-z0)/(val1-val0) + z0]
+    var v0x = verts[index0  ],
+        v0z = verts[index0+2],
+        v0v = verts[index0+3];
 
+    var v1x = verts[index1  ],
+        v1z = verts[index1+2],
+        v1v = verts[index1+3];
+
+    if(v0v == 0 || v1v == 0)
+    {
+        out[offset+0] = v0x;
+        out[offset+1] = 0;
+        out[offset+2] = v0z;
+
+        return;
+    }
+
+    out[offset+0] = -v0v * (v1x - v0x) / (v1v - v0v) + v0x;
+    out[offset+1] = 0;
+    out[offset+2] = -v0v * (v1z - v0z) / (v1v - v0v) + v0z;
 };
 
-GLKit.ISOBand.prototype._march = function(cellIndex)
-{
-
-};
 
 GLKit.ISOBand.TOP_TABLE =
 [
