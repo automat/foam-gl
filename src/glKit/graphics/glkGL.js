@@ -383,33 +383,17 @@ GLKit.GL = function(context3d,context2d)
 
 };
 
-
+/*---------------------------------------------------------------------------------------------------------*/
+// Camera
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.setCamera = function(camera){this._camera = camera;};
 
 /*---------------------------------------------------------------------------------------------------------*/
-
-GLKit.GL.prototype.getDefaultVBO  = function(){return this._defaultVBO;};
-GLKit.GL.prototype.getDefaultIBO  = function(){return this._defaultIBO;};
-GLKit.GL.prototype.bindDefaultVBO = function(){this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this._defaultVBO);};
-GLKit.GL.prototype.bindDefaultIBO = function(){this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER,this._defaultIBO);};
-
-GLKit.GL.prototype.getDefaultVertexAttrib   = function(){return this._aVertexPosition;};
-GLKit.GL.prototype.getDefaultNormalAttrib   = function(){return this._aVertexNormal;};
-GLKit.GL.prototype.getDefaultColorAttrib    = function(){return this._aVertexColor;};
-GLKit.GL.prototype.getDefaultTexCoordAttrib = function(){return this._aVertexUV;};
-
-GLKit.GL.prototype.enableDefaultVertexAttribArray     = function(){this.gl.enableVertexAttribArray(this._aVertexPosition);};
-GLKit.GL.prototype.enableDefaultNormalAttribArray     = function(){this.gl.enableVertexAttribArray(this._aVertexNormal);};
-GLKit.GL.prototype.enableDefaultColorAttribArray      = function(){this.gl.enableVertexAttribArray(this._aVertexColor);};
-GLKit.GL.prototype.enableDefaultTexCoordsAttribArray  = function(){this.gl.enableVertexAttribArray(this._aVertexUV);};
-GLKit.GL.prototype.disableDefaultVertexAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexPosition);};
-GLKit.GL.prototype.disableDefaultNormalAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexNormal);};
-GLKit.GL.prototype.disableDefaultColorAttribArray     = function(){this.gl.disableVertexAttribArray(this._aVertexColor);};
-GLKit.GL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVertexAttribArray(this._aVertexUV);};
-
+// Material
 /*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.useMaterial = function(bool){this.gl.uniform1f(this._uUseMaterial,bool ? 1.0 : 0.0);};
 
 GLKit.GL.prototype.material = function(material)
 {
@@ -421,6 +405,15 @@ GLKit.GL.prototype.material = function(material)
     gl.uniform4fv(this._uMaterialSpecular,  material.specular);
     gl.uniform1f( this._uMaterialShininess, material.shininess);
 };
+
+/*---------------------------------------------------------------------------------------------------------*/
+// Light
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.lightingMode = function(mode){this._lightingMode = mode;};
+GLKit.GL.prototype.useLighting  = function(bool){this.gl.uniform1f(this._uUseLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
+GLKit.GL.prototype.getLighting  = function()    {return this._bLighting;};
+
 
 GLKit.GL.prototype.light = function(light)
 {
@@ -461,6 +454,12 @@ GLKit.GL.prototype.disableLight = function(light)
     gl.uniform1f(this._uLightAttenuationLinear[id],   0.0);
     gl.uniform1f(this._uLightAttenuationQuadratic[id],0.0);
 };
+
+/*---------------------------------------------------------------------------------------------------------*/
+// Texture
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.useTexture  = function(bool){this.gl.uniform1f(this._uUseTexture, bool ? 1.0 : 0.0);};
 
 GLKit.GL.prototype.loadTextureWithImage = function(img)
 {
@@ -532,13 +531,6 @@ GLKit.GL.prototype.disableTextures = function()
     gl.vertexAttribPointer(this._aTexCoord,GLKit.Vec2.SIZE,gl.FLOAT,false,0,0);
     gl.uniform1f(this._uUseTexture,0.0);
 };
-
-GLKit.GL.prototype.lightingMode = function(mode){this._lightingMode = mode;};
-
-GLKit.GL.prototype.useTexture  = function(bool){this.gl.uniform1f(this._uUseTexture, bool ? 1.0 : 0.0);};
-GLKit.GL.prototype.useMaterial = function(bool){this.gl.uniform1f(this._uUseMaterial,bool ? 1.0 : 0.0);};
-GLKit.GL.prototype.useLighting = function(bool){this.gl.uniform1f(this._uUseLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
-GLKit.GL.prototype.getLighting = function(){return this._bLighting;};
 
 /*---------------------------------------------------------------------------------------------------------*/
 // Matrix stack
@@ -763,6 +755,7 @@ GLKit.GL.prototype.sphereDetail = function(detail)
     }
 };
 
+GLKit.GL.prototype.useBillboard = function(bool){this._bBillboarding = bool;};
 GLKit.GL.prototype.pointSize = function(value){this.gl.uniform1f(this._uPointSize,value);};
 
 //Temp
@@ -898,37 +891,37 @@ GLKit.GL.prototype.rect = function(width,height)
 
     var vertices = this._bVertexRect;
 
-    if(this._bBillboarding && !this._bBillBoadingLast &&
-       this._bBRectWidthLast != width && this._bBRectHeightLast != height)
+    if(this._bBillboarding)
     {
         //23
         //01
 
-        var bBVec0 = this._bBVec0,
-            bBVec1 = this._bBVec1,
-            bBVec2 = this._bBVec2,
-            bBVec3 = this._bBVec3;
+        var modelViewMatrix = this._mModelView;
+
+        var vecRightX = modelViewMatrix[0],
+            vecRightY = modelViewMatrix[4],
+            vecRightZ = modelViewMatrix[8];
+
+        var vecUpX = modelViewMatrix[1],
+            vecUpY = modelViewMatrix[5],
+            vecUpZ = modelViewMatrix[9];
 
 
-        vertices[ 0] = bBVec0[ 0] * width;
-        vertices[ 1] = bBVec0[ 1] * width;
-        vertices[ 2] = bBVec0[ 2] * width;
+        vertices[ 0] = (-vecRightX - vecUpX) * width;
+        vertices[ 1] = (-vecRightY - vecUpY) * width;
+        vertices[ 2] = (-vecRightZ - vecUpZ) * width;
 
-        vertices[ 3] = bBVec1[ 0] * width;
-        vertices[ 4] = bBVec1[ 1] * width;
-        vertices[ 5] = bBVec1[ 2] * width;
+        vertices[ 3] = (vecRightX - vecUpX) * width;
+        vertices[ 4] = (vecRightY - vecUpY) * width;
+        vertices[ 5] = (vecRightZ - vecUpZ) * width;
 
-        vertices[ 6] = bBVec2[ 0] * width;
-        vertices[ 7] = bBVec2[ 1] * width;
-        vertices[ 8] = bBVec2[ 2] * width;
+        vertices[ 6] = (vecRightX + vecUpX) * width;
+        vertices[ 7] = (vecRightY + vecUpY) * width;
+        vertices[ 8] = (vecRightZ + vecUpZ) * width;
 
-        vertices[ 9] = bBVec3[ 0] * width;
-        vertices[10] = bBVec3[ 1] * width;
-        vertices[11] = bBVec3[ 2] * width;
-
-
-        this._bBRectWidthLast  = width;
-        this._bBRectHeightLast = height;
+        vertices[ 9] = (-vecRightX + vecUpX) * width;
+        vertices[10] = (-vecRightY + vecUpY) * width;
+        vertices[11] = (-vecRightZ + vecUpZ) * width;
 
     }
     else if(width != this._rectWidthLast || height != this._rectHeightLast)
@@ -973,55 +966,6 @@ GLKit.GL.prototype.trianglev = function(vertices,normals,texCoords){this.drawArr
 // convenience draw
 /*---------------------------------------------------------------------------------------------------------*/
 
-//TODO:cleanup
-GLKit.GL.prototype.useBillboard = function(bool)
-{
-    this._bBillBoadingLast = this._bBillboarding;
-    this._bBillboarding    = bool;
-
-    if(bool)
-    {
-
-        var modelViewMatrix = this._mModelView,
-            bBVecUp         = this._bBVecUp,
-            bBVecRight      = this._bBVecRight;
-
-            bBVecRight[0] = modelViewMatrix[0];
-            bBVecRight[1] = modelViewMatrix[4];
-            bBVecRight[2] = modelViewMatrix[8];
-
-            bBVecUp[0] = modelViewMatrix[1];
-            bBVecUp[1] = modelViewMatrix[5];
-            bBVecUp[2] = modelViewMatrix[9];
-
-        var bBVec0 = this._bBVec0,
-            bBVec1 = this._bBVec1,
-            bBVec2 = this._bBVec2,
-            bBVec3 = this._bBVec3;
-
-        bBVec0[0] = -bBVecRight[0] - bBVecUp[0];
-        bBVec0[1] = -bBVecRight[1] - bBVecUp[1];
-        bBVec0[2] = -bBVecRight[2] - bBVecUp[2];
-
-        bBVec1[0] =  bBVecRight[0] - bBVecUp[0];
-        bBVec1[1] =  bBVecRight[1] - bBVecUp[1];
-        bBVec1[2] =  bBVecRight[2] - bBVecUp[2];
-
-        bBVec2[0] =  bBVecRight[0] + bBVecUp[0];
-        bBVec2[1] =  bBVecRight[1] + bBVecUp[1];
-        bBVec2[2] =  bBVecRight[2] + bBVecUp[2];
-
-        bBVec3[0] = -bBVecRight[0] + bBVecUp[0];
-        bBVec3[1] = -bBVecRight[1] + bBVecUp[1];
-        bBVec3[2] = -bBVecRight[2] + bBVecUp[2];
-
-        this._bBRectWidthLast  = null;
-        this._bBRectHeightLast = null;
-
-
-    }
-
-};
 
 
 GLKit.GL.prototype.box = function(width,height,depth)
@@ -1089,7 +1033,9 @@ GLKit.GL.prototype.lineCylinder = function(v0,v1)
 
 
 
-
+/*---------------------------------------------------------------------------------------------------------*/
+// Geometry gen
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype._genSphere = function(segments)
 {
@@ -1174,6 +1120,50 @@ GLKit.GL.prototype._genSphere = function(segments)
     this._bIndexSphere     = new Uint16Array(indices);
 };
 
+/*---------------------------------------------------------------------------------------------------------*/
+// default vbo/ibo / shader attributes
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.getDefaultVBO  = function(){return this._defaultVBO;};
+GLKit.GL.prototype.getDefaultIBO  = function(){return this._defaultIBO;};
+GLKit.GL.prototype.bindDefaultVBO = function(){this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this._defaultVBO);};
+GLKit.GL.prototype.bindDefaultIBO = function(){this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER,this._defaultIBO);};
+
+GLKit.GL.prototype.getDefaultVertexAttrib   = function(){return this._aVertexPosition;};
+GLKit.GL.prototype.getDefaultNormalAttrib   = function(){return this._aVertexNormal;};
+GLKit.GL.prototype.getDefaultColorAttrib    = function(){return this._aVertexColor;};
+GLKit.GL.prototype.getDefaultTexCoordAttrib = function(){return this._aVertexUV;};
+
+GLKit.GL.prototype.enableDefaultVertexAttribArray     = function(){this.gl.enableVertexAttribArray(this._aVertexPosition);};
+GLKit.GL.prototype.enableDefaultNormalAttribArray     = function(){this.gl.enableVertexAttribArray(this._aVertexNormal);};
+GLKit.GL.prototype.enableDefaultColorAttribArray      = function(){this.gl.enableVertexAttribArray(this._aVertexColor);};
+GLKit.GL.prototype.enableDefaultTexCoordsAttribArray  = function(){this.gl.enableVertexAttribArray(this._aVertexUV);};
+GLKit.GL.prototype.disableDefaultVertexAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexPosition);};
+GLKit.GL.prototype.disableDefaultNormalAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexNormal);};
+GLKit.GL.prototype.disableDefaultColorAttribArray     = function(){this.gl.disableVertexAttribArray(this._aVertexColor);};
+GLKit.GL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVertexAttribArray(this._aVertexUV);};
+
+/*---------------------------------------------------------------------------------------------------------*/
+// convenience bindings gl
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.enable                = function(id){this.gl.enable(id);};
+GLKit.GL.prototype.disable               = function(id){this.gl.disable(id);};
+
+GLKit.GL.prototype.blendColor            = function(r,g,b,a){this.gl.blendColor(r,g,b,a);};
+GLKit.GL.prototype.blendEquation         = function(mode){this.gl.blendEquation(mode);};
+GLKit.GL.prototype.blendEquationSeparate = function(sfactor,dfactor){this.gl.blendEquationSeparate(sfactor,dfactor);};
+GLKit.GL.prototype.blendFunc             = function(sfactor,dfactor){this.gl.blendFunc(sfactor,dfactor);};
+GLKit.GL.prototype.blendFuncSeparate     = function(srcRGB,dstRGB,srcAlpha,dstAlpha){this.gl.blendFuncSeparate(srcRGB,dstRGB,srcAlpha,dstAlpha);};
+GLKit.GL.prototype.depthFunc             = function(func){this.gl.depthFunc(func);};
+GLKit.GL.prototype.sampleCoverage        = function(value,invert){this.gl.sampleCoverage(value,invert);};
+GLKit.GL.prototype.stencilFunc           = function(func,ref,mask){this.gl.stencilFunc(func,ref,mask);};
+GLKit.GL.prototype.stencilFuncSeparate   = function(face,func,ref,mask){this.gl.stencilFuncSeparate(face,func,ref,mask);};
+GLKit.GL.prototype.stencilOp             = function(fail,zfail,zpass){this.gl.stencilOp(fail,zfail,zpass);};
+GLKit.GL.prototype.stencilOpSeparate     = function(face,fail,zfail,zpass){this.gl.stencilOpSeparate(face,fail,zfail,zpass);};
+
+/*---------------------------------------------------------------------------------------------------------*/
+// World -> Screen
 /*---------------------------------------------------------------------------------------------------------*/
 
 //TODO: Fix me

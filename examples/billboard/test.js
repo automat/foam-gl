@@ -19,18 +19,6 @@
 
         this._zoom = 3;
 
-        var light0 = this._light0 = new GLKit.Light(this.gl.LIGHT_0);
-            light0.setAmbient3f(0,0,0);
-            light0.setDiffuse3f(0.8,0.8,0.8);
-            light0.setSpecular3f(1,1,1);
-            light0.setPosition3f(1,1,1);
-
-        var material = this._material0 = new GLKit.Material();
-            material.setDiffuse3f(0.7,0.7,0.7);
-            material.setAmbient3f(0.7,0.7,0.7);
-            material.setSpecular3f(1,1,1);
-            material.shininess = 200.0;
-
         this._texture0 = this.gl.loadTextureWithImage(texImage0);
         this._texture1 = this.gl.loadTextureWithImage(texImage1);
         this._texture2 = this.gl.loadTextureWithImage(texImage2);
@@ -49,7 +37,6 @@
             time      = this.getSecondsElapsed(),
             timeDelta = this.getTimeDelta();
 
-        var light0 = this._light0;
 
         var zoom = this._zoom = GLKit.Math.lerp(this._zoom, 3 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
 
@@ -90,46 +77,40 @@
         this.drawSystem();
 
         /*---------------------------------------------------------------------------------------------------------*/
-        gl.useMaterial(true);
+
         gl.useTexture(true);
-        //gl.useLighting(true);
 
-
-
-
-        var l = 99,
+        var l = 133,
             ni,
             s = Math.PI * 2 / l,
             i = -1,
             sxz;
 
         gl.drawMode(gl.TRIANGLE_FAN);
-       // gl.light(light0);
-        gl.material(this._material0);
 
-        var x, y,z;
-
-
+        var x, y, z,temp;
 
         //not really smart, but ok for testing / sketching
-        //TODO:cleanup
 
-        var _gl = gl.gl;
-        _gl.enable(_gl.BLEND);
-        _gl.blendFunc(_gl.SRC_COLOR, _gl.ONE);
-        _gl.disable(_gl.DEPTH_TEST);
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_COLOR, gl.ONE);
+        gl.disable(gl.DEPTH_TEST);
+
         gl.pushMatrix();
         gl.rotate3f(Math.sin(time)*Math.PI,Math.sin(time*0.25)*Math.PI,Math.sin(time*0.025)*Math.PI);
         gl.useBillboard(true);
+
         while(++i < l)
         {
             ni = i / (l-1);
 
-            sxz = 1 + Math.abs(Math.sin(time + ni * Math.PI * (3+Math.abs(Math.sin(time*0.025)*9))))*1.1;
+            sxz = 1 + Math.abs(Math.sin(time + ni * Math.PI * (3+Math.abs(Math.sin(time*0.025)*3))))*1.1;
 
-            x = Math.cos(time + s * i) * sxz;
+            temp = time + s * i;
+            x = Math.cos(temp) * sxz;
             y = Math.sin(time + ni * Math.PI * 8)*0.5;
-            z = Math.sin(time + s * i) * sxz;
+            z = Math.sin(temp) * sxz;
 
 
             gl.texture(i % 3 ? this._texture0 : i % 9 ? this._texture1 : this._texture2);
@@ -138,17 +119,14 @@
             gl.rect(0.0125+Math.abs(Math.sin(time*5 + ni * Math.PI*4))*1.25);
             gl.popMatrix()
         }
+
         gl.popMatrix();
-        _gl.disable(gl.BLEND);
+
+        gl.disable(gl.BLEND);
+        gl.enable(gl.BLEND);
 
         gl.useBillboard(false);
         gl.useTexture(false);
-        gl.useMaterial(false);
-        gl.useLighting(false);
-
-
-        //STUFF goes here
-
 
 
         /*---------------------------------------------------------------------------------------------------------*/
@@ -177,7 +155,7 @@
 
         gl.pushMatrix();
         {
-            gl.translate(this._light0.position);
+            gl.translate3f(0,0,0);
             GLKit.GLUtil.octahedron(gl,0.075);
         }
         gl.popMatrix();
@@ -197,7 +175,7 @@
 
         texImage2 = new Image();
         texImage2.addEventListener('load',onImageLoad);
-        texImage2.src = 'orion_full_black.png';
+        texImage2.src = 'orion_stars_black.png';
     });
 
     function onImageLoad()
