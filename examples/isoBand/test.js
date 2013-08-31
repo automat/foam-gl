@@ -23,7 +23,8 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var isoBand = this._isoBand = new GLKit.ISOBand(30,30,4,4);
+        var isoBand = this._isoBand = new GLKit.ISOBand(10,10,4,4);
+            isoBand.setFunction(function(x,y,time){return Math.sin(Math.abs(x) + time)*Math.sin(Math.abs(y) + time) - 0.25;})
 
     }
 
@@ -63,11 +64,7 @@
         }
         else
         {
-            camRotX = time * 0.25;
-
-            cam.setPosition3f(Math.cos(camRotX) * zoom,
-                              zoom,
-                              Math.sin(camRotX) * zoom);
+            cam.setPosition3f(0,zoom,zoom);
 
         }
 
