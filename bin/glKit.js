@@ -561,7 +561,7 @@ GLKit.Vec3 =
 GLKit.Vec4 =
 {
     SIZE : 4,
-    ZERO : new Float32Array([0,0,0,1.0]),
+    ZERO : function(){return new Float32Array([0,0,0,1.0])},
 
     make : function(x,y,z,w)
     {
@@ -1180,6 +1180,23 @@ GLKit.Mat44 =
         return v;
     },
 
+    multVec4 : function(m,v)
+    {
+        var x = v[0],
+            y = v[1],
+            z = v[2],
+            w = v[3];
+
+        v[0] = m[ 0] * x + m[ 4] * y + m[ 8] * z + m[12] * w;
+        v[1] = m[ 1] * x + m[ 5] * y + m[ 9] * z + m[13] * w;
+        v[2] = m[ 2] * x + m[ 6] * y + m[10] * z + m[14] * w;
+        v[3] = m[ 3] * x + m[ 7] * y + m[11] * z + m[15] * w;
+
+        return v;
+
+
+    },
+
     isFloatEqual : function(m0,m1)
     {
         var i = -1;
@@ -1295,9 +1312,7 @@ GLKit.ProgLoader =
 
         if(!gl.getProgramParameter(program,gl.LINK_STATUS))
         {
-            console.log("Could not link program.");
-            gl.deleteProgram(program);
-            program = null;
+            throw gl.getProgramInfoLog(program);
         }
 
         return program;
@@ -1314,15 +1329,14 @@ GLKit.ShaderLoader =
 
         if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))
         {
-            console.log("Could not compile shader of type: " + (type == gl.VERTEX_SHADER ? 'VERTEX_SHADER' : 'FRAGMENT_SHADER') +'.');
-            gl.deleteShader(shader);
-            shader = null;
+            throw gl.getShaderInfoLog(shader);
         }
 
         return shader;
     }
 };
-GLKit.ProgFragShader="precision mediump float;" + 
+GLKit.ProgFragShader=
+"precision mediump float;" + 
 
 "varying vec4 vColor;" + 
 
@@ -1344,7 +1358,7 @@ GLKit.ProgFragShader="precision mediump float;" +
 
 "struct Light" + 
 "{" + 
-"    vec3  position;" + 
+"    vec4  position;" + 
 "    vec3  ambient;" + 
 "    vec3  diffuse;" + 
 "    vec3  specular;" + 
@@ -1380,7 +1394,7 @@ GLKit.ProgFragShader="precision mediump float;" +
 
 "vec4 phongModel(vec4 position, vec3 normal, ColorComponent color, Light light)" + 
 "{" + 
-"   vec3  diff    = light.position - position.xyz;" + 
+"   vec3  diff    = light.position.xyz - position.xyz;" + 
 
 "   vec3 s        = normalize(diff);" + 
 "   vec3 v        = normalize(-position.xyz);" + 
@@ -1419,10 +1433,6 @@ GLKit.ProgFragShader="precision mediump float;" +
 "    vec4 vertexColor  = vVertexColor * useMaterialInv;" + 
 "    vec4 textureColor = texture2D(uTexImage,vVertexUV);" + 
 "    vec4 resultColor  = vertexColor * useTextureInv + textureColor * uUseTexture;" + 
-
-
-
-
 
 
 "    ColorComponent color  = ColorComponent(uMaterial.ambient   * uUseMaterial + resultColor," + 
@@ -1651,7 +1661,7 @@ GLKit.Light = function(id)
     this.diffuse  = new Float32Array([1,1,1]);
     this.specular = new Float32Array([1,1,1]);
 
-    this.position             = GLKit.Vec3.ZERO();
+    this.position             = GLKit.Vec4.ZERO();
     this.direction            = null;
     this.spotExponent         = null;
     this.spotCutOff           = null;
@@ -1671,38 +1681,43 @@ GLKit.Light.prototype.setDiffuse3f   = function(r,g,b)  {this.diffuse[0] = r;thi
 GLKit.Light.prototype.setSpecular    = function(color)  {this.specular[0] = color[0];this.specular[1] = color[1];this.specular[2] = color[2];};
 GLKit.Light.prototype.setSpecular3f  = function(r,g,b)  {this.specular[0] = r;this.specular[1] = g;this.specular[2] = b;};
 
-GLKit.Light.prototype.setPosition    = function(v)    {GLKit.Vec3.set(this.position,v);};
+GLKit.Light.prototype.setPosition    = function(v)    {GLKit.Vec4.set3f(this.position,v[0],v[1],v[2]);};
 GLKit.Light.prototype.setPosition3f  = function(x,y,z){GLKit.Vec3.set3f(this.position,x,y,z);};
 
-GLKit.Light.prototype.setDirection   = function(v)    {GLKit.Vec3.set(this.direction,v);};
-GLKit.Light.prototype.setDirection3f = function(x,y,z){GLKit.Vec3.set3f(this.direction,x,y,z);};
+GLKit.Light.prototype.getId = function(){return this._id;};
 
-GLKit.Light.prototype.lookAt         = function(position,target)
+GLKit.PointLight = function(id)
+{
+    GLKit.Light.apply(this,arguments);
+};
+
+GLKit.PointLight.prototype = Object.create(GLKit.PointLight.prototype);
+
+GLKit.DirectionalLight = function(id)
+{
+    GLKit.Light.apply(this,arguments);
+};
+
+GLKit.DirectionalLight.prototype = Object.create(GLKit.DirectionalLight.prototype);
+
+GLKit.DirectionalLight.prototype.setDirection   = function(v)    {GLKit.Vec3.set(this.direction,v);};
+GLKit.DirectionalLight.prototype.setDirection3f = function(x,y,z){GLKit.Vec3.set3f(this.direction,x,y,z);};
+
+GLKit.DirectionalLight.prototype.lookAt         = function(position,target)
 {
     this.setPosition(position);
     this.setDirection(GLKit.Vec3.normalize(GLKit.subbed(target,position)));
 };
-
-GLKit.Light.prototype.getId = function(){return this._id;};
-
-//TODO: Add
-/*---------------------------------------------------------------------------------------------------------*/
-
-GLKit.PointLight =  function(id)
+GLKit.SpotLight = function(id)
 {
-    GLKit.Light.call(this,arguments);
+    GLKit.DirectionalLight.apply(this,arguments);
 };
 
-GLKit.PointLight.prototype = Object.create(GLKit.Light.prototype);
+GLKit.SpotLight.prototype = Object.create(GLKit.DirectionalLight.prototype);
 
-/*---------------------------------------------------------------------------------------------------------*/
+GLKit.SpotLight.prototype.setExponent = function(){};
+GLKit.SpotLight.prototype.setCutOff   = function(){};
 
-GLKit.DirectionalLight =  function(id)
-{
-    GLKit.Light.call(this,arguments);
-};
-
-GLKit.DirectionalLight.prototype = Object.create(GLKit.Light.prototype);
 GLKit.Texture = function()
 {
     this._tex = null;
@@ -1721,35 +1736,101 @@ GLKit.Texture.prototype.setTexSource = function(glTex)
 
 GLKit.Texture.prototype.getWidth  = function(){return this._width;};
 GLKit.Texture.prototype.getHeight = function(){return this._height;};
-GLKit.GL = function(gl)
+GLKit.GL = function(context3d,context2d)
 {
     /*---------------------------------------------------------------------------------------------------------*/
+    // Init
+    /*---------------------------------------------------------------------------------------------------------*/
 
-    var _gl = this.gl = gl;
+    var gl = this.gl = context3d;
 
-    this._progVertexShader = GLKit.ShaderLoader.loadShaderFromString(_gl,GLKit.ProgVertexShader,_gl.VERTEX_SHADER);
-    this._progFragShader   = GLKit.ShaderLoader.loadShaderFromString(_gl,GLKit.ProgFragShader,  _gl.FRAGMENT_SHADER);
+    /*---------------------------------------------------------------------------------------------------------*/
+    // create shaders/program + bind
+    /*---------------------------------------------------------------------------------------------------------*/
 
-    var program = this._sceneProgram = GLKit.ProgLoader.loadProgram(_gl,this._progVertexShader,this._progFragShader);
+    var sceneProgram = this._sceneProgram = gl.createProgram();
 
-    _gl.useProgram(program);
+
+    var vertexShader = gl.createShader(gl.VERTEX_SHADER),
+        fragShader  = gl.createShader(gl.FRAGMENT_SHADER);
+
+    gl.shaderSource(vertexShader,GLKit.ProgVertexShader);
+    gl.compileShader(vertexShader);
+
+    if(!gl.getShaderParameter(vertexShader,gl.COMPILE_STATUS))
+      throw gl.getShaderInfoLog(vertexShader);
+
+    gl.shaderSource(fragShader,GLKit.ProgFragShader);
+    gl.compileShader(fragShader);
+
+    if(!gl.getShaderParameter(fragShader,gl.COMPILE_STATUS))
+      throw gl.getShaderInfoLog(fragShader);
+
+    gl.bindAttribLocation(sceneProgram,0,'aVertexPosition');
+
+
+    gl.attachShader(sceneProgram,vertexShader);
+    gl.attachShader(sceneProgram,fragShader);
+    gl.linkProgram(sceneProgram);
+
+
+
+    if(!gl.getProgramParameter(sceneProgram,gl.LINK_STATUS))
+       throw gl.getProgramInfoLog(sceneProgram);
+
+    gl.useProgram(sceneProgram);
+
+    /*
+    var screenProgram = this._screenProgram = gl.createProgram();
+
+    vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    fragShader   = gl.createShader(gl.FRAGMENT_SHADER);
+
+    gl.shaderSource(vertexShader,GLKit.ProgVertexImgShader);
+    gl.compileShader(vertexShader);
+
+    if(!gl.getShaderParameter(vertexShader,gl.COMPILE_STATUS))
+      throw gl.getShaderInfoLog(vertexShader);
+
+    gl.shaderSource(fragShader,GLKit.ProgVertexImgShader);
+    gl.compileShader(fragShader);
+
+    gl.attachShader(screenProgram,vertexShader);
+    gl.attachShader(screenProgram,fragShader);
+    gl.linkProgram(screenProgram);
+
+    if(!gl.getProgramParameter(screenProgram,gl.LINK_STATUS));
+        throw gl.getProgramInfoLog(screenProgram);
+    */
+
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Bind & enable shader attributes & uniforms
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this._aVertexPosition   = gl.getAttribLocation(program,'aVertexPosition');
-    this._aVertexNormal     = gl.getAttribLocation(program,'aVertexNormal');
-    this._aVertexColor      = gl.getAttribLocation(program,'aVertexColor');
-    this._aVertexUV         = gl.getAttribLocation(program,'aVertexUV');
-    this._aTexCoord         = gl.getAttribLocation(program,'aTexCoord');
+    this._aVertexPosition    = gl.getAttribLocation(sceneProgram,'aVertexPosition');
+    this._aVertexNormal      = gl.getAttribLocation(sceneProgram,'aVertexNormal');
+    this._aVertexColor       = gl.getAttribLocation(sceneProgram,'aVertexColor');
+    this._aVertexUV          = gl.getAttribLocation(sceneProgram,'aVertexUV');
+    this._aTexCoord          = gl.getAttribLocation(sceneProgram,'aTexCoord');
 
-    this._uModelViewMatrix   = gl.getUniformLocation(program,'uModelViewMatrix');
-    this._uProjectionMatrix  = gl.getUniformLocation(program,'uProjectionMatrix');
-    this._uNormalMatrix      = gl.getUniformLocation(program,'uNormalMatrix');
-    this._uTexImage          = gl.getUniformLocation(program,'uTexImage');
+    this._uModelViewMatrix   = gl.getUniformLocation(sceneProgram,'uModelViewMatrix');
+    this._uProjectionMatrix  = gl.getUniformLocation(sceneProgram,'uProjectionMatrix');
+    this._uNormalMatrix      = gl.getUniformLocation(sceneProgram,'uNormalMatrix');
+    this._uTexImage          = gl.getUniformLocation(sceneProgram,'uTexImage');
 
-    this._uPointSize         = gl.getUniformLocation(program,'uPointSize');
+    this._uPointSize         = gl.getUniformLocation(sceneProgram,'uPointSize');
+
+    this._uUseLighting       = gl.getUniformLocation(sceneProgram,'uUseLighting');
+    this._uUseMaterial       = gl.getUniformLocation(sceneProgram,'uUseMaterial');
+    this._uUseTexture        = gl.getUniformLocation(sceneProgram,'uUseTexture');
+
+    this._uAmbient           = gl.getUniformLocation(sceneProgram,'uAmbient');
+
+
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Setup Lights
+    /*---------------------------------------------------------------------------------------------------------*/
 
 
     this.LIGHT_0    = 0;
@@ -1768,11 +1849,6 @@ GLKit.GL = function(gl)
     this.MODEL_BLINN       = 3;
     this.MODEL_FLAT        = 4;
 
-    this._uUseLighting = gl.getUniformLocation(program,'uUseLighting');
-    this._uUseMaterial = gl.getUniformLocation(program,'uUseMaterial');
-    this._uUseTexture  = gl.getUniformLocation(program,'uUseTexture');
-
-    this._uAmbient     = gl.getUniformLocation(program,'uAmbient');
 
     var l = this.MAX_LIGHTS;
 
@@ -1794,74 +1870,81 @@ GLKit.GL = function(gl)
         light = 'uLights['+i+'].';
 
 
-        uLightPosition[i]             = gl.getUniformLocation(program,light + 'position');
-        uLightAmbient[i]              = gl.getUniformLocation(program,light + 'ambient');
-        uLightDiffuse[i]              = gl.getUniformLocation(program,light + 'diffuse');
-        uLightSpecular[i]             = gl.getUniformLocation(program,light + 'specular');
+        uLightPosition[i]             = gl.getUniformLocation(sceneProgram,light + 'position');
+        uLightAmbient[i]              = gl.getUniformLocation(sceneProgram,light + 'ambient');
+        uLightDiffuse[i]              = gl.getUniformLocation(sceneProgram,light + 'diffuse');
+        uLightSpecular[i]             = gl.getUniformLocation(sceneProgram,light + 'specular');
 
-        uLightAttenuationConstant[i]  = gl.getUniformLocation(program,light + 'constantAttenuation');
-        uLightAttenuationLinear[i]    = gl.getUniformLocation(program,light + 'linearAttenuation');
-        uLightAttenuationQuadratic[i] = gl.getUniformLocation(program,light + 'quadraticAttenuation');
+        uLightAttenuationConstant[i]  = gl.getUniformLocation(sceneProgram,light + 'constantAttenuation');
+        uLightAttenuationLinear[i]    = gl.getUniformLocation(sceneProgram,light + 'linearAttenuation');
+        uLightAttenuationQuadratic[i] = gl.getUniformLocation(sceneProgram,light + 'quadraticAttenuation');
 
-        _gl.uniform3fv(uLightPosition[i], new Float32Array([0,0,0]));
-        _gl.uniform3fv(uLightAmbient[i],  new Float32Array([0,0,0]));
-        _gl.uniform3fv(uLightDiffuse[i],  new Float32Array([0,0,0]));
+        gl.uniform4fv(uLightPosition[i], new Float32Array([0,0,0,0]));
+        gl.uniform3fv(uLightAmbient[i],  new Float32Array([0,0,0]));
+        gl.uniform3fv(uLightDiffuse[i],  new Float32Array([0,0,0]));
 
-        _gl.uniform1f(uLightAttenuationConstant[i], 1.0);
-        _gl.uniform1f(uLightAttenuationLinear[i],   0.0);
-        _gl.uniform1f(uLightAttenuationQuadratic[i],0.0);
+        gl.uniform1f(uLightAttenuationConstant[i], 1.0);
+        gl.uniform1f(uLightAttenuationLinear[i],   0.0);
+        gl.uniform1f(uLightAttenuationQuadratic[i],0.0);
    }
 
-    this._uMaterialEmission  = _gl.getUniformLocation(program,'uMaterial.emission');
-    this._uMaterialAmbient   = _gl.getUniformLocation(program,'uMaterial.ambient');
-    this._uMaterialDiffuse   = _gl.getUniformLocation(program,'uMaterial.diffuse');
-    this._uMaterialSpecular  = _gl.getUniformLocation(program,'uMaterial.specular');
-    this._uMaterialShininess = _gl.getUniformLocation(program,'uMaterial.shininess');
+    this._uMaterialEmission  = gl.getUniformLocation(sceneProgram,'uMaterial.emission');
+    this._uMaterialAmbient   = gl.getUniformLocation(sceneProgram,'uMaterial.ambient');
+    this._uMaterialDiffuse   = gl.getUniformLocation(sceneProgram,'uMaterial.diffuse');
+    this._uMaterialSpecular  = gl.getUniformLocation(sceneProgram,'uMaterial.specular');
+    this._uMaterialShininess = gl.getUniformLocation(sceneProgram,'uMaterial.shininess');
 
-    _gl.uniform4f(this._uMaterialEmission, 0.0,0.0,0.0,1.0);
-    _gl.uniform4f(this._uMaterialAmbient,  1.0,0.5,0.5,1.0);
-    _gl.uniform4f(this._uMaterialDiffuse,  0.0,0.0,0.0,1.0);
-    _gl.uniform4f(this._uMaterialSpecular, 0.0,0.0,0.0,1.0);
-    _gl.uniform1f(this._uMaterialShininess,10.0);
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Setup Basic Material
+    /*---------------------------------------------------------------------------------------------------------*/
 
-    _gl.uniform1f(this._uUseMaterial, 0.0);
-    _gl.uniform1f(this._uUseLighting, 0.0);
 
+    gl.uniform4f(this._uMaterialEmission, 0.0,0.0,0.0,1.0);
+    gl.uniform4f(this._uMaterialAmbient,  1.0,0.5,0.5,1.0);
+    gl.uniform4f(this._uMaterialDiffuse,  0.0,0.0,0.0,1.0);
+    gl.uniform4f(this._uMaterialSpecular, 0.0,0.0,0.0,1.0);
+    gl.uniform1f(this._uMaterialShininess,10.0);
+
+    gl.uniform1f(this._uUseMaterial, 0.0);
+    gl.uniform1f(this._uUseLighting, 0.0);
+
+    this._tempLightPos = GLKit.Vec4.make();
     this._lightingMode = 0;
 
-    _gl.uniform1f(this._uPointSize, 1.0);
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Setup Shader Misc
+    /*---------------------------------------------------------------------------------------------------------*/
+
+    gl.uniform1f(this._uPointSize, 1.0);
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Pre Bind ARRAY_BUFFER & ELEMENT_ARRAY_BUFFER
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this.REPEAT        = _gl.REPEAT;
-    this.CLAMP         = _gl.CLAMP;
-    this.CLAMP_TO_EDGE = _gl.CLAMP_TO_EDGE;
+    this.REPEAT        = gl.REPEAT;
+    this.CLAMP         = gl.CLAMP;
+    this.CLAMP_TO_EDGE = gl.CLAMP_TO_EDGE;
 
     this._texMode  = this.REPEAT;
     this._texSet   = false;
 
-    this._texEmpty = _gl.createTexture();
-    _gl.bindTexture(_gl.TEXTURE_2D,this._texEmpty);
-    _gl.texImage2D( _gl.TEXTURE_2D, 0, _gl.RGBA, 1, 1, 0, _gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([1,1,1,1]));
-    _gl.uniform1f(this._uUseTexture,0.0);
+    this._texEmpty = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D,this._texEmpty);
+    gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([1,1,1,1]));
+    gl.uniform1f(this._uUseTexture,0.0);
 
     this._tex      = null;
 
+    this._defaultVBO = gl.createBuffer();
+    this._defaultIBO = gl.createBuffer();
 
-    this._defaultVBO = _gl.createBuffer();
-    this._defaultIBO = _gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,         this._defaultVBO);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._defaultIBO);
 
-    _gl.bindBuffer(_gl.ARRAY_BUFFER,         this._defaultVBO);
-    _gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this._defaultIBO);
-
-
-
-    _gl.enableVertexAttribArray(this._aVertexPosition);
-    _gl.enableVertexAttribArray(this._aVertexNormal);
-    _gl.enableVertexAttribArray(this._aVertexColor);
-    _gl.enableVertexAttribArray(this._aVertexUV);
+    gl.enableVertexAttribArray(this._aVertexPosition);
+    gl.enableVertexAttribArray(this._aVertexNormal);
+    gl.enableVertexAttribArray(this._aVertexColor);
+    gl.enableVertexAttribArray(this._aVertexUV);
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Bind constants
@@ -1887,31 +1970,6 @@ GLKit.GL = function(gl)
 
     var ELLIPSE_DETAIL_MAX = this.ELLIPSE_DETAIL_MAX = 30;
 
-    /*---------------------------------------------------------------------------------------------------------*/
-    // Bind methods
-    /*---------------------------------------------------------------------------------------------------------*/
-
-    this.sampleCoverage        = _gl.sampleCoverage.bind(_gl);
-
-    this.blendFunc             = _gl.blendFunc.bind(_gl);
-    this.blendFuncSeparate     = _gl.blendFuncSeparate.bind(_gl);
-    this.blendEquation         = _gl.blendEquation.bind(_gl);
-    this.blendEquationSeparate = _gl.blendEquationSeparate.bind(_gl);
-    this.blendColor            = _gl.blendColor.bind(_gl);
-
-    this.viewport              = _gl.viewport.bind(_gl);
-    this.enable                = _gl.enable.bind(_gl);
-    this.disable               = _gl.disable.bind(_gl);
-    this.lineWidth             = _gl.lineWidth.bind(_gl);
-    this.flush                 = _gl.flush.bind(_gl);
-    this.finish                = _gl.finish.bind(_gl);
-    this.scissor               = _gl.scissor.bind(_gl);
-
-    this.uniform1f  = gl.uniform1f.bind(gl);
-    this.uniform1fv = gl.uniform1fv.bind(gl);
-    this.uniform1i  = gl.uniform1i.bind(gl);
-    this.uniform1iv = gl.uniform1iv.bind(gl);
-
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init Buffers
@@ -1920,8 +1978,8 @@ GLKit.GL = function(gl)
 
     this._bEmpty3f = new Float32Array([0,0,0]);
 
-    this._bColor4f   = GLKit.Color.copy(GLKit.Color.WHITE);
-    this._bColorBg4f = GLKit.Color.copy(GLKit.Color.BLACK);
+    this._bColor4f   = GLKit.Color.WHITE();
+    this._bColorBg4f = GLKit.Color.BLACK();
 
     this._bVertex   = null;
     this._bNormal   = null;
@@ -2011,9 +2069,22 @@ GLKit.GL = function(gl)
     // Init Matrices
     /*---------------------------------------------------------------------------------------------------------*/
 
+    this._bLighting     = false;
+    this._bBillboarding = false;
+    this._bBillBoadingLast = false;
+    this._bBVecRight    = GLKit.Vec3.make();
+    this._bBVecUp       = GLKit.Vec3.make();
+    this._bBVertices    = new Float32Array(4 * 3);
 
-    this._bLighting = false;
+    this._bBVec0        = GLKit.Vec3.make();
+    this._bBVec1        = GLKit.Vec3.make();
+    this._bBVec2        = GLKit.Vec3.make();
+    this._bBVec3        = GLKit.Vec3.make();
 
+    this._bBRectWidthLast  = 0;
+    this._bBRectHeightLast = 0;
+    this._rectWidthLast    = 0;
+    this._rectHeightLast   = 0;
 
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -2028,48 +2099,39 @@ GLKit.GL = function(gl)
 
     this._drawMode = this.LINES;
 
+
+
+    /*---------------------------------------------------------------------------------------------------------*/
+    // Setup context 2d
+    /*---------------------------------------------------------------------------------------------------------*/
+
+
+
     /*---------------------------------------------------------------------------------------------------------*/
     // Init presets
     /*---------------------------------------------------------------------------------------------------------*/
 
-    _gl.enable(_gl.BLEND);
-    _gl.enable(_gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.enable(gl.DEPTH_TEST);
 
     this.ambient(GLKit.Color.BLACK());
+
+
 
 
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
-
-GLKit.GL.prototype.getGL     = function(){return this.gl;};
-
+// Camera
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.setCamera = function(camera){this._camera = camera;};
 
 /*---------------------------------------------------------------------------------------------------------*/
-
-GLKit.GL.prototype.getDefaultVBO  = function(){return this._defaultVBO;};
-GLKit.GL.prototype.getDefaultIBO  = function(){return this._defaultIBO;};
-GLKit.GL.prototype.bindDefaultVBO = function(){this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this._defaultVBO);};
-GLKit.GL.prototype.bindDefaultIBO = function(){this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER,this._defaultIBO);};
-
-GLKit.GL.prototype.getDefaultVertexAttrib   = function(){return this._aVertexPosition;};
-GLKit.GL.prototype.getDefaultNormalAttrib   = function(){return this._aVertexNormal;};
-GLKit.GL.prototype.getDefaultColorAttrib    = function(){return this._aVertexColor;};
-GLKit.GL.prototype.getDefaultTexCoordAttrib = function(){return this._aVertexUV;};
-
-GLKit.GL.prototype.enableDefaultVertexAttribArray     = function(){this.gl.enableVertexAttribArray(this._aVertexPosition);};
-GLKit.GL.prototype.enableDefaultNormalAttribArray     = function(){this.gl.enableVertexAttribArray(this._aVertexNormal);};
-GLKit.GL.prototype.enableDefaultColorAttribArray      = function(){this.gl.enableVertexAttribArray(this._aVertexColor);};
-GLKit.GL.prototype.enableDefaultTexCoordsAttribArray  = function(){this.gl.enableVertexAttribArray(this._aVertexUV);};
-GLKit.GL.prototype.disableDefaultVertexAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexPosition);};
-GLKit.GL.prototype.disableDefaultNormalAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexNormal);};
-GLKit.GL.prototype.disableDefaultColorAttribArray     = function(){this.gl.disableVertexAttribArray(this._aVertexColor);};
-GLKit.GL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVertexAttribArray(this._aVertexUV);};
-
+// Material
 /*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.useMaterial = function(bool){this.gl.uniform1f(this._uUseMaterial,bool ? 1.0 : 0.0);};
 
 GLKit.GL.prototype.material = function(material)
 {
@@ -2082,14 +2144,29 @@ GLKit.GL.prototype.material = function(material)
     gl.uniform1f( this._uMaterialShininess, material.shininess);
 };
 
+/*---------------------------------------------------------------------------------------------------------*/
+// Light
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.lightingMode = function(mode){this._lightingMode = mode;};
+GLKit.GL.prototype.useLighting  = function(bool){this.gl.uniform1f(this._uUseLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
+GLKit.GL.prototype.getLighting  = function()    {return this._bLighting;};
+
+
 GLKit.GL.prototype.light = function(light)
 {
     var id = light.getId(),
         gl = this.gl;
 
-    var lightPosEyeSpace = GLKit.Mat44.multVec3(this._camera.modelViewMatrix,GLKit.Vec3.copy(light.position));
+    var tempVec4 = this._tempLightPos;
+        tempVec4[0] = light.position[0];
+        tempVec4[1] = light.position[1];
+        tempVec4[2] = light.position[2];
+        tempVec4[3] = light.position[3];
 
-    gl.uniform3fv(this._uLightPosition[id], lightPosEyeSpace);
+    var lightPosEyeSpace = GLKit.Mat44.multVec4(this._camera.modelViewMatrix,tempVec4);
+
+    gl.uniform4fv(this._uLightPosition[id], lightPosEyeSpace);
     gl.uniform3fv(this._uLightAmbient[id],  light.ambient);
     gl.uniform3fv(this._uLightDiffuse[id],  light.diffuse);
     gl.uniform3fv(this._uLightSpecular[id], light.specular);
@@ -2115,6 +2192,12 @@ GLKit.GL.prototype.disableLight = function(light)
     gl.uniform1f(this._uLightAttenuationLinear[id],   0.0);
     gl.uniform1f(this._uLightAttenuationQuadratic[id],0.0);
 };
+
+/*---------------------------------------------------------------------------------------------------------*/
+// Texture
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.useTexture  = function(bool){this.gl.uniform1f(this._uUseTexture, bool ? 1.0 : 0.0);};
 
 GLKit.GL.prototype.loadTextureWithImage = function(img)
 {
@@ -2187,13 +2270,8 @@ GLKit.GL.prototype.disableTextures = function()
     gl.uniform1f(this._uUseTexture,0.0);
 };
 
-GLKit.GL.prototype.lightingMode = function(mode){this._lightingMode = mode;};
-
-GLKit.GL.prototype.useTexture  = function(bool){this.gl.uniform1f(this._uUseTexture, bool ? 1.0 : 0.0);};
-GLKit.GL.prototype.useMaterial = function(bool){this.gl.uniform1f(this._uUseMaterial,bool ? 1.0 : 0.0);};
-GLKit.GL.prototype.useLighting = function(bool){this.gl.uniform1f(this._uUseLighting,bool ? 1.0 : 0.0);this._bLighting = bool;};
-GLKit.GL.prototype.getLighting = function(){return this._bLighting;};
-
+/*---------------------------------------------------------------------------------------------------------*/
+// Matrix stack
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.loadIdentity = function(){this._mModelView = GLKit.Mat44.identity(this._camera.modelViewMatrix);};
@@ -2208,7 +2286,7 @@ GLKit.GL.prototype.popMatrix    = function()
     return this._mModelView;
 };
 
-GLKit.GL.prototype._setMatricesUniform = function()
+GLKit.GL.prototype.setMatricesUniform = function()
 {
     var gl = this.gl;
     var camera = this._camera;
@@ -2225,6 +2303,8 @@ GLKit.GL.prototype._setMatricesUniform = function()
     gl.uniformMatrix3fv(this._uNormalMatrix,false,this._mNormal);
 };
 
+/*---------------------------------------------------------------------------------------------------------*/
+// Matrix stack transformations
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.translate     = function(v)          {this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeTranslate(v[0],v[1],v[2]));};
@@ -2247,36 +2327,41 @@ GLKit.GL.prototype.rotateAxis    = function(angle,v)    {this._mModelView = GLKi
 GLKit.GL.prototype.rotateAxis3f  = function(angle,x,y,z){this._mModelView = GLKit.Mat44.multPost(this._mModelView,GLKit.Mat44.makeRotationOnAxis(angle,x,y,z));};
 
 /*---------------------------------------------------------------------------------------------------------*/
+// convenience draw
+/*---------------------------------------------------------------------------------------------------------*/
 
 
 GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,indexUInt16Array,mode,count,offset)
 {
-    this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
-    this._setMatricesUniform();
-
     var gl = this.gl;
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexUInt16Array,gl.DYNAMIC_DRAW);
 
+    this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
+    this.setMatricesUniform();
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexUInt16Array,gl.DYNAMIC_DRAW);
     gl.drawElements(mode  || this.TRIANGLES,
                     count || indexUInt16Array.length,
                     gl.UNSIGNED_SHORT,
                     offset || 0);
 };
 
+
+
 GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,mode,first,count)
 {
 
     this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
-    this._setMatricesUniform();
-    this.gl.drawArrays(mode,first,count);
+    this.setMatricesUniform();
+    this.gl.drawArrays(mode  || this._drawMode,
+                       first || 0,
+                       count || vertexFloat32Array.length / this.SIZE_OF_VERTEX);
 };
 
 GLKit.GL.prototype.drawGeometry = function(geom) {geom._draw(this);};
 
 
-
 /*---------------------------------------------------------------------------------------------------------*/
-
+// convenience filling default vbo
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array)
 {
@@ -2360,8 +2445,8 @@ GLKit.GL.prototype.fillVertexBuffer = function(vertices,buffer)
     return buffer;
 };
 
-
-
+/*---------------------------------------------------------------------------------------------------------*/
+// Convenience Methods color
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.ambient   = function(color){this.gl.uniform3f(this._uAmbient,color[0],color[1],color[2]);};
@@ -2393,6 +2478,8 @@ GLKit.GL.prototype.getColorBuffer = function(){return this._bColor;};
 GLKit.GL.prototype.getClearBuffer = function(){return this._bColorBg4f;};
 
 /*---------------------------------------------------------------------------------------------------------*/
+// Methods draw properties
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.drawMode = function(mode){this._drawMode = mode;};
 GLKit.GL.prototype.getDrawMode = function(){return this._drawMode;};
@@ -2406,6 +2493,7 @@ GLKit.GL.prototype.sphereDetail = function(detail)
     }
 };
 
+GLKit.GL.prototype.useBillboard = function(bool){this._bBillboarding = bool;};
 GLKit.GL.prototype.pointSize = function(value){this.gl.uniform1f(this._uPointSize,value);};
 
 //Temp
@@ -2413,8 +2501,79 @@ GLKit.GL.prototype.lineSize   = function(width,height){this._lineBoxWidth  = wid
 GLKit.GL.prototype.lineRadius = function(radius){this._lineCylinderRadius = radius;};
 
 /*---------------------------------------------------------------------------------------------------------*/
+// Methods draw primitives
+/*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.GL.prototype.point   = function(vector){this.drawArrays(vector,null,this.fillColorBuffer(this._bColor,this._bColorPoint),null,this.POINTS,0,1);};
+GLKit.GL.prototype.point   = function(vector)
+{
+    var bColorPoint = this._bColorPoint,
+        bColor      = this._bColor;
+
+    bColorPoint[0] = bColor[0];
+    bColorPoint[1] = bColor[1];
+    bColorPoint[2] = bColor[2];
+    bColorPoint[3] = bColor[3];
+
+    var gl = this.gl,
+        glArrayBuffer = gl.ARRAY_BUFFER,
+        glFloat       = gl.FLOAT;
+
+    var vblen = vector.byteLength,
+        cblen = bColor.byteLength;
+
+    var offsetV = 0,
+        offsetC = vblen;
+
+    gl.bufferData(glArrayBuffer,vblen + cblen,gl.DYNAMIC_DRAW);
+
+    gl.bufferSubData(glArrayBuffer, offsetV, vector);
+    gl.bufferSubData(glArrayBuffer, offsetC, bColor);
+
+    gl.disableVertexAttribArray(this._aVertexNormal);
+    gl.disableVertexAttribArray(this._aVertexUV);
+
+    gl.vertexAttribPointer(this._aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
+    gl.vertexAttribPointer(this._aVertexColor,    this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
+
+    this.setMatricesUniform();
+    gl.drawArrays(this._drawMode,0,1);
+
+    gl.enableVertexAttribArray(this._aVertexNormal);
+    gl.enableVertexAttribArray(this._aVertexUV);
+};
+
+GLKit.GL.prototype.points = function(vertices,colors)
+{
+    colors = colors || this.fillColorBuffer(this._bColor4f,new Float32Array(vertices.length / 3 * 4));
+
+    var gl = this.gl,
+        glArrayBuffer = gl.ARRAY_BUFFER,
+        glFloat       = gl.FLOAT;
+
+    var vblen = vertices.byteLength,
+        cblen = colors.byteLength;
+
+    var offsetV = 0,
+        offsetC = vblen;
+
+    gl.bufferData(glArrayBuffer,vblen + cblen,gl.DYNAMIC_DRAW);
+
+    gl.bufferSubData(glArrayBuffer, offsetV, vertices);
+    gl.bufferSubData(glArrayBuffer, offsetC, colors);
+
+    gl.disableVertexAttribArray(this._aVertexNormal);
+    gl.disableVertexAttribArray(this._aVertexUV);
+
+    gl.vertexAttribPointer(this._aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
+    gl.vertexAttribPointer(this._aVertexColor,    this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
+
+    this.setMatricesUniform();
+    gl.drawArrays(this._drawMode,0,vertices.length/3);
+
+    gl.enableVertexAttribArray(this._aVertexNormal);
+    gl.enableVertexAttribArray(this._aVertexUV);
+};
+
 GLKit.GL.prototype.point3f = function(x,y,z) {this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;this._bVertexPoint[2] = z;this.point(this._bVertexPoint);};
 GLKit.GL.prototype.point2f = function(x,y){this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;his._bVertexPoint[2] = 0;this.point(this._bVertexPoint);};
 GLKit.GL.prototype.pointv  = function(arr){this._bVertexPoint[0] = arr[0];this._bVertexPoint[1] = arr[1];this._bVertexPoint[2] = arr[2];this.point(this._bVertexPoint);};
@@ -2441,7 +2600,7 @@ GLKit.GL.prototype.linef = function(x0,y0,z0,x1,y1,z1)
 GLKit.GL.prototype.line2v = function(v0,v1)
 {
     this.linef(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);
-}
+};
 
 GLKit.GL.prototype.quadf = function(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3)
 {
@@ -2462,15 +2621,62 @@ GLKit.GL.prototype.quadv = function(v0,v1,v2,v3)
 
 GLKit.GL.prototype.quad = function(vertices,normals,texCoords){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexQuad),normals,this.fillColorBuffer(this._bColor,this._bColorQuad),texCoords,this._drawMode,0,4);};
 
+
+//TODO:cleanup
 GLKit.GL.prototype.rect = function(width,height)
 {
-    var v = this._bVertexRect;
+    height = height || width;
 
-    v[0] = v[1] = v[2] = v[4] = v[5] = v[7] = v[9] = v[10] = 0;
-    v[3] = v[6] = width; v[8] = v[11] = height;
+    var vertices = this._bVertexRect;
 
-    this.drawArrays(v,this._bNormalRect,this.fillColorBuffer(this._bColor,this._bColorRect),this._bTexCoordQuadDefault,this._drawMode,0,4);
+    if(this._bBillboarding)
+    {
+        //23
+        //01
+
+        var modelViewMatrix = this._mModelView;
+
+        var vecRightX = modelViewMatrix[0],
+            vecRightY = modelViewMatrix[4],
+            vecRightZ = modelViewMatrix[8];
+
+        var vecUpX = modelViewMatrix[1],
+            vecUpY = modelViewMatrix[5],
+            vecUpZ = modelViewMatrix[9];
+
+
+        vertices[ 0] = (-vecRightX - vecUpX) * width;
+        vertices[ 1] = (-vecRightY - vecUpY) * width;
+        vertices[ 2] = (-vecRightZ - vecUpZ) * width;
+
+        vertices[ 3] = (vecRightX - vecUpX) * width;
+        vertices[ 4] = (vecRightY - vecUpY) * width;
+        vertices[ 5] = (vecRightZ - vecUpZ) * width;
+
+        vertices[ 6] = (vecRightX + vecUpX) * width;
+        vertices[ 7] = (vecRightY + vecUpY) * width;
+        vertices[ 8] = (vecRightZ + vecUpZ) * width;
+
+        vertices[ 9] = (-vecRightX + vecUpX) * width;
+        vertices[10] = (-vecRightY + vecUpY) * width;
+        vertices[11] = (-vecRightZ + vecUpZ) * width;
+
+    }
+    else if(width != this._rectWidthLast || height != this._rectHeightLast)
+    {
+        vertices[0] = vertices[1] = vertices[2] = vertices[4] = vertices[5] = vertices[7] = vertices[9] = vertices[10] = 0;
+        vertices[3] = vertices[6] = width; vertices[8] = vertices[11] = height;
+
+        this._rectWidthLast  = width;
+        this._rectHeightLast = height;
+    }
+
+    this.drawArrays(vertices,this._bNormalRect,this.fillColorBuffer(this._bColor,this._bColorRect),this._bTexCoordQuadDefault,this._drawMode,0,4);
 };
+
+
+
+
 
 GLKit.GL.prototype.triangle = function(v0,v1,v2)
 {
@@ -2494,6 +2700,12 @@ GLKit.GL.prototype.trianglef = function(v0,v1,v2,v3,v4,v5,v6,v7,v8)
 
 GLKit.GL.prototype.trianglev = function(vertices,normals,texCoords){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexTriangle),normals,this.fillColorBuffer(this._bColor,this._bColorTriangle),texCoords,this._drawMode,0,3);}
 
+/*---------------------------------------------------------------------------------------------------------*/
+// convenience draw
+/*---------------------------------------------------------------------------------------------------------*/
+
+
+
 GLKit.GL.prototype.box = function(width,height,depth)
 {
     this.pushMatrix();
@@ -2514,8 +2726,6 @@ GLKit.GL.prototype.sphere = function()
 {
     this.drawElements(this._bVertexSphere,this._bNormalSphere,this.fillColorBuffer(this._bColor,this._bColorSphere),this._bTexCoordsSphere,this._bIndexSphere,this._drawMode);
 };
-
-
 
 
 
@@ -2558,6 +2768,11 @@ GLKit.GL.prototype.lineCylinder = function(v0,v1)
 
 
 
+
+
+
+/*---------------------------------------------------------------------------------------------------------*/
+// Geometry gen
 /*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype._genSphere = function(segments)
@@ -2643,6 +2858,50 @@ GLKit.GL.prototype._genSphere = function(segments)
     this._bIndexSphere     = new Uint16Array(indices);
 };
 
+/*---------------------------------------------------------------------------------------------------------*/
+// default vbo/ibo / shader attributes
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.getDefaultVBO  = function(){return this._defaultVBO;};
+GLKit.GL.prototype.getDefaultIBO  = function(){return this._defaultIBO;};
+GLKit.GL.prototype.bindDefaultVBO = function(){this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this._defaultVBO);};
+GLKit.GL.prototype.bindDefaultIBO = function(){this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER,this._defaultIBO);};
+
+GLKit.GL.prototype.getDefaultVertexAttrib   = function(){return this._aVertexPosition;};
+GLKit.GL.prototype.getDefaultNormalAttrib   = function(){return this._aVertexNormal;};
+GLKit.GL.prototype.getDefaultColorAttrib    = function(){return this._aVertexColor;};
+GLKit.GL.prototype.getDefaultTexCoordAttrib = function(){return this._aVertexUV;};
+
+GLKit.GL.prototype.enableDefaultVertexAttribArray     = function(){this.gl.enableVertexAttribArray(this._aVertexPosition);};
+GLKit.GL.prototype.enableDefaultNormalAttribArray     = function(){this.gl.enableVertexAttribArray(this._aVertexNormal);};
+GLKit.GL.prototype.enableDefaultColorAttribArray      = function(){this.gl.enableVertexAttribArray(this._aVertexColor);};
+GLKit.GL.prototype.enableDefaultTexCoordsAttribArray  = function(){this.gl.enableVertexAttribArray(this._aVertexUV);};
+GLKit.GL.prototype.disableDefaultVertexAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexPosition);};
+GLKit.GL.prototype.disableDefaultNormalAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexNormal);};
+GLKit.GL.prototype.disableDefaultColorAttribArray     = function(){this.gl.disableVertexAttribArray(this._aVertexColor);};
+GLKit.GL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVertexAttribArray(this._aVertexUV);};
+
+/*---------------------------------------------------------------------------------------------------------*/
+// convenience bindings gl
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.enable                = function(id){this.gl.enable(id);};
+GLKit.GL.prototype.disable               = function(id){this.gl.disable(id);};
+
+GLKit.GL.prototype.blendColor            = function(r,g,b,a){this.gl.blendColor(r,g,b,a);};
+GLKit.GL.prototype.blendEquation         = function(mode){this.gl.blendEquation(mode);};
+GLKit.GL.prototype.blendEquationSeparate = function(sfactor,dfactor){this.gl.blendEquationSeparate(sfactor,dfactor);};
+GLKit.GL.prototype.blendFunc             = function(sfactor,dfactor){this.gl.blendFunc(sfactor,dfactor);};
+GLKit.GL.prototype.blendFuncSeparate     = function(srcRGB,dstRGB,srcAlpha,dstAlpha){this.gl.blendFuncSeparate(srcRGB,dstRGB,srcAlpha,dstAlpha);};
+GLKit.GL.prototype.depthFunc             = function(func){this.gl.depthFunc(func);};
+GLKit.GL.prototype.sampleCoverage        = function(value,invert){this.gl.sampleCoverage(value,invert);};
+GLKit.GL.prototype.stencilFunc           = function(func,ref,mask){this.gl.stencilFunc(func,ref,mask);};
+GLKit.GL.prototype.stencilFuncSeparate   = function(face,func,ref,mask){this.gl.stencilFuncSeparate(face,func,ref,mask);};
+GLKit.GL.prototype.stencilOp             = function(fail,zfail,zpass){this.gl.stencilOp(fail,zfail,zpass);};
+GLKit.GL.prototype.stencilOpSeparate     = function(face,fail,zfail,zpass){this.gl.stencilOpSeparate(face,fail,zfail,zpass);};
+
+/*---------------------------------------------------------------------------------------------------------*/
+// World -> Screen
 /*---------------------------------------------------------------------------------------------------------*/
 
 //TODO: Fix me
@@ -3704,7 +3963,38 @@ GLKit.ISOSurface.prototype._genSurface = function()
 
 GLKit.ISOSurface.prototype._draw = function(gl)
 {
-    gl.drawArrays(this._bVertices,this._bNormals,this._bColors,null,gl.TRIANGLES,0,this._numTriangles*3);
+    gl.disableDefaultTexCoordsAttribArray();
+    gl.enableDefaultNormalAttribArray();
+
+    var _gl = gl.gl;
+
+    var glArrayBuffer = _gl.ARRAY_BUFFER,
+        glFloat       = _gl.FLOAT;
+
+    var vertices = this._bVertices,
+        normals  = this._bNormals,
+        colors   = this._bColors;
+
+    var vblen = vertices.byteLength,
+        nblen = normals.byteLength,
+        cblen = colors.byteLength;
+
+    var offsetV = 0,
+        offsetN = offsetV + vblen,
+        offsetC = offsetN + nblen;
+
+    _gl.bufferData(glArrayBuffer, vblen + nblen + cblen, _gl.DYNAMIC_DRAW);
+
+    _gl.bufferSubData(glArrayBuffer, offsetV,  vertices);
+    _gl.bufferSubData(glArrayBuffer, offsetN,  normals);
+    _gl.bufferSubData(glArrayBuffer, offsetC,  colors);
+
+    _gl.vertexAttribPointer(gl.getDefaultVertexAttrib(), 3, glFloat, false, 0, offsetV);
+    _gl.vertexAttribPointer(gl.getDefaultNormalAttrib(), 3, glFloat, false, 0, offsetN);
+    _gl.vertexAttribPointer(gl.getDefaultColorAttrib(),  4, glFloat, false, 0, offsetC);
+
+    gl.setMatricesUniform();
+    _gl.drawArrays(_gl.TRIANGLES,0,this._numTriangles * 3);
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -4132,46 +4422,48 @@ GLKit.ParametricSurface.prototype.pointOnSurfaceWithArg = function(u,v,arg)
 
 GLKit.Mouse = function()
 {
-    this._position = GLKit.Vec2.make();
-    document.addEventListener('mousemove',this._onMouseMove.bind(this));
+    this._position     = GLKit.Vec2.make();
+    this._positionLast = GLKit.Vec2.make();
 
-    if(GLKit.Mouse._instance)throw 'fdsf';
+    if(GLKit.Mouse._instance)throw 'Mouse is singleton. Get Mouse via getInstance().';
     GLKit.Mouse._instance = this;
-
 };
 
-GLKit.Mouse.prototype._onMouseMove = function(e)
-{
-    this._position[0] = e.pageX;
-    this._position[1] = e.pageY;
-};
 
-GLKit.Mouse.prototype.getPosition = function(){return this._position;};
-GLKit.Mouse.prototype.getX        = function(){return this._position[0];};
-GLKit.Mouse.prototype.getY        = function(){return this._position[1];};
+GLKit.Mouse.prototype.getPosition     = function(){return this._position;};
+GLKit.Mouse.prototype.getPositionLast = function(){return this._positionLast;};
+GLKit.Mouse.prototype.getX            = function(){return this._position[0];};
+GLKit.Mouse.prototype.getY            = function(){return this._position[1];};
+GLKit.Mouse.prototype.getXLast        = function(){return this._positionLast[0];};
+GLKit.Mouse.prototype.getYLast        = function(){return this._positionLast[1];};
 
 GLKit.Mouse.getInstance = function(){return GLKit.Mouse._instance;};
 GLKit.Window = function(parentDomElement)
 {
     this._parent   = parentDomElement;
 
-    this._glCanvas = document.createElement('canvas');
-    this._glCanvas.setAttribute('tabindex','0');
-    this._glCanvas.focus();
-    this.gl       = this._glCanvas.getContext('webkit-3d');
-    //anvas.getContext("webgl") || canvas.getContext("experimental-webgl")
+    this._canvas3d = document.createElement('canvas');
+    this._canvas3d.setAttribute('tabindex','0');
+    this._canvas3d.focus();
+    this.context3d = this._canvas3d.getContext('webkit-3d') ||
+                     this._canvas3d.getContext("webgl") ||
+                     this._canvas3d.getContext("experimental-webgl");
+
+    this._canvas2d = document.createElement('canvas');
+    this.context2d = this._canvas2d.getContext('2d');
+
+
 
     this._width  = 0;
     this._height = 0;
 
-    this._parent.appendChild(this._glCanvas);
+    this._parent.appendChild(this._canvas3d);
 };
 
 /*---------------------------------------------------------------------------------*/
 
 GLKit.Window.prototype.getParent = function(){return this._parent;};
-GLKit.Window.prototype.getCanvas = function(){return this._glCanvas;};
-GLKit.Window.prototype.getGL     = function(){return this.gl};
+GLKit.Window.prototype.getCanvas3d = function(){return this._canvas3d;};
 
 /*---------------------------------------------------------------------------------*/
 
@@ -4189,7 +4481,7 @@ GLKit.Window.prototype.setSize = function(width,height)
 
 GLKit.Window.prototype._updateSize = function()
 {
-    var glCanvas = this._glCanvas,
+    var glCanvas = this._canvas3d,
         width    = this._width,
         height   = this._height;
 
@@ -4212,19 +4504,19 @@ GLKit.Window.prototype.isFullscreen      = function(){return false;};
 GLKit.Application = function(parentDomElement)
 {
     var glWindow = this.glWindow = new GLKit.Window(parentDomElement);
-    var gl       = this.gl       = new GLKit.GL(glWindow.getGL());
+    var gl       = this.gl       = new GLKit.GL(glWindow.context3d);
     var camera   = this.camera   = new GLKit.CameraBasic();
 
     /*---------------------------------------------------------------------------------*/
 
     gl.setCamera(camera);
 
-
     /*---------------------------------------------------------------------------------*/
 
     this._keyDown         = false;
     this._keyCode         = '';
     this._mouseDown       = false;
+    this._mouseMove       = false;
     this._mouseWheelDelta = 0.0;
 
     this.mouse = new GLKit.Mouse();
@@ -4243,9 +4535,13 @@ GLKit.Application = function(parentDomElement)
 
     /*---------------------------------------------------------------------------------*/
 
+    window.requestAnimationFrame = window.requestAnimationFrame ||
+                                   window.webkitRequestAnimationFrame ||
+                                   window.mozRequestAnimationFrame;
+
     this._initListeners();
 
-    if(GLKit.Application._instance)throw 'fdfdf';
+    if(GLKit.Application._instance)throw 'Application is singleton. Get via getInstance().';
        GLKit.Application._instance = this;
 };
 
@@ -4284,7 +4580,7 @@ GLKit.Application.prototype._updateGLViewport = function()
 {
     var glWindow = this.glWindow,
         gl       = this.gl;
-        gl.viewport(0,0,glWindow.getWidth(),glWindow.getHeight());
+        gl.gl.viewport(0,0,glWindow.getWidth(),glWindow.getHeight());
         gl.clearColor(gl.getClearBuffer());
 };
 
@@ -4295,9 +4591,10 @@ GLKit.Application.prototype.setUpdate = function(bool){this._update = bool;};
 GLKit.Application.prototype._updateLoop = function()
 {
     if(!this._update)return;
-    webkitRequestAnimationFrame(this._updateLoop.bind(this),null);
 
-    var time         = this._time      = Date.now(),
+    requestAnimationFrame(this._updateLoop.bind(this),null);
+
+    var time         = this._time = Date.now(),
         timeDelta    = time - this._timeNext,
         timeInterval = this._timeInterval;
 
@@ -4309,15 +4606,17 @@ GLKit.Application.prototype._updateLoop = function()
     {
         timeNext = this._timeNext = time - (timeDelta % timeInterval);
 
+        var mouse = this.mouse;
+
+        this._mouseMove = mouse._position[0] != mouse._positionLast[0] ||
+                          mouse._position[1] != mouse._positionLast[1];
+
         this.update();
 
         this._timeElapsed = (timeNext - this._timeStart) / 1000.0;
         this._frames++;
-
     }
 };
-
-
 
 GLKit.Application.prototype.update = function(){};
 
@@ -4328,7 +4627,6 @@ GLKit.Application.prototype.getTimeStart      = function(){return this._timeStar
 GLKit.Application.prototype.getTimeNext       = function(){return this._timeNext;};
 GLKit.Application.prototype.getTimeDelta      = function(){return this._timeDelta;};
 
-
 GLKit.Application.prototype.setTargetFPS = function(fps){this._targetFPS = fps;this._timeInterval = 1000/this._targetFPS;};
 GLKit.Application.prototype.getTargetFPS = function(){return this._targetFPS;};
 
@@ -4336,7 +4634,7 @@ GLKit.Application.prototype.getTargetFPS = function(){return this._targetFPS;};
 
 GLKit.Application.prototype._initListeners = function()
 {
-    var glCanvas = this.glWindow.getCanvas();
+    var glCanvas = this.glWindow.getCanvas3d();
         glCanvas.addEventListener('mousedown', this._onMouseDown.bind(this));
         glCanvas.addEventListener('mouseup',   this._onMouseUp.bind(this));
         glCanvas.addEventListener('mousemove', this._onMouseMove.bind(this));
@@ -4344,8 +4642,8 @@ GLKit.Application.prototype._initListeners = function()
         glCanvas.addEventListener('keyup',     this._onKeyUp.bind(this));
         glCanvas.addEventListener('mousewheel',this._onMouseWheel.bind(this));
 
-     document.addEventListener('mousemove',this._onMouseMove.bind(this));
-     window.addEventListener('resize',this._onWindowResize.bind(this));
+    document.addEventListener('mousemove',this._onMouseMove.bind(this));
+    window.addEventListener('resize',this._onWindowResize.bind(this));
 };
 
 
@@ -4353,22 +4651,32 @@ GLKit.Application.prototype._onKeyDown    = function(e){this._keyDown = true;thi
 GLKit.Application.prototype._onKeyUp      = function(e){this._keyDown = false;this.onKeyUp(e)};
 GLKit.Application.prototype._onMouseUp    = function(e){this._mouseDown = false;this.onMouseUp(e);};
 GLKit.Application.prototype._onMouseDown  = function(e){this._mouseDown = true;this.onMouseDown(e);};
-GLKit.Application.prototype._onMouseMove  = function(e){this.mouse._position[0] = e.pageX; this.mouse._position[1] = e.pageY;this.onMouseMove(e);};
+GLKit.Application.prototype._onMouseMove  = function(e)
+{
+    var mouse = this.mouse;
+
+    mouse._positionLast[0] = mouse._position[0];
+    mouse._positionLast[1] = mouse._position[1];
+
+    mouse._position[0] = e.pageX;
+    mouse._position[1] = e.pageY;
+
+    this.onMouseMove(e);
+};
+
 GLKit.Application.prototype._onMouseWheel = function(e){this._mouseWheelDelta += Math.max(-1,Math.min(1, e.wheelDelta)) * -1;this.onMouseWheel(e);};
-GLKit.Application.prototype.onKeyDown     = function(e){};
-GLKit.Application.prototype.onKeyUp       = function(e){};
-GLKit.Application.prototype.onMouseUp     = function(e){};
-GLKit.Application.prototype.onMouseDown   = function(e){};
-GLKit.Application.prototype.onMouseWheel  = function(e){};
-GLKit.Application.prototype.onMouseMove   = function(e){};
-
-
+GLKit.Application.prototype.onKeyDown             = function(e){};
+GLKit.Application.prototype.onKeyUp               = function(e){};
+GLKit.Application.prototype.onMouseUp             = function(e){};
+GLKit.Application.prototype.onMouseDown           = function(e){};
+GLKit.Application.prototype.onMouseWheel          = function(e){};
+GLKit.Application.prototype.onMouseMove           = function(e){};
 
 GLKit.Application.prototype.isKeyDown          = function(){return this._keyDown;};
 GLKit.Application.prototype.isMouseDown        = function(){return this._mouseDown;};
-GLKit.Application.prototype.isMouseMove        = function(){};
+GLKit.Application.prototype.isMouseMove        = function(){return this._mouseMove;};
 GLKit.Application.prototype.getKeyCode         = function(){return this._keyCode;};
-GLKit.Application.prototype.getMouseWheelDelta = function(){return this._mouseWheelDelta;}
+GLKit.Application.prototype.getMouseWheelDelta = function(){return this._mouseWheelDelta;};
 
 /*---------------------------------------------------------------------------------*/
 
