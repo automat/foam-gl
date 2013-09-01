@@ -9,7 +9,7 @@
         this.setSize(window.innerWidth,window.innerHeight);
         this.setTargetFPS(60);
 
-        this._zoom = 3;
+        this._zoom = 6;
 
         var light0 = this._light0 = new GLKit.Light(this.gl.LIGHT_0);
             light0.setAmbient3f(0,0,0);
@@ -23,8 +23,8 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var isoBand = this._isoBand = new GLKit.ISOBand(40,40,4,4);
-            isoBand.setFunction(function(x,y,time){return 3*Math.sin(Math.abs(x*x) + time)*3*Math.sin(Math.abs(y) + time) - 0.25;})
+        var isoBand = this._isoBand = new GLKit.ISOBand(64,16,4,4);
+            isoBand.setFunction(function(x,y,time){return 3*Math.sin(Math.abs(x*x)+time)*3*Math.sin(Math.abs(y) + time) - 0.25;})
 
     }
 
@@ -41,7 +41,7 @@
 
         var light0 = this._light0;
 
-        var zoom = this._zoom = GLKit.Math.lerp(this._zoom, 3 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
+        var zoom = this._zoom = GLKit.Math.lerp(this._zoom, 6 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
 
 
         gl.clear3f(0.1,0.1,0.1);
@@ -64,7 +64,7 @@
         }
         else
         {
-            cam.setPosition3f(0,zoom,zoom);
+            cam.setPosition3f(0,zoom,0.0001);
 
         }
 
@@ -95,13 +95,13 @@
         var gl = this.gl;
 
         gl.color1f(0.15);
-        GLKit.GLUtil.drawGridCube(gl,8,1);
+        GLKit.GLUtil.drawGridCube(gl,6,1);
 
-        gl.color1f(0.25);
+        gl.color1f(0.15);
         gl.pushMatrix();
         {
             gl.translate3f(0,-0.01,0);
-            GLKit.GLUtil.drawGrid(gl,8,1);
+            GLKit.GLUtil.drawGrid(gl,6,1);
         }
         gl.popMatrix();
 
