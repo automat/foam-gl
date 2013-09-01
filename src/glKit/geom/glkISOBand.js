@@ -246,7 +246,7 @@ GLKit.ISOBand.prototype._draw = function(gl)
     var tt = GLKit.Math.saw(time*0.75);
 
     i = Math.floor(Math.abs(tt) * cellSizeZ);
-    j = 0;
+    j = 1;
     cellIndex = cellSizeX * i + j;//Math.floor(Math.abs(tt) * cells.length);
     cell = cells[cellIndex];
 
@@ -284,7 +284,7 @@ GLKit.ISOBand.prototype._draw = function(gl)
 
         if(tt > 0 )
         {
-            if(cellIndex > 0 && (cellIndex % cellSizeX) )
+            if(j!=0 )
             {
                 cell      = cells[cellIndex - 1];
 
@@ -362,11 +362,12 @@ GLKit.ISOBand.prototype._draw = function(gl)
     }
 
 
-
+    var cachedEdgesIndexLeft,
+        cachedEdgesIndexTop;
 
 
     //
-
+    gl.pointSize(6);
     i = -1;
     while(++i < cellSizeZ)
     {
@@ -409,7 +410,10 @@ GLKit.ISOBand.prototype._draw = function(gl)
             cellVertices[10] = verts[v3Index + 1];
             cellVertices[11] = verts[v3Index + 2];
 
-            cachedEdgesIndex = cellIndex * 4 * 4;
+
+
+            cachedEdgesIndex     = cellIndex * 4 * 4;
+
 
             entryTopLu = ISOBAND_TOP_LU[cellState];
 
@@ -417,43 +421,11 @@ GLKit.ISOBand.prototype._draw = function(gl)
             gl.color3f(0,0,1);
 
             k = 0;
-            /*
-            if(i > 0 && j < )
+
+            //cell upper left
+            if(i == 0 && j == 0)
             {
-            */
-                while(k < entryTopLu.length)
-                {
-                    entryTopLu0 = entryTopLu[k  ];
-                    entryTopLu1 = entryTopLu[k+1];
-                    entryTopLu2 = entryTopLu[k+2];
-                    entryTopLu3 = entryTopLu[k+3];
-
-                    this._intrpl(cell[entryTopLu0],cell[entryTopLu1],conVertices,0);
-                    this._intrpl(cell[entryTopLu2],cell[entryTopLu3],conVertices,3);
-
-                    entryTopLu0 *= 4;
-                    entryTopLu2 *= 4;
-
-
-                    cachedEdges[cachedEdgesIndex + entryTopLu0 + 3] = 1;
-                    cachedEdges[cachedEdgesIndex + entryTopLu0    ] = conVertices[0];
-                    cachedEdges[cachedEdgesIndex + entryTopLu0 + 1] = conVertices[1];
-                    cachedEdges[cachedEdgesIndex + entryTopLu0 + 2] = conVertices[2];
-
-
-                    cachedEdges[cachedEdgesIndex + entryTopLu2 + 3] = 1;
-                    cachedEdges[cachedEdgesIndex + entryTopLu2    ] = conVertices[3];
-                    cachedEdges[cachedEdgesIndex + entryTopLu2 + 1] = conVertices[4];
-                    cachedEdges[cachedEdgesIndex + entryTopLu2 + 2] = conVertices[5];
-
-                    gl.line(conVertices);
-
-                    k += 4;
-                }
-            /*
-            }
-            else
-            {
+                gl.color3f(1,1,1);
 
                 while(k < entryTopLu.length)
                 {
@@ -478,20 +450,240 @@ GLKit.ISOBand.prototype._draw = function(gl)
                     cachedEdges[cachedEdgesIndex + entryTopLu2 + 1] = conVertices[4];
                     cachedEdges[cachedEdgesIndex + entryTopLu2 + 2] = conVertices[5];
 
+                    gl.drawMode(gl.POINTS);
+                    gl.points(conVertices);
 
-
+                    gl.drawMode(gl.LINES);
                     gl.line(conVertices);
 
                     k += 4;
                 }
 
+            }
 
+            //cells first row after upper left
+            if(i == 0 && j > 0)
+            {
+                cachedEdgesIndexLeft = (cellIndex - 1) * 4 * 4;
 
+                gl.color3f(0,1,0);
+
+                while(k < entryTopLu.length)
+                {
+                    entryTopLu0 = entryTopLu[k  ];
+                    entryTopLu1 = entryTopLu[k+1];
+                    entryTopLu2 = entryTopLu[k+2];
+                    entryTopLu3 = entryTopLu[k+3];
+
+                    //check first vertex is on left edge
+                    if(entryTopLu0 == 3)
+                    {
+                        //assign previous calculated edge vertex from previous cell
+                        conVertices[0] = cachedEdges[cachedEdgesIndexLeft + 4];
+                        conVertices[1] = cachedEdges[cachedEdgesIndexLeft + 5];
+                        conVertices[2] = cachedEdges[cachedEdgesIndexLeft + 6];
+                    }
+                    else //calculate edge vertex
+                    {
+                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],conVertices,0);
+
+                        entryTopLu0 *= 4;
+
+                        //assign to cached edges
+                        cachedEdges[cachedEdgesIndex + entryTopLu0 + 3] = 1;
+                        cachedEdges[cachedEdgesIndex + entryTopLu0    ] = conVertices[0];
+                        cachedEdges[cachedEdgesIndex + entryTopLu0 + 1] = conVertices[1];
+                        cachedEdges[cachedEdgesIndex + entryTopLu0 + 2] = conVertices[2];
+                    }
+
+                    //check second vertex is on left edge
+                    if(entryTopLu2 == 3)
+                    {
+                        conVertices[3] = cachedEdges[cachedEdgesIndexLeft + 4];
+                        conVertices[4] = cachedEdges[cachedEdgesIndexLeft + 5];
+                        conVertices[5] = cachedEdges[cachedEdgesIndexLeft + 6];
+                    }
+                    else //calculate edge vertex
+                    {
+                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],conVertices,3);
+
+                        entryTopLu2 *= 4;
+
+                        //assign to cached edges
+                        cachedEdges[cachedEdgesIndex + entryTopLu2 + 3] = 1;
+                        cachedEdges[cachedEdgesIndex + entryTopLu2    ] = conVertices[3];
+                        cachedEdges[cachedEdgesIndex + entryTopLu2 + 1] = conVertices[4];
+                        cachedEdges[cachedEdgesIndex + entryTopLu2 + 2] = conVertices[5];
+
+                    }
+
+                    gl.drawMode(gl.POINTS);
+                    gl.points(conVertices);
+
+                    gl.drawMode(gl.LINES);
+                    gl.line(conVertices);
+
+                    k += 4;
+                }
+            }
+
+            //cells first column after upper left
+
+            if(i != 0 && j == 0)
+            {
+                cachedEdgesIndexTop  = (cellIndex - cellSizeX) * 4 * 4;
+
+                gl.color3f(1,0,0);
+
+                while(k < entryTopLu.length)
+                {
+                    entryTopLu0 = entryTopLu[k  ];
+                    entryTopLu1 = entryTopLu[k+1];
+                    entryTopLu2 = entryTopLu[k+2];
+                    entryTopLu3 = entryTopLu[k+3];
+
+                    //check first vertex is on top edge
+                    if(entryTopLu0 == 0)
+                    {
+                        //assign previous calculated bottom edge vertex from previous cell
+                        conVertices[0] = cachedEdges[cachedEdgesIndexTop + 8 ];
+                        conVertices[1] = cachedEdges[cachedEdgesIndexTop + 9 ];
+                        conVertices[2] = cachedEdges[cachedEdgesIndexTop + 10];
+                    }
+                    else //calculate edge vertex
+                    {
+                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],conVertices,0);
+
+                        entryTopLu0 *= 4;
+
+                        //assign to cached edges
+                        cachedEdges[cachedEdgesIndex + entryTopLu0 + 3] = 1;
+                        cachedEdges[cachedEdgesIndex + entryTopLu0    ] = conVertices[0];
+                        cachedEdges[cachedEdgesIndex + entryTopLu0 + 1] = conVertices[1];
+                        cachedEdges[cachedEdgesIndex + entryTopLu0 + 2] = conVertices[2];
+                    }
+
+                    //check first vertex is on top edge
+                    if(entryTopLu2 == 0)
+                    {
+                        //assign previous calculated bottom edge vertex from previous cell
+                        conVertices[3] = cachedEdges[cachedEdgesIndexTop +  8];
+                        conVertices[4] = cachedEdges[cachedEdgesIndexTop +  9];
+                        conVertices[5] = cachedEdges[cachedEdgesIndexTop + 10];
+                    }
+                    else //calculate edge vertex
+                    {
+                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],conVertices,3);
+
+                        entryTopLu2 *= 4;
+
+                        //assign to cached edges
+                        cachedEdges[cachedEdgesIndex + entryTopLu2 + 3] = 1;
+                        cachedEdges[cachedEdgesIndex + entryTopLu2    ] = conVertices[3];
+                        cachedEdges[cachedEdgesIndex + entryTopLu2 + 1] = conVertices[4];
+                        cachedEdges[cachedEdgesIndex + entryTopLu2 + 2] = conVertices[5];
+
+                    }
+
+                    gl.drawMode(gl.POINTS);
+                    gl.points(conVertices);
+
+                    gl.drawMode(gl.LINES);
+                    gl.line(conVertices);
+
+                    k += 4;
+                }
 
             }
-             */
+
+            //check all other cells
+
+            if(i != 0 && j != 0)
+            {
+                cachedEdgesIndexLeft = (cellIndex - 1) * 4 * 4;
+                cachedEdgesIndexTop  = (cellIndex - cellSizeX) * 4 * 4;
+
+                gl.color3f(0,0,1);
+
+                while(k < entryTopLu.length)
+                {
+                    entryTopLu0 = entryTopLu[k  ];
+                    entryTopLu1 = entryTopLu[k+1];
+                    entryTopLu2 = entryTopLu[k+2];
+                    entryTopLu3 = entryTopLu[k+3];
+
+                    //check first vertex is on left edge
+                    if(entryTopLu0 == 3)
+                    {
+                        //assign previous calculated edge vertex from previous cell
+                        conVertices[0] = cachedEdges[cachedEdgesIndexLeft + 4];
+                        conVertices[1] = cachedEdges[cachedEdgesIndexLeft + 5];
+                        conVertices[2] = cachedEdges[cachedEdgesIndexLeft + 6];
+                    }
+                    else if(entryTopLu0 == 0)
+                    {
+                        //assign previous calculated bottom edge vertex from previous cell
+                        conVertices[0] = cachedEdges[cachedEdgesIndexTop + 8 ];
+                        conVertices[1] = cachedEdges[cachedEdgesIndexTop + 9 ];
+                        conVertices[2] = cachedEdges[cachedEdgesIndexTop + 10];
+
+                    }
+                    else //calculate edge vertex
+                    {
+                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],conVertices,0);
+
+                        entryTopLu0 *= 4;
+
+                        //assign to cached edges
+                        cachedEdges[cachedEdgesIndex + entryTopLu0 + 3] = 1;
+                        cachedEdges[cachedEdgesIndex + entryTopLu0    ] = conVertices[0];
+                        cachedEdges[cachedEdgesIndex + entryTopLu0 + 1] = conVertices[1];
+                        cachedEdges[cachedEdgesIndex + entryTopLu0 + 2] = conVertices[2];
+                    }
+
+                    //check second vertex is on left edge
+                    if(entryTopLu2 == 3)
+                    {
+                        conVertices[3] = cachedEdges[cachedEdgesIndexLeft + 4];
+                        conVertices[4] = cachedEdges[cachedEdgesIndexLeft + 5];
+                        conVertices[5] = cachedEdges[cachedEdgesIndexLeft + 6];
+                    }
+                    else if(entryTopLu2 == 0)
+                    {
+                        //assign previous calculated bottom edge vertex from previous cell
+                        conVertices[3] = cachedEdges[cachedEdgesIndexTop +  8];
+                        conVertices[4] = cachedEdges[cachedEdgesIndexTop +  9];
+                        conVertices[5] = cachedEdges[cachedEdgesIndexTop + 10];
+                    }
+                    else //calculate edge vertex
+                    {
+                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],conVertices,3);
+
+                        entryTopLu2 *= 4;
+
+                        //assign to cached edges
+                        cachedEdges[cachedEdgesIndex + entryTopLu2 + 3] = 1;
+                        cachedEdges[cachedEdgesIndex + entryTopLu2    ] = conVertices[3];
+                        cachedEdges[cachedEdgesIndex + entryTopLu2 + 1] = conVertices[4];
+                        cachedEdges[cachedEdgesIndex + entryTopLu2 + 2] = conVertices[5];
+
+                    }
+
+                    gl.drawMode(gl.POINTS);
+                    gl.points(conVertices);
+
+                    gl.drawMode(gl.LINES);
+                    gl.line(conVertices);
+
+                    k += 4;
+                }
+
+            }
+
         }
     }
+
+    gl.pointSize(1);
 
 
 

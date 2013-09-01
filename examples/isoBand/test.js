@@ -23,8 +23,8 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var isoBand = this._isoBand = new GLKit.ISOBand(4,7,4,4);
-            isoBand.setFunction(function(x,y,time){return Math.sin(Math.abs(x) + time)*Math.sin(Math.abs(y) + time) - 0.25;})
+        var isoBand = this._isoBand = new GLKit.ISOBand(40,40,4,4);
+            isoBand.setFunction(function(x,y,time){return 3*Math.sin(Math.abs(x*x) + time)*3*Math.sin(Math.abs(y) + time) - 0.25;})
 
     }
 
