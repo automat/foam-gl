@@ -42,8 +42,9 @@ GLKit.ISOBand = function(sizeX,sizeZ,unitScaleX,unitScaleZ)
     this._numTriangles = 0;
 
 
-    this._verts = new Float32Array(this._vertSizeX * this._vertSizeZ * 4);
-    this._cells = new Array(this._cellSizeX * this._cellSizeZ);
+    this._verts       = new Float32Array(this._vertSizeX * this._vertSizeZ * 4);
+    this._cells       = new Array(this._cellSizeX * this._cellSizeZ);
+    this._cachedEdges = new Float32Array(this._cells.length * 4 * 4);
 
     this._tempCellVertices     = new Float32Array(4 * 3);
     this._tempCellVerticesVals = new Float32Array(4);
@@ -158,6 +159,8 @@ GLKit.ISOBand.prototype._draw = function(gl)
 
     this.applyFunction(time);
 
+    var cells = this._cells;
+
     var vertSizeX = this._vertSizeX,
         vertSizeZ = this._vertSizeZ;
 
@@ -168,7 +171,22 @@ GLKit.ISOBand.prototype._draw = function(gl)
         vertsIndex;
 
     var i,j;
-    /*
+
+    var cachedEdges = this._cachedEdges,
+        cachedEdgesIndex;
+
+    //reset cached edges flags;
+    i = -1;
+    while(++i < cells.length)
+    {
+        cachedEdgesIndex = i * 4 * 4;
+        cachedEdges[cachedEdgesIndex + 3 ] =    //flag of upper  edge
+        cachedEdges[cachedEdgesIndex + 7 ] =    //flag of right  edge
+        cachedEdges[cachedEdgesIndex + 11] =    //flag of bottom edge
+        cachedEdges[cachedEdgesIndex + 15] = -1;//flag of left   edge
+    }
+
+
     var vertices = new Float32Array(verts.length / 4 * 3);
 
     i = -1;
@@ -189,11 +207,11 @@ GLKit.ISOBand.prototype._draw = function(gl)
 
     gl.drawMode(gl.POINTS);
     gl.points(vertices);
-    */
+
     i = -1;
     var k;
 
-    var cells = this._cells;
+
 
     var cellIndex,
         cell,
@@ -215,24 +233,153 @@ GLKit.ISOBand.prototype._draw = function(gl)
     var entryTopLu,
         ISOBAND_TOP_LU = GLKit.ISOBand.TOP_TABLE;
 
+    var entryTopLu0,
+        entryTopLu1,
+        entryTopLu2,
+        entryTopLu3;
+
     //value interpolated vertices of cell
     var conVertices = this._tempCellConVertices;
 
     gl.drawMode(gl.LINE_LOOP);
 
+    var tt = GLKit.Math.saw(time*0.75);
+
+    i = Math.floor(Math.abs(tt) * cellSizeZ);
+    j = 0;
+    cellIndex = cellSizeX * i + j;//Math.floor(Math.abs(tt) * cells.length);
+    cell = cells[cellIndex];
+
+
+    if(cell)
+    {
+
+
+        v0Index = cell[0];
+        v1Index = cell[1];
+        v2Index = cell[2];
+        v3Index = cell[3];
+
+        cellVertices[ 0] = verts[v0Index    ];
+        cellVertices[ 1] = verts[v0Index + 1];
+        cellVertices[ 2] = verts[v0Index + 2];
+
+        cellVertices[ 3] = verts[v1Index    ];
+        cellVertices[ 4] = verts[v1Index + 1];
+        cellVertices[ 5] = verts[v1Index + 2];
+
+        cellVertices[ 6] = verts[v2Index    ];
+        cellVertices[ 7] = verts[v2Index + 1];
+        cellVertices[ 8] = verts[v2Index + 2];
+
+        cellVertices[ 9] = verts[v3Index    ];
+        cellVertices[10] = verts[v3Index + 1];
+        cellVertices[11] = verts[v3Index + 2];
+
+        gl.color3f(1,1,1);
+        gl.quadf(cellVertices[0],cellVertices[1],cellVertices[2],
+            cellVertices[3],cellVertices[4],cellVertices[5],
+            cellVertices[6],cellVertices[7],cellVertices[8],
+            cellVertices[9],cellVertices[10],cellVertices[11]);
+
+        if(tt > 0 )
+        {
+            if(cellIndex > 0 && (cellIndex % cellSizeX) )
+            {
+                cell      = cells[cellIndex - 1];
+
+                v0Index = cell[0];
+                v1Index = cell[1];
+                v2Index = cell[2];
+                v3Index = cell[3];
+
+                cellVertices[ 0] = verts[v0Index    ];
+                cellVertices[ 1] = verts[v0Index + 1];
+                cellVertices[ 2] = verts[v0Index + 2];
+
+                cellVertices[ 3] = verts[v1Index    ];
+                cellVertices[ 4] = verts[v1Index + 1];
+                cellVertices[ 5] = verts[v1Index + 2];
+
+                cellVertices[ 6] = verts[v2Index    ];
+                cellVertices[ 7] = verts[v2Index + 1];
+                cellVertices[ 8] = verts[v2Index + 2];
+
+                cellVertices[ 9] = verts[v3Index    ];
+                cellVertices[10] = verts[v3Index + 1];
+                cellVertices[11] = verts[v3Index + 2];
+
+                gl.color3f(1,0,0);
+                gl.quadf(cellVertices[0],cellVertices[1],cellVertices[2],
+                    cellVertices[3],cellVertices[4],cellVertices[5],
+                    cellVertices[6],cellVertices[7],cellVertices[8],
+                    cellVertices[9],cellVertices[10],cellVertices[11]);
+
+            }
+
+
+
+            if( i != 0 )
+            {
+                cellIndex = cellIndex - cellSizeX;
+                cell      = cells[cellIndex];
+
+                v0Index = cell[0];
+                v1Index = cell[1];
+                v2Index = cell[2];
+                v3Index = cell[3];
+
+                cellVertices[ 0] = verts[v0Index    ];
+                cellVertices[ 1] = verts[v0Index + 1];
+                cellVertices[ 2] = verts[v0Index + 2];
+
+                cellVertices[ 3] = verts[v1Index    ];
+                cellVertices[ 4] = verts[v1Index + 1];
+                cellVertices[ 5] = verts[v1Index + 2];
+
+                cellVertices[ 6] = verts[v2Index    ];
+                cellVertices[ 7] = verts[v2Index + 1];
+                cellVertices[ 8] = verts[v2Index + 2];
+
+                cellVertices[ 9] = verts[v3Index    ];
+                cellVertices[10] = verts[v3Index + 1];
+                cellVertices[11] = verts[v3Index + 2];
+
+                gl.color3f(0,1,0);
+                gl.quadf(cellVertices[0],cellVertices[1],cellVertices[2],
+                    cellVertices[3],cellVertices[4],cellVertices[5],
+                    cellVertices[6],cellVertices[7],cellVertices[8],
+                    cellVertices[9],cellVertices[10],cellVertices[11]);
+
+
+            }
+
+
+
+
+        }
+
+    }
+
+
+
+
+
+    //
+
+    i = -1;
     while(++i < cellSizeZ)
     {
         j = -1;
         while(++j < cellSizeX)
         {
-            cellIndex = cellSizeX * i + j;
-            cell      = cells[cellIndex];
+            cellIndex        = cellSizeX * i + j;
+            cell             = cells[cellIndex];
 
             v0Index = cell[0];
             v1Index = cell[1];
             v2Index = cell[2];
             v3Index = cell[3];
-
 
             v0Val = vVals[0] = verts[v0Index + 3];
             v1Val = vVals[1] = verts[v1Index + 3];
@@ -262,24 +409,91 @@ GLKit.ISOBand.prototype._draw = function(gl)
             cellVertices[10] = verts[v3Index + 1];
             cellVertices[11] = verts[v3Index + 2];
 
+            cachedEdgesIndex = cellIndex * 4 * 4;
+
             entryTopLu = ISOBAND_TOP_LU[cellState];
 
             gl.drawMode(gl.LINES);
             gl.color3f(0,0,1);
 
             k = 0;
-            while(k < entryTopLu.length)
+            /*
+            if(i > 0 && j < )
             {
-                this._intrpl(cell[entryTopLu[k  ]],cell[entryTopLu[k+1]],conVertices,0);
-                this._intrpl(cell[entryTopLu[k+2]],cell[entryTopLu[k+3]],conVertices,3);
+            */
+                while(k < entryTopLu.length)
+                {
+                    entryTopLu0 = entryTopLu[k  ];
+                    entryTopLu1 = entryTopLu[k+1];
+                    entryTopLu2 = entryTopLu[k+2];
+                    entryTopLu3 = entryTopLu[k+3];
 
-                gl.line(conVertices);
+                    this._intrpl(cell[entryTopLu0],cell[entryTopLu1],conVertices,0);
+                    this._intrpl(cell[entryTopLu2],cell[entryTopLu3],conVertices,3);
 
-                k += 4;
+                    entryTopLu0 *= 4;
+                    entryTopLu2 *= 4;
+
+
+                    cachedEdges[cachedEdgesIndex + entryTopLu0 + 3] = 1;
+                    cachedEdges[cachedEdgesIndex + entryTopLu0    ] = conVertices[0];
+                    cachedEdges[cachedEdgesIndex + entryTopLu0 + 1] = conVertices[1];
+                    cachedEdges[cachedEdgesIndex + entryTopLu0 + 2] = conVertices[2];
+
+
+                    cachedEdges[cachedEdgesIndex + entryTopLu2 + 3] = 1;
+                    cachedEdges[cachedEdgesIndex + entryTopLu2    ] = conVertices[3];
+                    cachedEdges[cachedEdgesIndex + entryTopLu2 + 1] = conVertices[4];
+                    cachedEdges[cachedEdgesIndex + entryTopLu2 + 2] = conVertices[5];
+
+                    gl.line(conVertices);
+
+                    k += 4;
+                }
+            /*
             }
+            else
+            {
 
+                while(k < entryTopLu.length)
+                {
+                    entryTopLu0 = entryTopLu[k  ];
+                    entryTopLu1 = entryTopLu[k+1];
+                    entryTopLu2 = entryTopLu[k+2];
+                    entryTopLu3 = entryTopLu[k+3];
+
+                    this._intrpl(cell[entryTopLu0],cell[entryTopLu1],conVertices,0);
+                    this._intrpl(cell[entryTopLu2],cell[entryTopLu3],conVertices,3);
+
+                    entryTopLu0 *= 4;
+                    entryTopLu2 *= 4;
+
+                    cachedEdges[cachedEdgesIndex + entryTopLu0 + 3] = 1;
+                    cachedEdges[cachedEdgesIndex + entryTopLu0    ] = conVertices[0];
+                    cachedEdges[cachedEdgesIndex + entryTopLu0 + 1] = conVertices[1];
+                    cachedEdges[cachedEdgesIndex + entryTopLu0 + 2] = conVertices[2];
+
+                    cachedEdges[cachedEdgesIndex + entryTopLu2 + 3] = 1;
+                    cachedEdges[cachedEdgesIndex + entryTopLu2    ] = conVertices[3];
+                    cachedEdges[cachedEdgesIndex + entryTopLu2 + 1] = conVertices[4];
+                    cachedEdges[cachedEdgesIndex + entryTopLu2 + 2] = conVertices[5];
+
+
+
+                    gl.line(conVertices);
+
+                    k += 4;
+                }
+
+
+
+
+            }
+             */
         }
     }
+
+
 
 
 };
@@ -305,9 +519,11 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
         return;
     }
 
-    out[offset+0] = -v0v * (v1x - v0x) / (v1v - v0v) + v0x;
+    var v10v = v1v - v0v;
+
+    out[offset+0] = -v0v * (v1x - v0x) / v10v + v0x;
     out[offset+1] = 0;
-    out[offset+2] = -v0v * (v1z - v0z) / (v1v - v0v) + v0z;
+    out[offset+2] = -v0v * (v1z - v0z) / v10v + v0z;
 };
 
 
