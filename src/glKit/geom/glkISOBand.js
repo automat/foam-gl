@@ -30,6 +30,9 @@ GLKit.ISOBand = function(sizeX,sizeZ,unitScaleX,unitScaleZ)
             break;
     }
 
+    /*---------------------------------------------------------------------------------------------------------*/
+
+
     this._cellSizeX = this._vertSizeX - 1;
     this._cellSizeZ = this._vertSizeZ - 1;
 
@@ -41,24 +44,42 @@ GLKit.ISOBand = function(sizeX,sizeZ,unitScaleX,unitScaleZ)
 
     this._numTriangles = 0;
 
-
+    //TODO CHECK MAX ELEMENT EXCEED
     this._verts = new Float32Array(this._vertSizeX * this._vertSizeZ * 4); // grid calculated norm values + function result value ...,x,y,z,v,...
     this._cells = new Array(this._cellSizeX * this._cellSizeZ);
+
+    //TODO REMOVE ADJACENT EDGE DOUBLES
+    //
+    // * ----- * ----- *
+    // |   0   |   4   |
+    // |3     1|7     5|
+    // |   2   |   6   |
+    // * ----- * ----- *
+    // |   8   |   12  |
+    // |11    9|15   13|
+    // |  10   |   14  |
+    // * ----- * ----- *
+    //
     this._edges = new Float32Array(this._cells.length * 4 * 3);
 
     this._tempCellVerticesVals = new Float32Array(4);
 
     this._indices  = [];
-    this._indices3 = [];
+
 
     this._genSurface();
 
 
 };
 
+/*---------------------------------------------------------------------------------------------------------*/
+
 GLKit.ISOBand.prototype = Object.create(GLKit.Geom3d.prototype);
 
+/*---------------------------------------------------------------------------------------------------------*/
 
+
+//dont need this
 GLKit.ISOBand.prototype.setFunction = function(func,isoLevel)
 {
     var funcArgsLength = func.length;
@@ -74,7 +95,13 @@ GLKit.ISOBand.prototype.setFunction = function(func,isoLevel)
         funcArgs[2] || 'arg0', funcArgs[3] || 'arg1', funcArgs[4] || 'arg2',
         funcBody);
     this._isoLevel = isoLevel || 0;
+
+
 };
+
+/*---------------------------------------------------------------------------------------------------------*/
+// Setup points
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.ISOBand.prototype._genSurface = function()
 {
@@ -101,7 +128,7 @@ GLKit.ISOBand.prototype._genSurface = function()
         j = -1;
         while(++j < vertSizeX)
         {
-            vertsIndex = (vertSizeX * i + j)*4;
+            vertsIndex          = (vertSizeX * i + j)*4;
             verts[vertsIndex  ] = (-0.5 + (j/(vertSizeX - 1))) * scaleX;
             verts[vertsIndex+1] = 0;
             verts[vertsIndex+2] = (-0.5 + (i/(vertSizeZ - 1))) * scaleZ;
@@ -111,71 +138,64 @@ GLKit.ISOBand.prototype._genSurface = function()
             {
                 vertsIndexRowNext = (vertSizeX * i + j + vertSizeX) * 4;
 
-                cellsIndex = cellSizeX * i + j;
+                cellsIndex        = cellSizeX * i + j;
                 cells[cellsIndex] = [vertsIndex,
-                    vertsIndex + 4,
-                    vertsIndexRowNext + 4,
-                    vertsIndexRowNext ];
+                                     vertsIndex + 4,
+                                     vertsIndexRowNext + 4,
+                                     vertsIndexRowNext ];
 
             }
         }
     }
-
-
 };
 
-GLKit.ISOBand.prototype.applyFunction = function(arg)
+/*---------------------------------------------------------------------------------------------------------*/
+// apply function to data points
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.ISOBand.prototype.applyFunction = function(arg0,arg1,arg2)
 {
-    var vertSizeX = this._vertSizeX,
-        vertSizeZ = this._vertSizeZ;
     var verts = this._verts,
         vertsIndex;
 
-    var i = -1,
-        j;
+    var vertSizeX = this._vertSizeX,
+        vertSizeZ = this._vertSizeZ;
 
+    var i, j;
+
+    i = -1;
     while(++i < vertSizeZ)
     {
         j = -1;
         while(++j < vertSizeX)
         {
             vertsIndex = (vertSizeX * i + j) * 4;
-
-            verts[vertsIndex + 3] = this._func(verts[vertsIndex],verts[vertsIndex+2],arg);
+            verts[vertsIndex + 3] = this._func(verts[vertsIndex],verts[vertsIndex+2],arg0,arg1,arg2);
         }
     }
 
-
-
-
-
+    this._march();
 };
 
-//visual debug
-GLKit.ISOBand.prototype._draw = function(gl)
+/*---------------------------------------------------------------------------------------------------------*/
+// march
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.ISOBand.prototype._march = function()
 {
-    var time = GLKit.Application.getInstance().getSecondsElapsed();
-
+    //reset indices
     this._indices  = [];
-    this._indices3 = [];
 
-    this.applyFunction(time);
-
-    var cells    = this._cells,
-        verts    = this._verts,
-        edges    = this._edges,
-        indices  = this._indices,
-        indices3 = this._indices3;
-
-
-    var cellSizeX = this._cellSizeX,
-        cellSizeZ = this._cellSizeZ;
-
-
+    var verts = this._verts;
 
     var i, j, k;
 
+    var cells    = this._cells,
+        edges    = this._edges,
+        indices  = this._indices;
 
+    var cellSizeX = this._cellSizeX,
+        cellSizeZ = this._cellSizeZ;
 
     var cellIndex,
         cell,
@@ -203,19 +223,16 @@ GLKit.ISOBand.prototype._draw = function(gl)
     var edgeIndex,
         edgeIndexLeft,
         edgeIndexTop,
-        edgeIndexCell,
-        edgeIndex3,
-        edgeIndex3Left, //previous cell left
-        edgeIndex3Top,  //previous cell top
-        edgeIndex3Cell; //index of edge in selected previous cell
+        edgeIndex3;
 
     //
-    //  0 ------ 1
-    //  |        |
-    //  |        |
-    //  |        |
-    //  3 ------ 2
+    //  0 ------- 1
+    //  |    0    |
+    //  | 3     1 |
+    //  |    2    |
+    //  3 ------- 2
     //
+
 
     i = -1;
     while(++i < cellSizeZ)
@@ -237,9 +254,9 @@ GLKit.ISOBand.prototype._draw = function(gl)
             v3Val = vVals[3] = verts[v3Index + 3];
 
             cellState = (v0Val > 0) << 3 |
-                (v1Val > 0) << 2 |
-                (v2Val > 0) << 1 |
-                (v3Val > 0);
+                        (v1Val > 0) << 2 |
+                        (v2Val > 0) << 1 |
+                        (v3Val > 0);
 
             if(cellState == 0)continue;
 
@@ -259,16 +276,12 @@ GLKit.ISOBand.prototype._draw = function(gl)
                     entryTopLu2 = entryTopLu[k+2];
                     entryTopLu3 = entryTopLu[k+3];
 
-                    edgeIndex3Cell = edgeIndex3 + entryTopLu0 * 3; //get edge vertex 0 relative to topological entry
-                    this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndex3Cell);
-                    indices3.push(edgeIndex3Cell);
-
+                    //get edge vertex 0 according to topological entry
+                    this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndex3 + entryTopLu0 * 3);
                     indices.push(edgeIndex + entryTopLu0);
 
-                    edgeIndex3Cell = edgeIndex3 + entryTopLu2 * 3;
-                    this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3Cell);
-                    indices3.push(edgeIndex3Cell);
-
+                    //get edge vertex 1 according to topological entry
+                    this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3 + entryTopLu2 * 3);
                     indices.push(edgeIndex + entryTopLu2);
 
                     k += 4;
@@ -279,8 +292,6 @@ GLKit.ISOBand.prototype._draw = function(gl)
             if(i == 0 && j > 0)
             {
                 edgeIndexLeft  = (cellIndex - 1) * 4;
-                edgeIndex3Left = (cellIndex - 1) * 4 * 3;
-
 
                 while(k < entryTopLu.length)
                 {
@@ -289,20 +300,19 @@ GLKit.ISOBand.prototype._draw = function(gl)
                     entryTopLu2 = entryTopLu[k+2];
                     entryTopLu3 = entryTopLu[k+3];
 
+                    //check if edge is on adjacent left side, and push index of edge,
+                    //if not, calculate edge, push index of new edge
+
+
                     //check first vertex is on left edge
                     if(entryTopLu0 == 3)
                     {
                         //assign previous calculated edge vertex from previous cell
-                        edgeIndex3Cell = edgeIndex3Left + 3;
-                        indices3.push(edgeIndex3Cell);
-
                         indices.push(edgeIndexLeft + 1);
                     }
                     else //calculate edge vertex
                     {
-                        edgeIndex3Cell = edgeIndex3 + entryTopLu0 * 3;
-                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndex3Cell);
-                        indices3.push(edgeIndex3Cell);
+                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndex3 + entryTopLu0 * 3);
                         indices.push(edgeIndex + entryTopLu0);
                     }
 
@@ -310,16 +320,11 @@ GLKit.ISOBand.prototype._draw = function(gl)
 
                     if(entryTopLu2 == 3)
                     {
-                        edgeIndex3Cell = edgeIndex3Left + 3;
-                        indices3.push(edgeIndex3Cell);
-
                         indices.push(edgeIndexLeft + 1);
                     }
                     else //calculate edge vertex
                     {
-                        edgeIndex3Cell = edgeIndex3 + entryTopLu2 * 3;
-                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3Cell);
-                        indices3.push(edgeIndex3Cell);
+                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3 + entryTopLu2 * 3);
                         indices.push(edgeIndex + entryTopLu2);
                     }
 
@@ -332,11 +337,13 @@ GLKit.ISOBand.prototype._draw = function(gl)
             if(i != 0 && j == 0)
             {
                 edgeIndexTop   = (cellIndex - cellSizeX) * 4;
-                edgeIndex3Top  = (cellIndex - cellSizeX) * 4 * 3;
-
 
                 while(k < entryTopLu.length)
                 {
+
+                    //check if edge is on adjacent top side, and push index of edge,
+                    //if not, calculate edge, push index of new edge
+
                     entryTopLu0 = entryTopLu[k  ];
                     entryTopLu1 = entryTopLu[k+1];
                     entryTopLu2 = entryTopLu[k+2];
@@ -345,38 +352,22 @@ GLKit.ISOBand.prototype._draw = function(gl)
                     //check first vertex is on top edge
                     if(entryTopLu0 == 0)
                     {
-                        //assign previous calculated bottom edge vertex from previous cell
-                        edgeIndex3Cell = edgeIndex3Top + 6;
-                        indices3.push(edgeIndex3Cell);
-
                         indices.push(edgeIndexTop + 2);
-
                     }
-                    else //calculate edge vertex
+                    else
                     {
-                        edgeIndex3Cell = edgeIndex3 + entryTopLu0 * 3;
-                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndex3Cell);
-                        indices3.push(edgeIndex3Cell);
-
+                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges, edgeIndex3 + entryTopLu0 * 3);
                         indices.push(edgeIndex + entryTopLu0);
                     }
 
                     //check first vertex is on top edge
                     if(entryTopLu2 == 0)
                     {
-                        //assign previous calculated bottom edge vertex from previous cell
-                        edgeIndex3Cell = edgeIndex3Top + 6;
-                        indices3.push(edgeIndex3Cell);
-
                         indices.push(edgeIndexTop + 2);
-
                     }
-                    else //calculate edge vertex
+                    else
                     {
-                        edgeIndex3Cell = edgeIndex3 + entryTopLu2 * 3;
-                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3Cell);
-                        indices3.push(edgeIndex3Cell);
-
+                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3 + entryTopLu2 * 3);
                         indices.push(edgeIndex + entryTopLu2);
                     }
 
@@ -389,10 +380,12 @@ GLKit.ISOBand.prototype._draw = function(gl)
 
             if(i != 0 && j != 0)
             {
+
+                //check if edge is on adjacent left side, and push index of edge,
+                //if not, calculate edge, push index of new edge
+
                 edgeIndexLeft  = (cellIndex - 1) * 4;
                 edgeIndexTop   = (cellIndex - cellSizeX) * 4;
-                edgeIndex3Left = (cellIndex - 1) * 4 * 3;
-                edgeIndex3Top  = (cellIndex - cellSizeX) * 4 * 3;
 
                 while(k < entryTopLu.length)
                 {
@@ -404,225 +397,51 @@ GLKit.ISOBand.prototype._draw = function(gl)
                     //check first vertex is on left edge
                     if(entryTopLu0 == 3)
                     {
-                        edgeIndex3Cell = edgeIndex3Left + 3;
-                        indices3.push(edgeIndex3Cell);
-
                         indices.push(edgeIndexLeft + 1);
                     }
-                    else if(entryTopLu0 == 0)
+                    else if(entryTopLu0 == 0)//maybe upper cell?
                     {
-                        //assign previous calculated bottom edge vertex from previous cell
-                        edgeIndex3Cell = edgeIndex3Top + 6;
-                        indices3.push(edgeIndex3Cell);
 
                         indices.push(edgeIndexTop + 2);
 
                     }
                     else //calculate edge vertex
                     {
-                        edgeIndex3Cell = edgeIndex3 + entryTopLu0 * 3;
-                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndex3Cell);
-                        indices3.push(edgeIndex3Cell);
-
+                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndex3 + entryTopLu0 * 3);
                         indices.push(edgeIndex + entryTopLu0);
                     }
 
                     //check second vertex is on left edge
                     if(entryTopLu2 == 3)
                     {
-                        edgeIndex3Cell = edgeIndex3Left + 3;
-                        indices3.push(edgeIndex3Cell);
-
                         indices.push(edgeIndexLeft + 1);
                     }
-                    else if(entryTopLu2 == 0)
+                    else if(entryTopLu2 == 0)//maybe upper cell?
                     {
-                        edgeIndex3Cell = edgeIndex3Top + 6;
-                        indices3.push(edgeIndex3Cell);
-
                         indices.push(edgeIndexTop + 2);
                     }
                     else //calculate edge vertex
                     {
-                        edgeIndex3Cell = edgeIndex3 + entryTopLu2 * 3;
-                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3Cell);
-                        indices3.push(edgeIndex3Cell);
-
+                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3 + entryTopLu2 * 3);
                         indices.push(edgeIndex + entryTopLu2);
-
                     }
 
                     k += 4;
                 }
-
             }
-
         }
     }
 
-    gl.pointSize(1);
-
-
-
-    /*
-
-     gl.drawMode(gl.POINTS);
-     gl.color1f(2);
-     gl.pointSize(1);
-     i = 0;
-     while(i < verts.length)
-     {
-     gl.point3f(verts[i],verts[i+1],verts[i+2]);
-     i+=4;
-     }
-
-
-    var va = [];
-
-    i = -1;
-    while(++i < indices.length)
-    {
-        va.push(edges[indices[i]*3+0],edges[indices[i]*3+1],edges[indices[i]*3+2]);
-    }
-
-    va = new Float32Array(va);
-
-    gl.color1f(1);
-    gl.pointSize(3);
-    gl.drawMode(gl.POINTS);
-    gl.points(va,new Float32Array(va.length/3*4));
-
-    gl.drawMode(gl.LINES);
-    gl.color3f(1,0,1);
-    gl.linev(va);
-      */
-
-
-
-    /*
-     i = 0;
-     while(i < indices.length)
-     {
-
-     gl.color3f(1,0,i/indices.length);
-
-
-     gl.drawMode(gl.LINE_LOOP);
-     gl.linef(edges[indices[i]+0],edges[indices[i]+1],edges[indices[i]+2],
-     edges[indices[i+1]+0],edges[indices[i+1]+1],edges[indices[i+1]+2])
-
-
-     i+=2;
-
-     }
-     */
-
-    /*
-     gl.quadf(edges[indices[i]+0],edges[indices[i]+1],edges[indices[i]+2],
-     edges[indices[i+1]+0],edges[indices[i+1]+1],edges[indices[i+1]+2],
-     edges[indices[i+1]+0],edges[indices[i+1]+1]+0.125,edges[indices[i+1]+2],
-     edges[indices[i]+0],edges[indices[i]+1]+0.125,edges[indices[i]+2]);
-     */
-
-
-    /*
-     gl.pushMatrix();
-     gl.translate3f(0,0.25,0);
-
-     gl.drawMode(gl.LINES);
-     gl.pointSize(4);
-     i = 0;
-
-     while(i < indices.length)
-     {
-     gl.drawMode(gl.POINTS);
-     gl.point3f(edges[indices[i]+0],edges[indices[i]+1],edges[indices[i]+2])
-     gl.color3f((i/indices.length),(i/indices.length)*0.25,1);
-
-     gl.drawMode(gl.LINES);
-     gl.linef(edges[indices[i]+0],edges[indices[i]+1],edges[indices[i]+2],
-     edges[indices[i+1]+0],edges[indices[i+1]+1],edges[indices[i+1]+2]);
-
-     i+=2;
-
-     }
-
-
-     i = 0;
-     gl.translate3f(0,0.25,0);
-     while(i < indices.length)
-     {
-     gl.drawMode(gl.POINTS);
-     gl.point3f(edges[indices[i]+0],edges[indices[i]+1],edges[indices[i]+2])
-     gl.color3f(1,(i/indices.length),0);
-
-     gl.drawMode(gl.LINES);
-     gl.linef(edges[indices[i]+0],edges[indices[i]+1],edges[indices[i]+2],
-     edges[indices[i+1]+0],edges[indices[i+1]+1],edges[indices[i+1]+2]);
-
-     i+=2;
-
-     }
-
-     gl.popMatrix();
-
-     */
-     //console.log(indices);
-
-     var _gl = gl.gl,
-     _glArrayBuffer = _gl.ARRAY_BUFFER,
-     _glFloat       = _gl.FLOAT;
-
-     gl.disableDefaultNormalAttribArray();
-     gl.disableDefaultTexCoordsAttribArray();
-
-     var colors  = new Float32Array(edges.length/3*4),
-     indices16 = new Uint16Array(indices);
-
-     var vblen = edges.byteLength,
-     cblen = colors.byteLength;
-
-     var offsetV = 0,
-     offsetC = offsetV + vblen;
-
-     _gl.bufferData(_glArrayBuffer,vblen + cblen, _gl.DYNAMIC_DRAW);
-
-     _gl.bufferSubData(_glArrayBuffer, offsetV, edges);
-     _gl.bufferSubData(_glArrayBuffer, offsetC, colors);
-
-     _gl.vertexAttribPointer(gl.getDefaultVertexAttrib(),gl.SIZE_OF_VERTEX, _glFloat, false, 0 , offsetV);
-     _gl.vertexAttribPointer(gl.getDefaultColorAttrib(), gl.SIZE_OF_COLOR,  _glFloat, false, 0 , offsetC);
-
-     gl.setMatricesUniform();
-     _gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER,indices16,_gl.DYNAMIC_DRAW);
-     _gl.drawElements(gl.LINES,indices16.length,_gl.UNSIGNED_SHORT,0);
-
-
-
-
-
-    gl.enableDefaultNormalAttribArray();
-    gl.enableDefaultTexCoordsAttribArray();
-
-    /*
-     gl.drawMode(gl.LINES);
-     gl.drawElements(cachedEdges,
-     null,
-     gl.fillColorBuffer(gl.getColorBuffer(),
-     new Float32Array(indices.length/2*4)),
-     null,
-     new Uint16Array(indices),
-     gl.LINES,
-     2
-     );
-     */
-
-    //gl.drawElements(new Float32Array([-1,0,-1,1,0,1]),null,new Float32Array([1,1,1,1,1,1,1,1]),null,new Uint16Array([0,1]),gl.LINES);
-
-
-
-
+    this._indices = new Uint16Array(indices);
 };
+
+//visual debug need isoline/isoband switch
+GLKit.ISOBand.prototype._draw = function(gl)
+{
+    var edges = this._edges;
+    gl.drawElements(edges,null,gl.fillColorBuffer(gl.getColorBuffer(),new Float32Array(edges.length/3*4)),null,this._indices,gl.getDrawMode());
+};
+
 
 GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
 {
@@ -652,7 +471,11 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
     out[offset+2] = -v0v * (v1z - v0z) / v10v + v0z;
 };
 
+/*---------------------------------------------------------------------------------------------------------*/
+// TOPOLOGICAL
+/*---------------------------------------------------------------------------------------------------------*/
 
+//TODO merge
 GLKit.ISOBand.TOP_TABLE =
     [
         [],
@@ -673,6 +496,11 @@ GLKit.ISOBand.TOP_TABLE =
         []
     ];
 
+/*---------------------------------------------------------------------------------------------------------*/
+// TRIANGE
+/*---------------------------------------------------------------------------------------------------------*/
+
+//TODO merge
 GLKit.ISOBand.TRI_TABLE =
     [
         [],
