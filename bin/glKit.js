@@ -2578,7 +2578,7 @@ GLKit.GL.prototype.point3f = function(x,y,z) {this._bVertexPoint[0] = x;this._bV
 GLKit.GL.prototype.point2f = function(x,y){this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;his._bVertexPoint[2] = 0;this.point(this._bVertexPoint);};
 GLKit.GL.prototype.pointv  = function(arr){this._bVertexPoint[0] = arr[0];this._bVertexPoint[1] = arr[1];this._bVertexPoint[2] = arr[2];this.point(this._bVertexPoint);};
 
-
+GLKit.GL.prototype.lineWidth = function(size){this.gl.lineWidth(size);};
 GLKit.GL.prototype.line  = function(vertices){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexLine),null,this.fillColorBuffer(this._bColor,this._bColorLine),null,this._drawMode,0, 2);};
 GLKit.GL.prototype.linev = function(vertices)
 {
