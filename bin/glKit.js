@@ -4963,17 +4963,19 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
     var verts = this._verts;
 
     var v0x = verts[index0  ],
+        v0y = verts[index0+1],
         v0z = verts[index0+2],
         v0v = verts[index0+3];
 
     var v1x = verts[index1  ],
+        v1y = verts[index1+1],
         v1z = verts[index1+2],
         v1v = verts[index1+3];
 
     if(v0v == 0)
     {
         out[offset+0] = v1x;
-        out[offset+1] = 0;
+        out[offset+1] = v1y;
         out[offset+2] = v1z;
 
         return;
@@ -4981,7 +4983,7 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
     else if(v1v == 0)
     {
         out[offset+0] = v0x;
-        out[offset+1] = 0;
+        out[offset+1] = v0y;
         out[offset+2] = v0z;
 
         return;
@@ -4990,7 +4992,7 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
     var v10v = v1v - v0v;
 
     out[offset+0] = -v0v * (v1x - v0x) / v10v + v0x;
-    out[offset+1] = 0;
+    out[offset+1] = -v0v * (v1y - v0y) / v10v + v0y;
     out[offset+2] = -v0v * (v1z - v0z) / v10v + v0z;
 };
 
