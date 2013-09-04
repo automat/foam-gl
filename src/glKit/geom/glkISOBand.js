@@ -49,7 +49,7 @@ GLKit.ISOBand = function(sizeX,sizeZ,unitScaleX,unitScaleZ)
     this._cells = new Array(this._cellSizeX * this._cellSizeZ);
 
     //TODO REMOVE ADJACENT EDGE DOUBLES
-    //
+    //note: no doubles in indices
     // * ----- * ----- *
     // |   0   |   4   |
     // |3     1|7     5|
@@ -174,14 +174,63 @@ GLKit.ISOBand.prototype.applyFunction = function(arg0,arg1,arg2)
         }
     }
 
-    this._march();
+    this.march();
 };
+
+GLKit.ISOBand.prototype.applyFunctionMult = function(arg0,arg1,arg2)
+{
+    var verts = this._verts,
+        vertsIndex;
+
+    var vertsSizeX = this._vertSizeX,
+        vertsSizeZ = this._vertSizeZ;
+
+    var i, j;
+
+    i = -1;
+    while(++i < vertsSizeZ)
+    {
+        j = -1;
+        while(++j < vertsSizeX)
+        {
+            vertsIndex = (vertsSizeX * i + j) * 4;
+            verts[vertsIndex + 3] *= this._func(verts[vertsIndex],verts[vertsIndex+2],arg0,arg1,arg2);
+        }
+    }
+
+    this.march();
+};
+
+GLKit.ISOBand.prototype.setData = function(data,width,height)
+{
+
+    var vertsSizeX = this._vertSizeX,
+        vertsSizeZ = this._vertSizeZ;
+
+    if(width > vertsSizeZ || height > vertsSizeX)
+        throw 'Data exceeds buffer size. Should not exceed ' + vertsSizeZ + ' in width and ' + vertsSizeX + ' in height';
+
+    var verts = this._verts;
+
+    var i ,j;
+    i = -1;
+    while(++i < width)
+    {
+        j = -1;
+        while(++j < height)
+        {
+            verts[(height * i + j) * 4 + 3] = data[height * i + j];
+        }
+    }
+};
+
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 // march
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.ISOBand.prototype._march = function()
+GLKit.ISOBand.prototype.march = function()
 {
     //reset indices
     this._indices  = [];
@@ -470,6 +519,16 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
     out[offset+1] = 0;
     out[offset+2] = -v0v * (v1z - v0z) / v10v + v0z;
 };
+
+
+GLKit.ISOBand.prototype.getVertices      = function(){return this._verts;};
+GLKit.ISOBand.prototype.getVerticesSizeX = function(){return this._vertSizeX;};
+GLKit.ISOBand.prototype.getVerticesSizeZ = function(){return this._vertSizeZ;};
+GLKit.ISOBand.prototype.getCells         = function(){return this._cells;};
+GLKit.ISOBand.prototype.getCellsSizeX    = function(){return this._cellSizeX;};
+GLKit.ISOBand.prototype.getCellsSizeZ    = function(){return this._cellSizeZ;};
+GLKit.ISOBand.prototype.getEdges         = function(){return this._edges;};
+GLKit.ISOBand.prototype.getIndices       = function(){return this._indices;};
 
 /*---------------------------------------------------------------------------------------------------------*/
 // TOPOLOGICAL
