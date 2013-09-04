@@ -2,7 +2,7 @@
 {
     /*---------------------------------------------------------------------------------------------------------*/
 
-    function TestApp(element)
+    function App(element)
     {
         GLKit.Application.apply(this,arguments);
 
@@ -11,16 +11,16 @@
 
         this._zoom = 6;
 
-        var isoBand = this._isoBand = new GLKit.ISOBand(30,30,4,4);
+        var isoBand = this._isoBand = new GLKit.ISOBand(10,10,4,4);
             isoBand.setFunction(function(x,y){return Math.sin(x*y*5);})
             isoBand.applyFunction();
     }
 
-    TestApp.prototype = Object.create(GLKit.Application.prototype);
+    App.prototype = Object.create(GLKit.Application.prototype);
 
-    TestApp.prototype.onWindowResize = function(){this.setSize(window.innerWidth,window.innerHeight);};
+    App.prototype.onWindowResize = function(){this.setSize(window.innerWidth,window.innerHeight);};
 
-    TestApp.prototype.update = function()
+    App.prototype.update = function()
     {
         var gl        = this.gl,
             cam       = this.camera,
@@ -73,7 +73,7 @@
 
     /*---------------------------------------------------------------------------------------------------------*/
 
-    TestApp.prototype.drawSystem = function()
+    App.prototype.drawSystem = function()
     {
         var gl = this.gl;
 
@@ -96,7 +96,7 @@
 
     window.addEventListener('load',function()
     {
-        var app = new TestApp(document.getElementById('canvasGLContainer'));
+        var app = new App(document.getElementById('canvasGLContainer'));
     });
 
     /*---------------------------------------------------------------------------------------------------------*/
