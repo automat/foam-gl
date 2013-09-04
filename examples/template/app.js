@@ -2,7 +2,7 @@
 {
     /*---------------------------------------------------------------------------------------------------------*/
 
-    function TestApp(element)
+    function App(element)
     {
         GLKit.Application.apply(this,arguments);
 
@@ -25,11 +25,11 @@
 
     }
 
-    TestApp.prototype = Object.create(GLKit.Application.prototype);
+    App.prototype = Object.create(GLKit.Application.prototype);
 
-    TestApp.prototype.onWindowResize = function(){this.setSize(window.innerWidth,window.innerHeight);};
+    App.prototype.onWindowResize = function(){this.setSize(window.innerWidth,window.innerHeight);};
 
-    TestApp.prototype.update = function()
+    App.prototype.update = function()
     {
         var gl        = this.gl,
             cam       = this.camera,
@@ -89,7 +89,7 @@
 
     /*---------------------------------------------------------------------------------------------------------*/
 
-    TestApp.prototype.drawSystem = function()
+    App.prototype.drawSystem = function()
     {
         var gl = this.gl;
 
@@ -120,7 +120,7 @@
 
     window.addEventListener('load',function()
     {
-        var app = new TestApp(document.getElementById('canvasGLContainer'));
+        var app = new App(document.getElementById('canvasGLContainer'));
     });
 
     /*---------------------------------------------------------------------------------------------------------*/
