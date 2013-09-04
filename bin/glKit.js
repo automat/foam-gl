@@ -4970,7 +4970,15 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
         v1z = verts[index1+2],
         v1v = verts[index1+3];
 
-    if(v0v == 0 || v1v == 0)
+    if(v0v == 0)
+    {
+        out[offset+0] = v1x;
+        out[offset+1] = 0;
+        out[offset+2] = v1z;
+
+        return;
+    }
+    else if(v1v == 0)
     {
         out[offset+0] = v0x;
         out[offset+1] = 0;
