@@ -42,6 +42,8 @@ GLKit.ISOBand = function(sizeX,sizeZ,unitScaleX,unitScaleZ)
     this._funcArg2 = 0;
     this._isoLevel = 0;
 
+    this._interpolateValues = true;
+
     this._numTriangles = 0;
 
     //TODO CHECK MAX ELEMENT EXCEED
@@ -55,6 +57,9 @@ GLKit.ISOBand = function(sizeX,sizeZ,unitScaleX,unitScaleZ)
     this._tempCellVerticesVals = new Float32Array(4);
 
     this._indices = [];
+
+    //temp TODO remove
+    this.__appUintTypeEnabled = GLKit.Application.getInstance().gl.isUIntElementTypeAvailable();
 
     /*---------------------------------------------------------------------------------------------------------*/
 
@@ -321,7 +326,7 @@ GLKit.ISOBand.prototype.march = function()
                     entryTopLu3 = entryTopLu[k+3];
 
                     //get edge vertex 0 according to topological entry
-
+                    //TODO collapse
                     edgeIndexTemp = entryTopLu0 == 0 ? edgeIndexTop :
                                     entryTopLu0 == 1 ? edgeIndexRight :
                                     entryTopLu0 == 2 ? edgeIndexBottom :
@@ -331,7 +336,7 @@ GLKit.ISOBand.prototype.march = function()
                     indices.push(edgeIndexTemp);
 
                     //get edge vertex 1 according to topological entry
-
+                    //TODO collapse
                     edgeIndexTemp = entryTopLu2 == 0 ? edgeIndexTop :
                                     entryTopLu2 == 1 ? edgeIndexRight :
                                     entryTopLu2 == 2 ? edgeIndexBottom :
@@ -505,14 +510,18 @@ GLKit.ISOBand.prototype.march = function()
         }
     }
 
-    this._indices = new Uint16Array(indices);
+    //temp
+    this._indices = this.__appUintTypeEnabled ?  new Uint32Array(indices) :  new Uint16Array(indices);
 };
 
 //visual debug need isoline/isoband switch
 GLKit.ISOBand.prototype._draw = function(gl)
 {
-    var edges = this._edges;
-    gl.drawElements(edges,null,gl.fillColorBuffer(gl.getColorBuffer(),new Float32Array(edges.length/3*4)),null,this._indices,gl.getDrawMode());
+    var edges   = this._edges,
+        colors  = gl.fillColorBuffer(gl.getColorBuffer(),new Float32Array(edges.length/3*4)),
+        indices =  this._indices;
+
+     gl.drawElements(edges,null,colors,null,indices,gl.getDrawMode(),indices.length,0,this.__appUintTypeEnabled ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT);
 };
 
 
@@ -548,21 +557,21 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
         return;
     }
 
-    var v10v = v1v - v0v;
 
-    out[offset+0] = -v0v * (v1x - v0x) / v10v + v0x;
-    out[offset+1] = -v0v * (v1y - v0y) / v10v + v0y;
-    out[offset+2] = -v0v * (v1z - v0z) / v10v + v0z;
+    if(this._interpolateValues)
+    {
+        var v10v = v1v - v0v;
 
-    /*
-
-    out[offset+0] =  (v1x - v0x) * 0.5 + v0x;
-    out[offset+1] =  (v1y - v0y) * 0.5 + v0y;
-    out[offset+2] =  (v1z - v0z) * 0.5 + v0z;
-
-    */
-
-
+        out[offset+0] = -v0v * (v1x - v0x) / v10v + v0x;
+        out[offset+1] = -v0v * (v1y - v0y) / v10v + v0y;
+        out[offset+2] = -v0v * (v1z - v0z) / v10v + v0z;
+    }
+    else
+    {
+        out[offset+0] =  (v1x - v0x) * 0.5 + v0x;
+        out[offset+1] =  (v1y - v0y) * 0.5 + v0y;
+        out[offset+2] =  (v1z - v0z) * 0.5 + v0z;
+    }
 };
 
 
