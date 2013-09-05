@@ -23,7 +23,7 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var buffer = this._buffer = new GLKit.LineBuffer(this.gl,1500 * 100 * 3);
+        var buffer = this._buffer = new GLKit.LineBuffer2d(this.gl,1500 * 100 * 3);
 
     }
 

@@ -1,4 +1,4 @@
-GLKit.LineBuffer = function(gl,size)
+GLKit.LineBuffer2d = function(gl,size)
 {
     this._gl      = gl;
 
@@ -15,7 +15,7 @@ GLKit.LineBuffer = function(gl,size)
 /*---------------------------------------------------------------------------------------------------------*/
 
 //probably shouldnt do this
-GLKit.LineBuffer.prototype.bind   = function()
+GLKit.LineBuffer2d.prototype.bind   = function()
 {
     var glkgl = this._gl,
         gl    = glkgl.gl;
@@ -25,7 +25,7 @@ GLKit.LineBuffer.prototype.bind   = function()
     gl.bindBuffer(gl.ARRAY_BUFFER,this._vbo);
 };
 
-GLKit.LineBuffer.prototype.unbind = function()
+GLKit.LineBuffer2d.prototype.unbind = function()
 {
     var glkgl = this._gl;
 
@@ -34,7 +34,7 @@ GLKit.LineBuffer.prototype.unbind = function()
     glkgl.bindDefaultVBO();
 };
 
-GLKit.LineBuffer.prototype.pushVertex3f = function(x,y,z)
+GLKit.LineBuffer2d.prototype.pushVertex3f = function(x,y,z)
 {
     var vertices = this.vertices;
 
@@ -45,7 +45,7 @@ GLKit.LineBuffer.prototype.pushVertex3f = function(x,y,z)
     vertices[this._vertIndex++] = z;
 };
 
-GLKit.LineBuffer.prototype.pushColor4f = function(r,g,b,a)
+GLKit.LineBuffer2d.prototype.pushColor4f = function(r,g,b,a)
 {
     var colors = this.colors;
 
@@ -55,7 +55,7 @@ GLKit.LineBuffer.prototype.pushColor4f = function(r,g,b,a)
     colors[this._colIndex++] = a;
 };
 
-GLKit.LineBuffer.prototype.setVertex3f = function(x,y,z,index3)
+GLKit.LineBuffer2d.prototype.setVertex3f = function(x,y,z,index3)
 {
     index3*=3;
     var vertices = this.vertices;
@@ -65,7 +65,7 @@ GLKit.LineBuffer.prototype.setVertex3f = function(x,y,z,index3)
     vertices[index3+2] = z;
 };
 
-GLKit.LineBuffer.prototype.setColor4f = function(r,g,b,a,index4)
+GLKit.LineBuffer2d.prototype.setColor4f = function(r,g,b,a,index4)
 {
     index4*=4;
     var colors = this.colors;
@@ -76,14 +76,14 @@ GLKit.LineBuffer.prototype.setColor4f = function(r,g,b,a,index4)
     colors[index4+3] = a;
 };
 
-GLKit.LineBuffer.prototype.pushVertex    = function(v){this.pushVertex3f(v[0],v[1],v[2]);};
-GLKit.LineBuffer.prototype.pushColor     = function(c){this.pushColor4f(c[0],c[1],c[2],c[3]);};
-GLKit.LineBuffer.prototype.setVertex     = function(v,index){this.setVertex3f(v[0],v[1],v[2],index);};
-GLKit.LineBuffer.prototype.setColor      = function(c,index){this.setColor4f(c[0],c[1],c[2],c[3],index);};
+GLKit.LineBuffer2d.prototype.pushVertex    = function(v){this.pushVertex3f(v[0],v[1],v[2]);};
+GLKit.LineBuffer2d.prototype.pushColor     = function(c){this.pushColor4f(c[0],c[1],c[2],c[3]);};
+GLKit.LineBuffer2d.prototype.setVertex     = function(v,index){this.setVertex3f(v[0],v[1],v[2],index);};
+GLKit.LineBuffer2d.prototype.setColor      = function(c,index){this.setColor4f(c[0],c[1],c[2],c[3],index);};
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.LineBuffer.prototype.buffer = function()
+GLKit.LineBuffer2d.prototype.buffer = function()
 {
     var glkl          = this._gl,
         gl            = glkl.gl,
@@ -105,7 +105,7 @@ GLKit.LineBuffer.prototype.buffer = function()
     gl.vertexAttribPointer(glkl.getDefaultColorAttrib(), glkl.SIZE_OF_COLOR, glFloat,false,0,offsetC);
 };
 
-GLKit.LineBuffer.prototype.draw = function(first,count)
+GLKit.LineBuffer2d.prototype.draw = function(first,count)
 {
     var glkgl = this._gl,
         gl    = glkgl.gl;
@@ -118,13 +118,13 @@ GLKit.LineBuffer.prototype.draw = function(first,count)
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.LineBuffer.prototype.reset = function()
+GLKit.LineBuffer2d.prototype.reset = function()
 {
     this._vertIndex = 0;
     this._colIndex  = 0;
 };
 
-GLKit.LineBuffer.prototype.dispose  = function()
+GLKit.LineBuffer2d.prototype.dispose  = function()
 {
     this._gl.gl.deleteBuffer(this._vbo);
     this.vertices = null;
@@ -132,7 +132,7 @@ GLKit.LineBuffer.prototype.dispose  = function()
     this.reset();
 };
 
-GLKit.LineBuffer.prototype.allocate = function(size)
+GLKit.LineBuffer2d.prototype.allocate = function(size)
 {
     var glkgl = this._gl,
         gl    = glkgl.gl;
@@ -158,12 +158,11 @@ GLKit.LineBuffer.prototype.allocate = function(size)
         temp.set(this.colors);
         temp.set(new Float32Array(temp.length - colsLen),colsLen);
         this.colors = temp;
-
-    }
+  }
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.LineBuffer.prototype.getSizeAllocated = function(){return this.vertices.length;};
-GLKit.LineBuffer.prototype.getSizePushed    = function(){return this._vertIndex;};
+GLKit.LineBuffer2d.prototype.getSizeAllocated = function(){return this.vertices.length;};
+GLKit.LineBuffer2d.prototype.getSizePushed    = function(){return this._vertIndex;};
 
