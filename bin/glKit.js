@@ -4514,28 +4514,17 @@ GLKit.ISOBand = function(sizeX,sizeZ,unitScaleX,unitScaleZ)
     this._verts = new Float32Array(this._vertSizeX * this._vertSizeZ * 4); // grid calculated norm values + function result value ...,x,y,z,v,...
     this._cells = new Array(this._cellSizeX * this._cellSizeZ);
 
-    //TODO REMOVE ADJACENT EDGE DOUBLES
-    //note: no doubles in indices
-    // * ----- * ----- *
-    // |   0   |   4   |
-    // |3     1|7     5|
-    // |   2   |   6   |
-    // * ----- * ----- *
-    // |   8   |   12  |
-    // |11    9|15   13|
-    // |  10   |   14  |
-    // * ----- * ----- *
-    //
-    this._edges = new Float32Array(this._cells.length * 4 * 3);
+    this._edges = new Float32Array((this._cellSizeZ * this._cellSizeX * 2 +
+                                    this._cellSizeZ + this._cellSizeX) * 3);
+
 
     this._tempCellVerticesVals = new Float32Array(4);
 
-    this._indices  = [];
+    this._indices = [];
 
+    /*---------------------------------------------------------------------------------------------------------*/
 
     this._genSurface();
-
-
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -4699,14 +4688,13 @@ GLKit.ISOBand.prototype.setData = function(data,width,height)
 GLKit.ISOBand.prototype.march = function()
 {
     //reset indices
-    this._indices  = [];
+    var indices = this._indices = [];
 
     var verts = this._verts;
 
     var i, j, k;
 
     var cells    = this._cells,
-        edges    = this._edges,
         indices  = this._indices;
 
     var cellSizeX = this._cellSizeX,
@@ -4735,18 +4723,22 @@ GLKit.ISOBand.prototype.march = function()
         entryTopLu2,
         entryTopLu3;
 
-    var edgeIndex,
+    var edgeIndexTop,
+        edgeIndexRight,
+        edgeIndexBottom,
         edgeIndexLeft,
-        edgeIndexTop,
-        edgeIndex3;
+        edgeIndexTemp;
+
+    var edges = this._edges;
+
 
     //
     //  0 ------- 1
     //  |    0    |
-    //  | 3     1 |
-    //  |    2    |
+    //  | 1       | 2
+    //  |         |
     //  3 ------- 2
-    //
+    //       3
 
 
     i = -1;
@@ -4775,8 +4767,11 @@ GLKit.ISOBand.prototype.march = function()
 
             if(cellState == 0)continue;
 
-            edgeIndex  = cellIndex * 4;
-            edgeIndex3 = edgeIndex * 3;
+            edgeIndexTop    = cellIndex + (cellSizeX + 1) * i;
+            edgeIndexRight  = edgeIndexTop   + cellSizeX + 1;
+            edgeIndexBottom = edgeIndexRight + cellSizeX;
+            edgeIndexLeft   = edgeIndexRight - 1;
+
             entryTopLu = ISOBAND_TOP_LU[cellState];
 
             //cell upper left
@@ -4792,21 +4787,33 @@ GLKit.ISOBand.prototype.march = function()
                     entryTopLu3 = entryTopLu[k+3];
 
                     //get edge vertex 0 according to topological entry
-                    this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndex3 + entryTopLu0 * 3);
-                    indices.push(edgeIndex + entryTopLu0);
+
+                    edgeIndexTemp = entryTopLu0 == 0 ? edgeIndexTop :
+                                    entryTopLu0 == 1 ? edgeIndexRight :
+                                    entryTopLu0 == 2 ? edgeIndexBottom :
+                                    edgeIndexLeft;
+
+                    this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndexTemp * 3);
+                    indices.push(edgeIndexTemp);
 
                     //get edge vertex 1 according to topological entry
-                    this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3 + entryTopLu2 * 3);
-                    indices.push(edgeIndex + entryTopLu2);
+
+                    edgeIndexTemp = entryTopLu2 == 0 ? edgeIndexTop :
+                                    entryTopLu2 == 1 ? edgeIndexRight :
+                                    entryTopLu2 == 2 ? edgeIndexBottom :
+                                    edgeIndexLeft;
+
+                    this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndexTemp * 3);
+                    indices.push(edgeIndexTemp);
 
                     k += 4;
                 }
             }
 
             //cells first row after upper left
+            //TODO collapse
             if(i == 0 && j > 0)
             {
-                edgeIndexLeft  = (cellIndex - 1) * 4;
 
                 while(k < entryTopLu.length)
                 {
@@ -4823,24 +4830,33 @@ GLKit.ISOBand.prototype.march = function()
                     if(entryTopLu0 == 3)
                     {
                         //assign previous calculated edge vertex from previous cell
-                        indices.push(edgeIndexLeft + 1);
+                        indices.push(edgeIndexLeft);
+
                     }
                     else //calculate edge vertex
                     {
-                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndex3 + entryTopLu0 * 3);
-                        indices.push(edgeIndex + entryTopLu0);
+                        edgeIndexTemp = entryTopLu0 == 0 ? edgeIndexTop :
+                                        entryTopLu0 == 1 ? edgeIndexRight :
+                                        edgeIndexBottom;
+
+                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndexTemp * 3);
+                        indices.push(edgeIndexTemp);
                     }
 
                     //check second vertex is on left edge
 
                     if(entryTopLu2 == 3)
                     {
-                        indices.push(edgeIndexLeft + 1);
+                        indices.push(edgeIndexLeft);
                     }
                     else //calculate edge vertex
                     {
-                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3 + entryTopLu2 * 3);
-                        indices.push(edgeIndex + entryTopLu2);
+                        edgeIndexTemp = entryTopLu2 == 0 ? edgeIndexTop :
+                                        entryTopLu2 == 1 ? edgeIndexRight :
+                                        edgeIndexBottom;
+
+                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndexTemp * 3);
+                        indices.push(edgeIndexTemp);
                     }
 
 
@@ -4849,9 +4865,9 @@ GLKit.ISOBand.prototype.march = function()
             }
 
             //cells first column after upper left
+            //TODO collapse
             if(i != 0 && j == 0)
             {
-                edgeIndexTop   = (cellIndex - cellSizeX) * 4;
 
                 while(k < entryTopLu.length)
                 {
@@ -4867,23 +4883,31 @@ GLKit.ISOBand.prototype.march = function()
                     //check first vertex is on top edge
                     if(entryTopLu0 == 0)
                     {
-                        indices.push(edgeIndexTop + 2);
+                        indices.push(edgeIndexTop);
                     }
                     else
                     {
-                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges, edgeIndex3 + entryTopLu0 * 3);
-                        indices.push(edgeIndex + entryTopLu0);
+                        edgeIndexTemp = entryTopLu0 == 1 ? edgeIndexRight :
+                                        entryTopLu0 == 2 ? edgeIndexBottom :
+                                        edgeIndexLeft;
+
+                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndexTemp * 3);
+                        indices.push(edgeIndexTemp)
                     }
 
                     //check first vertex is on top edge
                     if(entryTopLu2 == 0)
                     {
-                        indices.push(edgeIndexTop + 2);
+                        indices.push(edgeIndexTop);
                     }
                     else
                     {
-                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3 + entryTopLu2 * 3);
-                        indices.push(edgeIndex + entryTopLu2);
+                        edgeIndexTemp = entryTopLu2 == 1 ? edgeIndexRight :
+                                        entryTopLu2 == 2 ? edgeIndexBottom :
+                                        edgeIndexLeft;
+
+                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndexTemp * 3);
+                        indices.push(edgeIndexTemp)
                     }
 
                     k += 4;
@@ -4892,15 +4916,12 @@ GLKit.ISOBand.prototype.march = function()
             }
 
             //check all other cells
-
+            //TODO collapse
             if(i != 0 && j != 0)
             {
 
                 //check if edge is on adjacent left side, and push index of edge,
                 //if not, calculate edge, push index of new edge
-
-                edgeIndexLeft  = (cellIndex - 1) * 4;
-                edgeIndexTop   = (cellIndex - cellSizeX) * 4;
 
                 while(k < entryTopLu.length)
                 {
@@ -4912,34 +4933,37 @@ GLKit.ISOBand.prototype.march = function()
                     //check first vertex is on left edge
                     if(entryTopLu0 == 3)
                     {
-                        indices.push(edgeIndexLeft + 1);
+                        indices.push(edgeIndexLeft);
                     }
                     else if(entryTopLu0 == 0)//maybe upper cell?
                     {
-
-                        indices.push(edgeIndexTop + 2);
-
+                        indices.push(edgeIndexTop);
                     }
                     else //calculate edge vertex
                     {
-                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndex3 + entryTopLu0 * 3);
-                        indices.push(edgeIndex + entryTopLu0);
+                        edgeIndexTemp = entryTopLu0 == 1 ? edgeIndexRight : edgeIndexBottom;
+
+                        this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndexTemp * 3);
+                        indices.push(edgeIndexTemp);
                     }
 
                     //check second vertex is on left edge
                     if(entryTopLu2 == 3)
                     {
-                        indices.push(edgeIndexLeft + 1);
+                        indices.push(edgeIndexLeft);
                     }
                     else if(entryTopLu2 == 0)//maybe upper cell?
                     {
-                        indices.push(edgeIndexTop + 2);
+                        indices.push(edgeIndexTop);
                     }
                     else //calculate edge vertex
                     {
-                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndex3 + entryTopLu2 * 3);
-                        indices.push(edgeIndex + entryTopLu2);
+                        edgeIndexTemp = entryTopLu2 == 1 ? edgeIndexRight : edgeIndexBottom;
+
+                        this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndexTemp * 3);
+                        indices.push(edgeIndexTemp);
                     }
+
 
                     k += 4;
                 }
@@ -4972,6 +4996,7 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
         v1z = verts[index1+2],
         v1v = verts[index1+3];
 
+
     if(v0v == 0)
     {
         out[offset+0] = v1x;
@@ -4994,6 +5019,16 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
     out[offset+0] = -v0v * (v1x - v0x) / v10v + v0x;
     out[offset+1] = -v0v * (v1y - v0y) / v10v + v0y;
     out[offset+2] = -v0v * (v1z - v0z) / v10v + v0z;
+
+    /*
+
+    out[offset+0] =  (v1x - v0x) * 0.5 + v0x;
+    out[offset+1] =  (v1y - v0y) * 0.5 + v0y;
+    out[offset+2] =  (v1z - v0z) * 0.5 + v0z;
+
+    */
+
+
 };
 
 
