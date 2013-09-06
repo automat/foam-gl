@@ -18,12 +18,12 @@
             light0.setPosition3f(1,1,1);
 
         var material = this._material0 = new GLKit.Material();
-            material.setDiffuse3f(0.7,0.7,0.7);
-            material.setAmbient3f(0.7,0.7,0.7);
+            material.setDiffuse3f(0.7,0.1,0.2);
+            material.setAmbient3f(0.7,0.1,0.7);
             material.setSpecular3f(1,1,1);
-            material.shininess = 20.0;
+            material.shininess = 100.0;
 
-        var len = 1000;
+        var len = 3000;
         var i = -1;
         var r = 1;
         var a;
@@ -53,7 +53,7 @@
             n = i / len;
 
 
-            lineBuffer.setDiameter(i,Math.abs(Math.sin(n*Math.PI))*0.35);
+            lineBuffer.setDiameter(i,Math.abs(Math.sin(n*Math.PI))*0.35*Math.sin(n*Math.PI*n*150));
 
 
         }
@@ -137,16 +137,16 @@
 
 
         lineBuffer.update();
-        //lineBuffer.updateVertexNormals();
+        lineBuffer.updateVertexNormals();
 
 
         gl.color1f(1);
         gl.drawMode(gl.LINE_STRIP);
         gl.pointSize(1);
         lineBuffer.drawBaseLine(gl);
-        gl.color1f(1);
+        gl.color3f(1,0.75,1);
         gl.drawMode(gl.POINTS);
-        gl.pointSize(3);
+        gl.pointSize(2);
         lineBuffer.drawLineVertices(gl);
         gl.color3f(1,0,1);
 
