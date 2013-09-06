@@ -40,7 +40,7 @@
         }
 
 
-        var lineBuffer = this._line3dBuffer = new GLKit.LineBuffer3d(len,20);
+        var lineBuffer = this._line3dBuffer = new GLKit.LineBuffer3d(len,10);
             lineBuffer.setPoints(arr);
             lineBuffer.update();
 
@@ -53,10 +53,11 @@
             n = i / len;
 
 
-            lineBuffer.setDiameter(i,Math.abs(Math.sin(n*Math.PI))*0.25);
+            lineBuffer.setDiameter(i,Math.abs(Math.sin(n*Math.PI))*0.35);
 
 
         }
+
 
     }
 
@@ -136,6 +137,7 @@
 
 
         lineBuffer.update();
+        //lineBuffer.updateVertexNormals();
 
 
         gl.color1f(1);
@@ -147,7 +149,16 @@
         gl.pointSize(3);
         lineBuffer.drawLineVertices(gl);
         gl.color3f(1,0,1);
+
+        gl.useLighting(true);
+        gl.useMaterial(true);
+
+        gl.light(light0);
+        gl.material(this._material0);
         lineBuffer.draw(gl);
+
+        gl.useMaterial(false);
+        gl.useLighting(false);
 
 
 
