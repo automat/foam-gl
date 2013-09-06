@@ -23,7 +23,7 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var len = 300;
+        var len = 1000;
         var i = -1;
         var r = 1;
         var a;
@@ -40,9 +40,23 @@
         }
 
 
-        var lineBuffer = this._line3dBuffer = new GLKit.LineBuffer3d(len);
+        var lineBuffer = this._line3dBuffer = new GLKit.LineBuffer3d(len,20);
             lineBuffer.setPoints(arr);
             lineBuffer.update();
+
+        len = lineBuffer.getNumPoints();
+        i = -1;
+        var n;
+
+        while(++i < len)
+        {
+            n = i / len;
+
+
+            lineBuffer.setDiameter(i,Math.abs(Math.sin(n*Math.PI))*0.25);
+
+
+        }
 
     }
 
@@ -101,24 +115,21 @@
 
         var lineBuffer = this._line3dBuffer;
 
-        gl.pushMatrix();
-
-        gl.rotate3f(Math.sin(time)*Math.PI,Math.sin(time*0.25)*Math.PI,Math.sin(time)*Math.PI);
-
 
         var len = lineBuffer.getNumPoints();
         var i = -1;
         var r = 1;
         var a;
+        var n;
 
 
         while(++i < len)
         {
-            a = Math.PI * 8 / len * i + Math.sin(time)*Math.PI * 10;
-            // r =  2 / len * i;
+            n = i / len;
+
+            a = Math.PI * 8 / len * i + Math.sin(time*0.025)*Math.PI * 10;
             r = 2 / (len-1) * i + Math.sin(time) * 2;
             lineBuffer.setPoint3f(i, Math.cos(a) * r,(-0.5 + i/len) * 2,Math.sin(a) * r);
-
         }
 
 
@@ -140,8 +151,6 @@
 
 
 
-
-        gl.popMatrix();
 
 
 

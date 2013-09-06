@@ -1,21 +1,27 @@
 GLKit.LineBuffer3d = function(numPoints,numSegments,diameter)
 {
-    numSegments = numSegments || 20;
+    numSegments = numSegments || 10;
     diameter    = diameter    || 0.25;
 
-    this._diameter    = diameter;
+    var diameters = this._diameters = new Array(numPoints);
+
+    var i = -1;
+    while(++i < numSegments){diameters[i] = diameter;}
+
     this._numSegments = numSegments;
     this._numPoints   = numPoints;
 
     this._points      = new Float32Array(numPoints * 3);
-    var verticesNorm  = this._verticesNorm = new Float32Array(numPoints * numSegments * 3);
+
+    var verticesNorm  = this._verticesNorm = new Float32Array(numPoints * numSegments * 3 * 2);
+
     this._vertices    = new Float32Array(verticesNorm.length);
     this._colors      = new Float32Array(this._vertices.length / 3 * 4);
     var indices       = this._indices     = [];
 
     var index;
     //for dev
-    var i,j;
+    var j;
     i = 0;
     while(++i < numPoints - 2)
     {
@@ -38,7 +44,7 @@ GLKit.LineBuffer3d = function(numPoints,numSegments,diameter)
 
 
 
-    var stepPI = Math.PI * 2  / (numSegments ),
+    var stepPI = Math.PI * 2 / numSegments,
         step;
 
     i = -1;
@@ -48,11 +54,15 @@ GLKit.LineBuffer3d = function(numPoints,numSegments,diameter)
         j = -1;
         while(++j < numSegments)
         {
-            k    = (i * numSegments + j) * 3;
+            k    = (i * numSegments + j) * 3 * 2;
             step = j * stepPI;
 
-            verticesNorm[k+0] = Math.cos(step) * diameter;
-            verticesNorm[k+2] = Math.sin(step) * diameter;
+            verticesNorm[k+0] = Math.cos(step);
+            verticesNorm[k+2] = Math.sin(step);
+
+            verticesNorm[k+3] = verticesNorm[k+0] * diameter;
+            verticesNorm[k+5] = verticesNorm[k+2] * diameter;
+
         }
 
 
@@ -85,12 +95,35 @@ GLKit.LineBuffer3d.prototype.setPoints = function(array)
     while(++i<points.length)
     {
         i3 = i * 3;
-        points[i]   = array[i];
+        points[i  ] = array[i  ];
         points[i+1] = array[i+1];
         points[i+2] = array[i+2];
     }
 };
 
+GLKit.LineBuffer3d.prototype.setDiameter = function(index,value)
+{
+    this._diameters[index] = value;
+
+    var numSegments  = this._numSegments,
+        verticesNorm = this._verticesNorm;
+
+    var offset = numSegments * 3 * 2;
+
+    var i = index * offset,
+        l   = i + offset;
+
+    while(i < l)
+    {
+        verticesNorm[i+3] = verticesNorm[i+0] * value;
+        verticesNorm[i+5] = verticesNorm[i+2] * value;
+
+        i+=6;
+    }
+};
+
+
+//for dev
 GLKit.LineBuffer3d.prototype.update = function()
 {
     var numPoints   = this._numPoints,
@@ -110,66 +143,81 @@ GLKit.LineBuffer3d.prototype.update = function()
         p01 = this._bPoint01,
         up  = this._axisY;
 
+
+
     var mat = Mat44.make();
 
-    var index;
+    var index,index3,index6;
 
-
-    var dir01,dir_10,c;
+    var dir01,dir_10;
     var angle,axis;
     //for dev
+
+    //calc first prev dir
+    Vec3.set3f(p0, points[3],points[4],points[5]);
+    Vec3.set3f(p01,points[0],points[1],points[2]);
+    dir_10 = Vec3.normalize(Vec3.subbed(p0,p01));
+
+
 
     var i3;
     var i = 0;
     var j;
     while(++i < numPoints - 1)
     {
+        //set current point
         i3 = i * 3;
-        Vec3.set3f(p0,points[i3],points[i3+1],points[i3+2]);
+        p0[0] = points[i3  ];
+        p0[1] = points[i3+1];
+        p0[2] = points[i3+2];
 
+        //set next point
         i3 = (i + 1) * 3;
-        Vec3.set3f(p1,points[i3],points[i3+1],points[i3+2]);
+        p1[0] = points[i3  ];
+        p1[1] = points[i3+1];
+        p1[2] = points[i3+2];
 
-        i3 = (i - 1) * 3;
-        Vec3.set3f(p01,points[i3],points[i3+1],points[i3+2]);
-
-        dir_10 = Vec3.normalize(Vec3.subbed(p0,p01));
+        //calculate direction
         dir01  = Vec3.normalize(Vec3.subbed(p1,p0));
 
-        Vec3.lerp(dir01,dir_10,0.5)
+        //interpolate with previous direction
+        dir01[0] = dir01[0] * 0.5 + dir_10[0] * 0.5;
+        dir01[1] = dir01[1] * 0.5 + dir_10[1] * 0.5;
+        dir01[2] = dir01[2] * 0.5 + dir_10[2] * 0.5;
 
-        c   = Vec3.dot(dir01,up);
-
-
-
-        angle = Math.acos(c);
+        //get dir angle + axis
+        angle = Math.acos(Vec3.dot(dir01,up));
         axis  = Vec3.normalize(Vec3.cross(up,dir01));
 
-
-
+        //create transformation matrix
         Mat44.identity(mat);
         mat = Mat44.multPost(mat,Mat44.makeTranslate(p0[0],p0[1],p0[2]));
-        mat = Mat44.multPost(mat,Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2]));//Mat44.multPost(mat,Mat44.makeRotationOnAxis(angle,axis));
+        mat = Mat44.multPost(mat,Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2]));
 
-
+        //assign current direction to prev
+        dir_10[0] = dir01[0];
+        dir_10[1] = dir01[1];
+        dir_10[2] = dir01[2];
 
         j = -1;
         while(++j < numSegments)
         {
-            index =  (i * numSegments + j) * 3;
+            index  = (i * numSegments + j);
+            index3 = index * 3;
+            index6 = index * 6;
 
-            tempVec[0] = vertices[index  ] = verticesNorm[index  ];
-            tempVec[1] = vertices[index+1] = verticesNorm[index+1];
-            tempVec[2] = vertices[index+2] = verticesNorm[index+2];
+            //lookup vertex
+            tempVec[0] = verticesNorm[index6+3];
+            tempVec[1] = verticesNorm[index6+4];
+            tempVec[2] = verticesNorm[index6+5];
 
-            tempVec = Mat44.multVec3(mat,tempVec);
+            //transform vertex copy py matrix
+            Mat44.multVec3(mat,tempVec);
 
-            vertices[index  ] = tempVec[0];
-            vertices[index+1] = tempVec[1];
-            vertices[index+2] = tempVec[2];
-
-
-            //Mat44.multVec3(mat,ver)
+            //reassign transformed vertex
+            vertices[index3  ] = tempVec[0];
+            vertices[index3+1] = tempVec[1];
+            vertices[index3+2] = tempVec[2];
 
         }
 
