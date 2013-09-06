@@ -118,7 +118,7 @@ GLKit.Mat44 =
     },
 
     //temp from glMatrix
-    makeRotationOnAxis : function(rot,x,y,z)
+    makeRotationOnAxis : function(rot,x,y,z,out)
     {
         var len = Math.sqrt(x * x + y * y + z * z);
 
@@ -142,28 +142,26 @@ GLKit.Mat44 =
         c = Math.cos(rot);
         t = 1 - c;
 
-        var a   = GLKit.Mat44.make();
-        var out = GLKit.Mat44.make();
+        out = out || GLKit.Mat44.make();
 
-        a00 = a[0]; a01 = a[1]; a02 = a[2]; a03 = a[3];
-        a10 = a[4]; a11 = a[5]; a12 = a[6]; a13 = a[7];
-        a20 = a[8]; a21 = a[9]; a22 = a[10]; a23 = a[11];
-
+        a00 = 1; a01 = 0; a02 = 0; a03 = 0;
+        a10 = 0; a11 = 1; a12 = 0; a13 = 0;
+        a20 = 0; a21 = 0; a22 = 1; a23 = 0;
 
         b00 = x * x * t + c; b01 = y * x * t + z * s; b02 = z * x * t - y * s;
         b10 = x * y * t - z * s; b11 = y * y * t + c; b12 = z * y * t + x * s;
         b20 = x * z * t + y * s; b21 = y * z * t - x * s; b22 = z * z * t + c;
 
-        out[0] = a00 * b00 + a10 * b01 + a20 * b02;
-        out[1] = a01 * b00 + a11 * b01 + a21 * b02;
-        out[2] = a02 * b00 + a12 * b01 + a22 * b02;
-        out[3] = a03 * b00 + a13 * b01 + a23 * b02;
-        out[4] = a00 * b10 + a10 * b11 + a20 * b12;
-        out[5] = a01 * b10 + a11 * b11 + a21 * b12;
-        out[6] = a02 * b10 + a12 * b11 + a22 * b12;
-        out[7] = a03 * b10 + a13 * b11 + a23 * b12;
-        out[8] = a00 * b20 + a10 * b21 + a20 * b22;
-        out[9] = a01 * b20 + a11 * b21 + a21 * b22;
+        out[0 ] = a00 * b00 + a10 * b01 + a20 * b02;
+        out[1 ] = a01 * b00 + a11 * b01 + a21 * b02;
+        out[2 ] = a02 * b00 + a12 * b01 + a22 * b02;
+        out[3 ] = a03 * b00 + a13 * b01 + a23 * b02;
+        out[4 ] = a00 * b10 + a10 * b11 + a20 * b12;
+        out[5 ] = a01 * b10 + a11 * b11 + a21 * b12;
+        out[6 ] = a02 * b10 + a12 * b11 + a22 * b12;
+        out[7 ] = a03 * b10 + a13 * b11 + a23 * b12;
+        out[8 ] = a00 * b20 + a10 * b21 + a20 * b22;
+        out[9 ] = a01 * b20 + a11 * b21 + a21 * b22;
         out[10] = a02 * b20 + a12 * b21 + a22 * b22;
         out[11] = a03 * b20 + a13 * b21 + a23 * b22;
 
