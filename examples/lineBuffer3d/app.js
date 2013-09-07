@@ -23,46 +23,14 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 100.0;
 
-        var len = 1000;
-        var i = -1;
-        var r = 1;
-        var a;
-        var arr = new Array(len * 3);
 
-
-        while(++i < len)
-        {
-            a = Math.PI * 8 / len * i;
-           // r =  2 / len * i;
-            arr[i*3  ] = Math.cos(a) * r;
-            arr[i*3+1] = (-0.5 + i/len) * 2;
-            arr[i*3+2] = Math.sin(a) * r;
-
-        }
-
-
-
-        var lineBuffer = this._line3dBuffer = new GLKit.LineBuffer3d(len,40);
+        var arr = [-2,0,0,-1,0,0,0,0,0,1,0,0,2,0,0];
+        var lineBuffer = this._line3dBuffer = new GLKit.LineBuffer3d(arr.length/3,16,0.25);
             lineBuffer.setPoints(arr);
 
 
-        /*
-        len = lineBuffer.getNumPoints();
-        i = -1;
-        var n;
-
-        while(++i < len)
-        {
-            n = i / len;
-
-
-            lineBuffer.setDiameter(i,Math.abs(Math.sin(n*Math.PI))*0.35*Math.sin(n*Math.PI*n*150));
-
-
-        }
-        */
-
         lineBuffer.update();
+        lineBuffer.updateVertexNormals();
 
     }
 
@@ -130,23 +98,6 @@
         var n;
 
 
-        while(++i < len)
-        {
-            n = i / len;
-
-            a = Math.PI * 8 / len * i + Math.sin(time*0.025)*Math.PI * 10;
-            r = 2 / (len-1) * i + Math.sin(time) * 2;
-            lineBuffer.setPoint3f(i, Math.cos(a) * r,(-0.5 + i/len) * 2 * Math.sin(n * 40 + time*2) * 2,Math.sin(a) * r);
-            //lineBuffer.setDiameter(i,GLKit.Math.rect(Math.sin(Math.PI * n * 100+time*50))*0.25);
-        }
-
-
-
-
-
-        lineBuffer.update();
-        lineBuffer.updateVertexNormals();
-
 
         gl.color1f(1);
         gl.drawMode(gl.LINE_STRIP);
@@ -156,7 +107,7 @@
         gl.drawMode(gl.LINE_STRIP);
         gl.pointSize(2);
         gl.drawMode(gl.POINTS);
-        gl.points(lineBuffer.vertices);
+        //gl.points(lineBuffer.vertices);
         gl.color3f(1,0,1);
 
         gl.useLighting(true);
