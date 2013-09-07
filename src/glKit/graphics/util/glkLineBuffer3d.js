@@ -8,50 +8,80 @@ GLKit.LineBuffer3d = function(numPoints,numSegments,diameter,sliceFunc)
     this._numSegments = numSegments;
     this._numPoints   = numPoints;
 
+    var len = numPoints * numSegments * 3 * 2;
+
     this.points        = new Float32Array(numPoints * 3);
+    this._verticesNorm = new Float32Array(len);
 
-    this._verticesNorm = new Float32Array(numPoints * numSegments * 3 * 2);
-    var verticesNorm = this._verticesNorm;
-
-    this.vertices = new Float32Array(verticesNorm.length);
+    this.vertices = new Float32Array(len);
     this.colors   = new Float32Array(this.vertices.length / 3 * 4);
-    this.normals  = new Float32Array(verticesNorm.length);
+    this.normals  = new Float32Array(len);
     this.indices  = [];
 
     var indices = this.indices,
-        index;
-    //for dev
-    var i,j;
-    i = 0;
-    while(++i < numPoints - 2)
+        index,indexSeg;
+
+    var verticesNorm = this._verticesNorm;
+
+    var i, j;
+    var v0,v1,v2,v3;
+
+    if(numSegments > 2)
     {
-        j = -1;
-        while(++j < numSegments)
+        len = numSegments - 1;
+
+        //close front
+        i = -1;
+        while(++i < len)indices.push(0,i,i+1);
+
+        i = -1;
+        while (++i < numPoints - 1)
         {
-            index = i * numSegments + j;
 
+            index = i * numSegments;
+            j = -1;
+            while (++j < len)
+            {
+                indexSeg = index + j;
 
-            indices.push(index);
-            indices.push(index+numSegments);
+                v0 = indexSeg;
+                v1 = indexSeg + 1;
+                v2 = indexSeg + numSegments + 1;
+                v3 = indexSeg + numSegments;
 
-            /*
-            indices.push(index);
-            indices.push(index+1);
-            indices.push(index+numSegments);
+                indices.push(v0,v1,v3,
+                             v1,v2,v3);
+            }
 
-            indices.push(index+1);
-            indices.push(index+1+numSegments);
-            indices.push(index+numSegments);
-            */
+            v0 = index + len;
+            v1 = index;
+            v2 = index + len + 1;
+            v3 = index + numSegments + len;
 
-
+            indices.push(v0,v1,v3,
+                         v1,v2,v3);
         }
 
-        index = i * numSegments;
+        //close back
+        index = i = (numPoints - 1) * numSegments;
+        j     = i + numSegments;
+        while (++i < j - 1)indices.push(index, i, i + 1);
+    }
+    else
+    {
+        i = -1;
+        while(++i < numPoints - 1)
+        {
+            index = i * 2;
+            indices.push(index,
+                         index + 1,
+                         index + 2,
+                         index + 1,
+                         index + 3,
+                         index + 2);
 
-        indices.push(index);
-        indices.push(index+numSegments);
-   }
+        }
+    }
 
 
     var stepPI = Math.PI * 2 / numSegments,
@@ -62,9 +92,11 @@ GLKit.LineBuffer3d = function(numPoints,numSegments,diameter,sliceFunc)
     while(++i < numPoints)
     {
         j = -1;
+        index = i * numSegments;
+
         while(++j < numSegments)
         {
-            k    = (i * numSegments + j) * 3 * 2;
+            k    = (index + j) * 3 * 2;
             step = j * stepPI;
 
             verticesNorm[k+0] = Math.cos(step);
@@ -72,11 +104,10 @@ GLKit.LineBuffer3d = function(numPoints,numSegments,diameter,sliceFunc)
 
             verticesNorm[k+3] = verticesNorm[k+0] * diameter;
             verticesNorm[k+5] = verticesNorm[k+2] * diameter;
-
         }
-
-
     }
+
+    this.indices = new Uint16Array(indices);
 
     this._tempVec  = GLKit.Vec3.make();
     this._bPoint0  = GLKit.Vec3.make();
@@ -128,7 +159,6 @@ GLKit.LineBuffer3d.prototype.setDiameter = function(index,value)
         var indx = index;
             val  = value;
 
-
         i = indx * offset;
         l = i + offset;
 
@@ -157,7 +187,6 @@ GLKit.LineBuffer3d.prototype.setDiameter = function(index,value)
     }
 };
 
-//for dev
 GLKit.LineBuffer3d.prototype.update = function()
 {
     var numPoints   = this._numPoints,
@@ -185,7 +214,41 @@ GLKit.LineBuffer3d.prototype.update = function()
     //direction from current point -> next point, prev point -> current point
     var dir01,dir_10;
     var angle,axis;
-    //for dev
+
+    //BEGIN - calculate first point
+    Vec3.set3f(p0,points[0],points[1],points[2]);
+    Vec3.set3f(p1,points[3],points[4],points[5]);
+
+    dir01 = Vec3.normalize(Vec3.subbed(p1,p0));
+    angle = Math.acos(Vec3.dot(dir01,up));
+    axis  = Vec3.normalize(Vec3.cross(up,dir01));
+
+    Mat44.identity(mat);
+    mat[12] = p0[0];
+    mat[13] = p0[1];
+    mat[14] = p0[2];
+
+    Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2],matRot);
+    mat = Mat44.multPost(mat,matRot);
+
+    j = -1;
+    while(++j < numSegments)
+    {
+        index3 = j * 3;
+        index6 = j * 6;
+
+        tempVec[0] = verticesNorm[index6+3];
+        tempVec[1] = verticesNorm[index6+4];
+        tempVec[2] = verticesNorm[index6+5];
+
+        Mat44.multVec3(mat,tempVec);
+
+        vertices[index3  ] = tempVec[0];
+        vertices[index3+1] = tempVec[1];
+        vertices[index3+2] = tempVec[2];
+    }
+    //END - calculate first point
+
 
     //calc first prev dir
     Vec3.set3f(p0, points[3],points[4],points[5]);
@@ -261,32 +324,50 @@ GLKit.LineBuffer3d.prototype.update = function()
         dir_10[1] = dir01[1];
         dir_10[2] = dir01[2];
     }
+
+    var len = points.length;
+
+    //BEGIN - calculate last point
+    Vec3.set3f(p0,points[len - 6],points[len - 5],points[len - 4]);
+    Vec3.set3f(p1,points[len - 3],points[len - 2],points[len - 1]);
+
+    dir01 = Vec3.normalize(Vec3.subbed(p1,p0));
+    angle = Math.acos(Vec3.dot(dir01,up));
+    axis  = Vec3.normalize(Vec3.cross(up,dir01));
+
+    Mat44.identity(mat);
+    mat[12] = p1[0];
+    mat[13] = p1[1];
+    mat[14] = p1[2];
+
+    Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2],matRot);
+    mat = Mat44.multPost(mat,matRot);
+
+    i  = (i * numSegments);
+
+    j = -1;
+    while(++j < numSegments)
+    {
+        index  = i + j;
+        index3 = index * 3;
+        index6 = index * 6;
+
+        tempVec[0] = verticesNorm[index6+3];
+        tempVec[1] = verticesNorm[index6+4];
+        tempVec[2] = verticesNorm[index6+5];
+
+        Mat44.multVec3(mat,tempVec);
+
+        vertices[index3  ] = tempVec[0];
+        vertices[index3+1] = tempVec[1];
+        vertices[index3+2] = tempVec[2];
+    }
+    //END - calculate last point
 };
-
-
 
 GLKit.LineBuffer3d.prototype.getNumPoints = function(){return this._numPoints;};
 
-
-//for dev
-GLKit.LineBuffer3d.prototype.drawBaseLine = function(gl)
-{
-    gl.linev(this.points);
-};
-
-//for dev
-GLKit.LineBuffer3d.prototype.drawLineVertices = function(gl)
-{
-    gl.points(this.vertices);
-};
-
-//for dev
-GLKit.LineBuffer3d.prototype.draw = function(gl)
-{
-    gl.drawElements(this.vertices,this.normals,gl.fillColorBuffer(gl.getColorBuffer(),this.colors),null,new Uint16Array(this.indices),gl.TRIANGLE_STRIP);
-
-
-}
+GLKit.LineBuffer3d.prototype._draw = function(gl){gl.drawElements(this.vertices,this.normals,gl.fillColorBuffer(gl.getColorBuffer(),this.colors),null,this.indices,gl.TRIANGLES);};
 
 
 
