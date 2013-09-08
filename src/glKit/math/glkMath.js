@@ -87,5 +87,8 @@ GLKit.Math =
     stepInvSquared        : function(n){return 1-(1-n)*(1-n);},
     stepCubed             : function(n){return n*n*n*n;},
     stepInvCubed          : function(n){return 1-(1-n)*(1-n)*(1-n)*(1-n);},
-    catmullrom            : function(v,p0,p1,p2,p3){return 0.5 * ((2 * p1) + (-p0 + p2) * v + (2 * p0 - 5 * p1 + 4 * p2 - p3) * v * v + (-p0 + 3 * p1 - 3 * p2 + p3) * v * v *v);}
+    catmullrom            : function(a,b,c,d,i){ return a * ((-i + 2) * i - 1) * i * 0.5 +
+                                                        b * (((3 * i - 5) * i) * i + 2) * 0.5 +
+                                                        c * ((-3 * i + 4) * i + 1) * i * 0.5 +
+                                                        d * ((i - 1) * i * i) * 0.5;}
 };
