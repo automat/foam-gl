@@ -26,26 +26,25 @@
         var len = 10,
             arr = new Array(len * 3);
 
-        var n,a;
+        var n, a, r;
 
         var i = -1;
         while(++i < len)
         {
             n = i/len;
-            a = Math.PI * 8 / len * i;
+            a = Math.PI * 4 / len * i;
+            r = (1-n)*2;
 
-            arr[i*3  ] = Math.cos(a);
-            arr[i*3+1] = (-0.5 + n) * 2;
-            arr[i*3+2] = Math.sin(a);
+            arr[i*3  ] = Math.cos(a) * r;
+            arr[i*3+1] = (-0.5 + n);
+            arr[i*3+2] = Math.sin(a) * r;
 
         }
 
         var spline = this._spline = new GLKit.Spline();
-            spline.setDetail(4);
+            spline.setDetail(10);
             spline.setPoints(arr);
             spline.update();
-
-
 
     }
 
@@ -104,23 +103,38 @@
 
         var spline = this._spline;
 
-        gl.color1f(0.25);
+        gl.color3f(0.75,0,0.5);
         gl.drawMode(gl.LINE_STRIP);
         gl.linev(spline.points);
 
-        gl.color3f(1,0.25,1);
+        gl.color3f(0.25,0.75,1);
         gl.drawMode(gl.POINTS);
-        gl.pointSize(5);
+        gl.pointSize(6);
         gl.points(spline.points);
 
+        gl.lineWidth(2);
         gl.color1f(0.75);
         gl.drawMode(gl.LINE_STRIP);
         gl.linev(spline.vertices);
+        gl.lineWidth(1);
 
-        gl.color1f(1);
-        gl.pointSize(20);
+        gl.pointSize(4);
         gl.drawMode(gl.POINTS);
-        if(time)gl.point(spline.getVec3OnSpline(Math.abs(Math.sin(time*0.025))));
+        gl.color1f(0.75);
+        gl.points(spline.vertices);
+
+
+        //hm
+        if(time)
+        {
+            gl.pointSize(20);
+            gl.color3f(0.75,0,0.5);
+            gl.point(spline.getVec3OnPoints(Math.abs(GLKit.Math.saw(time*0.05))));
+            gl.color1f(1);
+            gl.point(spline.getVec3OnSpline(Math.abs(GLKit.Math.saw(time*0.05))));
+
+        }
+
         gl.pointSize(1);
 
 

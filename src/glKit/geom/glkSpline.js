@@ -1,28 +1,40 @@
 
-//Basic naive catmull rom spline
-//TODO: Add close, smooth in out intrpl, tightness
+//Basic catmull rom spline
+//TODO: Add close, smooth in out intrpl, pre post points, tightness
 GLKit.Spline = function()
 {
-    this._detail    = 20;
-    this._numPoints = null;
     this.points     = null;
     this.vertices   = null;
 
+    this._detail    = 20;
+    this._numPoints = null;
+    this._numVerts  = null;
     this._tempOut   = GLKit.Vec3.make();
 };
 
+GLKit.Spline.prototype.setPoint3f = function(index,x,y,z)
+{
+    var points = this.points;
+
+    index*=3;
+    points[index  ] = x;
+    points[index+1] = y;
+    points[index+2] = z;
+};
 
 GLKit.Spline.prototype.setPoints =  function(arr)
 {
-    var num = arr.length / 3;
-    this._numPoints = num;
+    var num         = this._numPoints = arr.length / 3,
+        numVerts    = this._numVerts  = (num - 1) * (this._detail - 1) + 1;
+
     this.points     = new Float32Array(arr);
-    this.vertices   = new Float32Array(((num - 1) * this._detail) * 3);
+    this.vertices   = new Float32Array(numVerts * 3);
 };
 
 GLKit.Spline.prototype.update = function()
 {
     var detail    = this._detail,
+        detail_1  = detail - 1,
         points    = this.points,
         numPoints = this._numPoints,
         vertices  = this.vertices;
@@ -48,9 +60,9 @@ GLKit.Spline.prototype.update = function()
         index   *= 3;
 
         j = -1;
-        while(++j < detail)
+        while(++j < detail_1)
         {
-            t = j / (detail - 1);
+            t = j / detail_1;
 
             x = catmullrom(points[index_1],
                            points[index  ],
@@ -70,39 +82,73 @@ GLKit.Spline.prototype.update = function()
                            points[index2  + 2],
                            t);
 
-            vertIndex = (i * detail + j) * 3;
+            vertIndex = (i * detail_1 + j) * 3;
 
             vertices[vertIndex  ] = x;
             vertices[vertIndex+1] = y;
             vertices[vertIndex+2] = z;
         }
     }
+
+    var vertLen   = vertices.length,
+        pointsLen = points.length;
+
+    vertices[vertLen-3] = points[pointsLen-3];
+    vertices[vertLen-2] = points[pointsLen-2];
+    vertices[vertLen-1] = points[pointsLen-1];
+
 };
 
 GLKit.Spline.prototype.setDetail = function(detail){this._detail = detail;};
-GLKit.Spline.prototype.getNumPoints = function(){return this._numPoints;};
+
+GLKit.Spline.prototype.getNumPoints   = function(){return this._numPoints;};
+GLKit.Spline.prototype.getNumVertices = function(){return this._numVerts;};
+
+GLKit.Spline.prototype.getVec3OnPoints = function(val,out)
+{
+    out = out || this._tempOut;
+
+    var points    = this.points,
+        numPoints = this._numPoints,
+        len       = numPoints - 1;
+
+    var index  = Math.floor(numPoints * val),
+        index1 = Math.min(index + 1, len);
+
+        index *= 3;
+        index1*= 3;
+
+    var localIntrpl    = (val % (1 / numPoints)) * numPoints,
+        localIntrplInv = 1.0 - localIntrpl;
+
+    out[0] = points[index  ] * localIntrplInv + points[index1  ] * localIntrpl;
+    out[1] = points[index+1] * localIntrplInv + points[index1+1] * localIntrpl;
+    out[2] = points[index+2] * localIntrplInv + points[index1+2] * localIntrpl;
+
+    return out;
+
+};
 
 GLKit.Spline.prototype.getVec3OnSpline = function(val,out)
 {
     out = out || this._tempOut;
 
+    var vertices = this.vertices,
+        numVerts = this._numVerts,
+        len      = numVerts - 1;
 
+    var index  = Math.min(Math.floor(numVerts * val),numVerts),
+        index1 = Math.min(index + 1,len);
 
-    var vertices = this.vertices;
-    var numVerts = vertices.length / 3;
-    var index = Math.floor(numVerts * val);
+    var localIntrpl    = (val % (1 / numVerts)) * numVerts,
+        localIntrplInv = 1.0 - localIntrpl;
 
-    var localIntrplUnit = 1 / numVerts;
+    index  *= 3;
+    index1 *= 3;
 
-    console.log((val % localIntrplUnit) * numVerts);
-
-
-    index *= 3;
-    out[0] = vertices[index  ];
-    out[1] = vertices[index+1];
-    out[2] = vertices[index+2];
-
-
+    out[0] = vertices[index  ] * localIntrplInv + vertices[index1  ] * localIntrpl;
+    out[1] = vertices[index+1] * localIntrplInv + vertices[index1+1] * localIntrpl;
+    out[2] = vertices[index+2] * localIntrplInv + vertices[index1+2] * localIntrpl;
 
     return out;
 };
