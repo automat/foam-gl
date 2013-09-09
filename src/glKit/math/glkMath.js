@@ -7,7 +7,19 @@ GLKit.Math =
     EPSILON     : 0.0001,
 
     lerp        : function(a,b,v){return (a*(1-v))+(b*v);},
+    cosIntrpl   : function(a,b,v){v = (1 - Math.cos(v * Math.PI)) * 0.5;return (a * (1-v) + b * v);},
+    cubicIntrpl : function(a,b,c,d,v)
+    {
+        var a0,b0,c0,d0,vv;
 
+        vv = v * v;
+        a0 = d - c - a + b;
+        b0 = a - b - a0;
+        c0 = c - a;
+        d0 = b;
+
+        return a0*v*vv+b0*vv+c0*v+d0;
+    },
     randomFloat : function()
     {
         var r;
