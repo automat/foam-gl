@@ -20,6 +20,33 @@ GLKit.Math =
 
         return a0*v*vv+b0*vv+c0*v+d0;
     },
+
+    hermiteIntrpl : function(a,b,c,d,v,tension,bias)
+    {
+        var v0, v1, v2, v3,
+            a0, b0, c0, d0;
+
+        tension = (1.0 - tension) * 0.5;
+
+        var biasp = 1 + bias,
+            biasn = 1 - bias;
+
+        v2  = v * v;
+        v3  = v2 * v;
+
+        v0  = (b - a) * biasp * tension;
+        v0 += (c - b) * biasn * tension;
+        v1  = (c - b) * biasp * tension;
+        v1 += (d - c) * biasn * tension;
+
+        a0  = 2 * v3 - 3 * v2 + 1;
+        b0  = v3 - 2 * v2 + v;
+        c0  = v3 - v2;
+        d0  = -2 * v3 + 3 * v2;
+
+        return a0 * b + b0 * v0 + c0 * v1 + d0 * c;
+    },
+
     randomFloat : function()
     {
         var r;
