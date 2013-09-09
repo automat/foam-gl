@@ -92,7 +92,7 @@ GLKit.LineBuffer3d = function(numPoints,numSegments,diameter,sliceSegmentFunc)
 
     this.indices = new Uint16Array(indices);
 
-    this._tempVec  = GLKit.Vec3.make();
+    this._tempVec0  = GLKit.Vec3.make();
     this._bPoint0  = GLKit.Vec3.make();
     this._bPoint1  = GLKit.Vec3.make();
     this._bPoint01 = GLKit.Vec3.make();
@@ -215,7 +215,7 @@ GLKit.LineBuffer3d.prototype.update = function()
     var Vec3  = GLKit.Vec3,
         Mat44 = GLKit.Mat44;
 
-    var tempVec = this._tempVec;
+    var tempVec = this._tempVec0;
 
     var p0  = this._bPoint0,
         p1  = this._bPoint1,

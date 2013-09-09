@@ -1,15 +1,23 @@
 
-//Basic catmull rom spline
-//TODO: Add close, smooth in out intrpl, pre post points, tightness
+//TODO: Add close, smooth in out intrpl, pre post points
 GLKit.Spline = function()
 {
     this.points     = null;
     this.vertices   = null;
 
     this._detail    = 20;
+    this._tension   = 0;
+    this._bias      = 0;
     this._numPoints = null;
     this._numVerts  = null;
-    this._tempOut   = GLKit.Vec3.make();
+
+    this._tempVec0  = GLKit.Vec3.make();
+    this._tempVec1  = GLKit.Vec3.make();
+    this._tempMat0  = GLKit.Mat44.make();
+    this._tempMat1  = GLKit.Mat44.make();
+    this._tempMat2  = GLKit.Mat44.make();
+
+    this._axisY     = GLKit.Vec3.AXIS_Y();
 };
 
 GLKit.Spline.prototype.setPoint3f = function(index,x,y,z)
@@ -39,7 +47,9 @@ GLKit.Spline.prototype.update = function()
         numPoints = this._numPoints,
         vertices  = this.vertices;
 
-    var catmullrom = GLKit.Math.catmullrom;
+    var tension       = this._tension,
+        bias          = this._bias,
+        hermiteIntrpl = GLKit.Math.hermiteIntrpl;
 
     var i, j, t;
     var len = numPoints - 1;
@@ -64,23 +74,23 @@ GLKit.Spline.prototype.update = function()
         {
             t = j / detail_1;
 
-            x = catmullrom(points[index_1],
-                           points[index  ],
-                           points[index1 ],
-                           points[index2 ],
-                           t);
+            x = hermiteIntrpl(points[index_1],
+                              points[index  ],
+                              points[index1 ],
+                              points[index2 ],
+                              t,tension,bias);
 
-            y = catmullrom(points[index_1 + 1],
-                           points[index   + 1],
-                           points[index1  + 1],
-                           points[index2  + 1],
-                           t);
+            y = hermiteIntrpl(points[index_1 + 1],
+                              points[index   + 1],
+                              points[index1  + 1],
+                              points[index2  + 1],
+                              t,tension,bias);
 
-            z = catmullrom(points[index_1 + 2],
-                           points[index   + 2],
-                           points[index1  + 2],
-                           points[index2  + 2],
-                           t);
+            z = hermiteIntrpl(points[index_1 + 2],
+                              points[index   + 2],
+                              points[index1  + 2],
+                              points[index2  + 2],
+                              t,tension,bias);
 
             vertIndex = (i * detail_1 + j) * 3;
 
@@ -99,14 +109,16 @@ GLKit.Spline.prototype.update = function()
 
 };
 
-GLKit.Spline.prototype.setDetail = function(detail){this._detail = detail;};
+GLKit.Spline.prototype.setDetail  = function(detail) {this._detail  = detail;};
+GLKit.Spline.prototype.setTension = function(tension){this._tension = tension;};
+GLKit.Spline.prototype.setBias    = function(bias)   {this._bias    = bias;};
 
 GLKit.Spline.prototype.getNumPoints   = function(){return this._numPoints;};
 GLKit.Spline.prototype.getNumVertices = function(){return this._numVerts;};
 
 GLKit.Spline.prototype.getVec3OnPoints = function(val,out)
 {
-    out = out || this._tempOut;
+    out = out || this._tempVec0;
 
     var points    = this.points,
         numPoints = this._numPoints,
@@ -131,16 +143,16 @@ GLKit.Spline.prototype.getVec3OnPoints = function(val,out)
 
 GLKit.Spline.prototype.getVec3OnSpline = function(val,out)
 {
-    out = out || this._tempOut;
+    out = out || this._tempVec0;
 
     var vertices = this.vertices,
         numVerts = this._numVerts,
         len      = numVerts - 1;
 
-    var index  = Math.min(Math.floor(numVerts * val),numVerts),
+    var index  = Math.min(Math.floor(numVerts * val),len),
         index1 = Math.min(index + 1,len);
 
-    var localIntrpl    = (val % (1 / numVerts)) * numVerts,
+    var localIntrpl    = (val % (1.0 / numVerts)) * numVerts,
         localIntrplInv = 1.0 - localIntrpl;
 
     index  *= 3;
@@ -151,4 +163,54 @@ GLKit.Spline.prototype.getVec3OnSpline = function(val,out)
     out[2] = vertices[index+2] * localIntrplInv + vertices[index1+2] * localIntrpl;
 
     return out;
+};
+
+
+//TODO: finish
+GLKit.Spline.prototype.getTransMatOnSpline = function(val,up,out)
+{
+    var Mat44 = GLKit.Mat44,
+        Vec3  = GLKit.Vec3;
+
+    up  = up  || this._axisY;
+    out = out || Mat44.identity(this._tempMat0);
+
+    var vertices = this.vertices,
+        numVerts = this._numVerts,
+        len      = numVerts - 1;
+
+    var index   = Math.min(Math.floor(numVerts * val),len),
+        index_1 = Math.max(0,index - 1);
+
+        index   *= 3;
+        index_1 *= 3;
+
+    var localIntrpl    = (val % (1.0 / numVerts)) * numVerts,
+        localIntrplInv = 1.0 - localIntrpl;
+
+    var p0  = this._tempVec0,
+        p01 = this._tempVec1;
+
+        p0[0] = vertices[index  ];
+        p0[1] = vertices[index+1];
+        p0[2] = vertices[index+2];
+
+        p01[0] = vertices[index_1  ];
+        p01[1] = vertices[index_1+1];
+        p01[2] = vertices[index_1+2];
+
+    var mat    = Mat44.identity(out),
+        matRot = Mat44.identity(this._tempMat2);
+
+
+    var dir01 = Vec3.normalize(Vec3.subbed(p01,p0)),
+        angle = Math.acos(Vec3.dot(dir01,up)),
+        axis  = Vec3.normalize(Vec3.cross(up,dir01));
+
+        mat[12] = p0[0];
+        mat[13] = p0[1];
+        mat[14] = p0[2];
+
+    Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2],matRot);
+    return Mat44.multPost(mat,matRot);
 };

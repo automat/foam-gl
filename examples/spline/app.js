@@ -23,7 +23,7 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
-        var len = 10,
+        var len = 20,
             arr = new Array(len * 3);
 
         var n, a, r;
@@ -32,17 +32,17 @@
         while(++i < len)
         {
             n = i/len;
-            a = Math.PI * 4 / len * i;
-            r = (1-n)*2;
+            a = Math.PI*2 * 2 / len * i;
+            r =1 ;
 
             arr[i*3  ] = Math.cos(a) * r;
-            arr[i*3+1] = (-0.5 + n);
+            arr[i*3+1] = (-0.5 + n)*2;
             arr[i*3+2] = Math.sin(a) * r;
 
         }
 
         var spline = this._spline = new GLKit.Spline();
-            spline.setDetail(10);
+            spline.setDetail(4);
             spline.setPoints(arr);
             spline.update();
 
@@ -123,15 +123,19 @@
         gl.color1f(0.75);
         gl.points(spline.vertices);
 
+        spline.setTension(Math.sin(time)*2);
+        spline.update();
+
+
 
         //hm
         if(time)
         {
             gl.pointSize(20);
             gl.color3f(0.75,0,0.5);
-            gl.point(spline.getVec3OnPoints(Math.abs(GLKit.Math.saw(time*0.05))));
+            gl.point(spline.getVec3OnPoints(Math.abs(GLKit.Math.saw(time*0.025))));
             gl.color1f(1);
-            gl.point(spline.getVec3OnSpline(Math.abs(GLKit.Math.saw(time*0.05))));
+            gl.point(spline.getVec3OnSpline(Math.abs(GLKit.Math.saw(time*0.025))));
 
         }
 
