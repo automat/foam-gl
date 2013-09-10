@@ -381,6 +381,7 @@ GLKit.LineBuffer3d.prototype.update = function()
     //END - calculate last point
 };
 
-GLKit.LineBuffer3d.prototype.getNumPoints = function(){return this._numPoints;};
+GLKit.LineBuffer3d.prototype.getNumSegments = function(){return this._numSegments;};
+GLKit.LineBuffer3d.prototype.getNumPoints   = function(){return this._numPoints;};
 
 GLKit.LineBuffer3d.prototype._draw = function(gl){gl.drawElements(this.vertices,this.normals,gl.fillColorBuffer(gl.getColorBuffer(),this.colors),null,this.indices,gl.TRIANGLES);};

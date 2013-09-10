@@ -42,6 +42,45 @@ GLKit.Math =
     EPSILON     : 0.0001,
 
     lerp        : function(a,b,v){return (a*(1-v))+(b*v);},
+    cosIntrpl   : function(a,b,v){v = (1 - Math.cos(v * Math.PI)) * 0.5;return (a * (1-v) + b * v);},
+    cubicIntrpl : function(a,b,c,d,v)
+    {
+        var a0,b0,c0,d0,vv;
+
+        vv = v * v;
+        a0 = d - c - a + b;
+        b0 = a - b - a0;
+        c0 = c - a;
+        d0 = b;
+
+        return a0*v*vv+b0*vv+c0*v+d0;
+    },
+
+    hermiteIntrpl : function(a,b,c,d,v,tension,bias)
+    {
+        var v0, v1, v2, v3,
+            a0, b0, c0, d0;
+
+        tension = (1.0 - tension) * 0.5;
+
+        var biasp = 1 + bias,
+            biasn = 1 - bias;
+
+        v2  = v * v;
+        v3  = v2 * v;
+
+        v0  = (b - a) * biasp * tension;
+        v0 += (c - b) * biasn * tension;
+        v1  = (c - b) * biasp * tension;
+        v1 += (d - c) * biasn * tension;
+
+        a0  = 2 * v3 - 3 * v2 + 1;
+        b0  = v3 - 2 * v2 + v;
+        c0  = v3 - v2;
+        d0  = -2 * v3 + 3 * v2;
+
+        return a0 * b + b0 * v0 + c0 * v1 + d0 * c;
+    },
 
     randomFloat : function()
     {
@@ -122,7 +161,10 @@ GLKit.Math =
     stepInvSquared        : function(n){return 1-(1-n)*(1-n);},
     stepCubed             : function(n){return n*n*n*n;},
     stepInvCubed          : function(n){return 1-(1-n)*(1-n)*(1-n)*(1-n);},
-    catmullrom            : function(v,p0,p1,p2,p3){return 0.5 * ((2 * p1) + (-p0 + p2) * v + (2 * p0 - 5 * p1 + 4 * p2 - p3) * v * v + (-p0 + 3 * p1 - 3 * p2 + p3) * v * v *v);}
+    catmullrom            : function(a,b,c,d,i){ return a * ((-i + 2) * i - 1) * i * 0.5 +
+                                                        b * (((3 * i - 5) * i) * i + 2) * 0.5 +
+                                                        c * ((-3 * i + 4) * i + 1) * i * 0.5 +
+                                                        d * ((i - 1) * i * i) * 0.5;}
 };
 
 GLKit.Quaternion =
@@ -421,7 +463,16 @@ GLKit.Vec3 =
         v0[0] = x0 * (1.0 - f) + v1[0] * f;
         v0[1] = y0 * (1.0 - f) + v1[1] * f;
         v0[2] = z0 * (1.0 - f) + v1[2] * f;
+
+
     },
+
+    lerped : function(v0,v1,f)
+    {
+        return this.lerp(this.copy(v0),v1,f);
+    },
+
+
 
     lerp3f : function(v,x,y,z,f)
     {
@@ -957,7 +1008,7 @@ GLKit.Mat44 =
     },
 
     //temp from glMatrix
-    makeRotationOnAxis : function(rot,x,y,z)
+    makeRotationOnAxis : function(rot,x,y,z,out)
     {
         var len = Math.sqrt(x * x + y * y + z * z);
 
@@ -981,28 +1032,26 @@ GLKit.Mat44 =
         c = Math.cos(rot);
         t = 1 - c;
 
-        var a   = GLKit.Mat44.make();
-        var out = GLKit.Mat44.make();
+        out = out || GLKit.Mat44.make();
 
-        a00 = a[0]; a01 = a[1]; a02 = a[2]; a03 = a[3];
-        a10 = a[4]; a11 = a[5]; a12 = a[6]; a13 = a[7];
-        a20 = a[8]; a21 = a[9]; a22 = a[10]; a23 = a[11];
-
+        a00 = 1; a01 = 0; a02 = 0; a03 = 0;
+        a10 = 0; a11 = 1; a12 = 0; a13 = 0;
+        a20 = 0; a21 = 0; a22 = 1; a23 = 0;
 
         b00 = x * x * t + c; b01 = y * x * t + z * s; b02 = z * x * t - y * s;
         b10 = x * y * t - z * s; b11 = y * y * t + c; b12 = z * y * t + x * s;
         b20 = x * z * t + y * s; b21 = y * z * t - x * s; b22 = z * z * t + c;
 
-        out[0] = a00 * b00 + a10 * b01 + a20 * b02;
-        out[1] = a01 * b00 + a11 * b01 + a21 * b02;
-        out[2] = a02 * b00 + a12 * b01 + a22 * b02;
-        out[3] = a03 * b00 + a13 * b01 + a23 * b02;
-        out[4] = a00 * b10 + a10 * b11 + a20 * b12;
-        out[5] = a01 * b10 + a11 * b11 + a21 * b12;
-        out[6] = a02 * b10 + a12 * b11 + a22 * b12;
-        out[7] = a03 * b10 + a13 * b11 + a23 * b12;
-        out[8] = a00 * b20 + a10 * b21 + a20 * b22;
-        out[9] = a01 * b20 + a11 * b21 + a21 * b22;
+        out[0 ] = a00 * b00 + a10 * b01 + a20 * b02;
+        out[1 ] = a01 * b00 + a11 * b01 + a21 * b02;
+        out[2 ] = a02 * b00 + a12 * b01 + a22 * b02;
+        out[3 ] = a03 * b00 + a13 * b01 + a23 * b02;
+        out[4 ] = a00 * b10 + a10 * b11 + a20 * b12;
+        out[5 ] = a01 * b10 + a11 * b11 + a21 * b12;
+        out[6 ] = a02 * b10 + a12 * b11 + a22 * b12;
+        out[7 ] = a03 * b10 + a13 * b11 + a23 * b12;
+        out[8 ] = a00 * b20 + a10 * b21 + a20 * b22;
+        out[9 ] = a01 * b20 + a11 * b21 + a21 * b22;
         out[10] = a02 * b20 + a12 * b21 + a22 * b22;
         out[11] = a03 * b20 + a13 * b21 + a23 * b22;
 
@@ -1952,6 +2001,12 @@ GLKit.GL = function(context3d,context2d)
 
     this.ACTIVE_ATTRIBUTES= 35721; this.ACTIVE_TEXTURE= 34016; this.ACTIVE_UNIFORMS= 35718; this.ALIASED_LINE_WIDTH_RANGE= 33902; this.ALIASED_POINT_SIZE_RANGE= 33901; this.ALPHA= 6406; this.ALPHA_BITS= 3413; this.ALWAYS= 519 ; this.ARRAY_BUFFER= 34962 ; this.ARRAY_BUFFER_BINDING= 34964 ; this.ATTACHED_SHADERS= 35717 ; this.BACK= 1029 ; this.BLEND= 3042 ; this.BLEND_COLOR= 32773 ; this.BLEND_DST_ALPHA= 32970 ; this.BLEND_DST_RGB= 32968 ; this.BLEND_EQUATION= 32777 ; this.BLEND_EQUATION_ALPHA= 34877 ; this.BLEND_EQUATION_RGB= 32777 ; this.BLEND_SRC_ALPHA= 32971 ; this.BLEND_SRC_RGB= 32969 ; this.BLUE_BITS= 3412 ; this.BOOL= 35670 ; this.BOOL_VEC2= 35671 ; this.BOOL_VEC3= 35672 ; this.BOOL_VEC4= 35673 ; this.BROWSER_DEFAULT_WEBGL= 37444 ; this.BUFFER_SIZE= 34660 ; this.BUFFER_USAGE= 34661 ; this.BYTE= 5120 ; this.CCW= 2305 ; this.CLAMP_TO_EDGE= 33071 ; this.COLOR_ATTACHMENT0= 36064 ; this.COLOR_BUFFER_BIT= 16384 ; this.COLOR_CLEAR_VALUE= 3106 ; this.COLOR_WRITEMASK= 3107 ; this.COMPILE_STATUS= 35713 ; this.COMPRESSED_TEXTURE_FORMATS= 34467 ; this.CONSTANT_ALPHA= 32771 ; this.CONSTANT_COLOR= 32769 ; this.CONTEXT_LOST_WEBGL= 37442 ; this.CULL_FACE= 2884 ; this.CULL_FACE_MODE= 2885 ; this.CURRENT_PROGRAM= 35725 ; this.CURRENT_VERTEX_ATTRIB= 34342 ; this.CW= 2304 ; this.DECR= 7683 ; this.DECR_WRAP= 34056 ; this.DELETE_STATUS= 35712 ; this.DEPTH_ATTACHMENT= 36096 ; this.DEPTH_BITS= 3414 ; this.DEPTH_BUFFER_BIT= 256 ; this.DEPTH_CLEAR_VALUE= 2931 ; this.DEPTH_COMPONENT= 6402 ; this.DEPTH_COMPONENT16= 33189 ; this.DEPTH_FUNC= 2932 ; this.DEPTH_RANGE= 2928 ; this.DEPTH_STENCIL= 34041 ; this.DEPTH_STENCIL_ATTACHMENT= 33306 ; this.DEPTH_TEST= 2929 ; this.DEPTH_WRITEMASK= 2930 ; this.DITHER= 3024 ; this.DONT_CARE= 4352 ; this.DST_ALPHA= 772 ; this.DST_COLOR= 774 ; this.DYNAMIC_DRAW= 35048 ; this.ELEMENT_ARRAY_BUFFER= 34963 ; this.ELEMENT_ARRAY_BUFFER_BINDING= 34965 ; this.EQUAL= 514 ; this.FASTEST= 4353 ; this.FLOAT= 5126 ; this.FLOAT_MAT2= 35674 ; this.FLOAT_MAT3= 35675 ; this.FLOAT_MAT4= 35676 ; this.FLOAT_VEC2= 35664 ; this.FLOAT_VEC3= 35665 ; this.FLOAT_VEC4= 35666 ; this.FRAGMENT_SHADER= 35632 ; this.FRAMEBUFFER= 36160 ; this.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME= 36049 ; this.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE= 36048 ; this.FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE= 36051 ; this.FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL= 36050 ; this.FRAMEBUFFER_BINDING= 36006 ; this.FRAMEBUFFER_COMPLETE= 36053 ; this.FRAMEBUFFER_INCOMPLETE_ATTACHMENT= 36054 ; this.FRAMEBUFFER_INCOMPLETE_DIMENSIONS= 36057 ; this.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT= 36055 ; this.FRAMEBUFFER_UNSUPPORTED= 36061 ; this.FRONT= 1028 ; this.FRONT_AND_BACK= 1032 ; this.FRONT_FACE= 2886 ; this.FUNC_ADD= 32774 ; this.FUNC_REVERSE_SUBTRACT= 32779 ; this.FUNC_SUBTRACT= 32778 ; this.GENERATE_MIPMAP_HINT= 33170 ; this.GEQUAL= 518 ; this.GREATER= 516 ; this.GREEN_BITS= 3411 ; this.HIGH_FLOAT= 36338 ; this.HIGH_INT= 36341 ; this.INCR= 7682 ; this.INCR_WRAP= 34055 ; this.INT= 5124 ; this.INT_VEC2= 35667 ; this.INT_VEC3= 35668 ; this.INT_VEC4= 35669 ; this.INVALID_ENUM= 1280 ; this.INVALID_FRAMEBUFFER_OPERATION= 1286 ; this.INVALID_OPERATION= 1282 ; this.INVALID_VALUE= 1281 ; this.INVERT= 5386 ; this.KEEP= 7680 ; this.LEQUAL= 515 ; this.LESS= 513 ; this.LINEAR= 9729 ; this.LINEAR_MIPMAP_LINEAR= 9987 ; this.LINEAR_MIPMAP_NEAREST= 9985 ; this.LINES= 1 ; this.LINE_LOOP= 2 ; this.LINE_STRIP= 3 ; this.LINE_WIDTH= 2849; this.LINK_STATUS= 35714; this.LOW_FLOAT= 36336 ; this.LOW_INT= 36339 ; this.LUMINANCE= 6409 ; this.LUMINANCE_ALPHA= 6410; this.MAX_COMBINED_TEXTURE_IMAGE_UNITS= 35661 ; this.MAX_CUBE_MAP_TEXTURE_SIZE= 34076 ; this.MAX_FRAGMENT_UNIFORM_VECTORS= 36349 ; this.MAX_RENDERBUFFER_SIZE= 34024 ; this.MAX_TEXTURE_IMAGE_UNITS= 34930 ; this.MAX_TEXTURE_SIZE= 3379 ; this. MAX_VARYING_VECTORS= 36348 ; this.MAX_VERTEX_ATTRIBS= 34921 ; this.MAX_VERTEX_TEXTURE_IMAGE_UNITS= 35660 ; this.MAX_VERTEX_UNIFORM_VECTORS= 36347 ; this.MAX_VIEWPORT_DIMS= 3386 ; this.MEDIUM_FLOAT= 36337 ; this.MEDIUM_INT= 36340 ; this.MIRRORED_REPEAT= 33648 ; this.NEAREST= 9728 ; this.NEAREST_MIPMAP_LINEAR= 9986 ; this.NEAREST_MIPMAP_NEAREST= 9984 ; this.NEVER= 512 ; this.NICEST= 4354 ; this.NONE= 0 ; this.NOTEQUAL= 517 ; this.NO_ERROR= 0 ; this.ONE= 1 ; this.ONE_MINUS_CONSTANT_ALPHA= 32772 ; this.ONE_MINUS_CONSTANT_COLOR= 32770 ; this.ONE_MINUS_DST_ALPHA= 773 ; this.ONE_MINUS_DST_COLOR= 775 ; this.ONE_MINUS_SRC_ALPHA= 771 ; this.ONE_MINUS_SRC_COLOR= 769 ; this.OUT_OF_MEMORY= 1285 ; this.PACK_ALIGNMENT= 3333 ; this.POINTS= 0 ; this.POLYGON_OFFSET_FACTOR= 32824 ; this.POLYGON_OFFSET_FILL= 32823 ; this.POLYGON_OFFSET_UNITS= 10752 ; this.RED_BITS= 3410 ; this.RENDERBUFFER= 36161 ; this.RENDERBUFFER_ALPHA_SIZE= 36179 ; this.RENDERBUFFER_BINDING= 36007 ; this.RENDERBUFFER_BLUE_SIZE= 36178 ; this.RENDERBUFFER_DEPTH_SIZE= 36180 ; this.RENDERBUFFER_GREEN_SIZE= 36177 ; this.RENDERBUFFER_HEIGHT= 36163 ; this.RENDERBUFFER_INTERNAL_FORMAT= 36164 ; this.RENDERBUFFER_RED_SIZE= 36176 ; this.RENDERBUFFER_STENCIL_SIZE= 36181 ; this.RENDERBUFFER_WIDTH= 36162 ; this.RENDERER= 7937 ; this.REPEAT= 10497 ; this.REPLACE= 7681 ; this.RGB= 6407 ; this.RGB5_A1= 32855 ; this.RGB565= 36194 ; this.RGBA= 6408 ; this.RGBA4= 32854 ; this.SAMPLER_2D= 35678 ; this.SAMPLER_CUBE= 35680 ; this.SAMPLES= 32937 ; this.SAMPLE_ALPHA_TO_COVERAGE= 32926 ; this.SAMPLE_BUFFERS= 32936 ; this.SAMPLE_COVERAGE= 32928 ; this.SAMPLE_COVERAGE_INVERT= 32939 ; this.SAMPLE_COVERAGE_VALUE= 32938 ; this.SCISSOR_BOX= 3088 ; this.SCISSOR_TEST= 3089 ; this.SHADER_TYPE= 35663 ; this.SHADING_LANGUAGE_VERSION= 35724 ; this.SHORT= 5122 ; this.SRC_ALPHA= 770 ; this.SRC_ALPHA_SATURATE= 776 ; this.SRC_COLOR= 768 ; this.STATIC_DRAW= 35044 ; this.STENCIL_ATTACHMENT= 36128 ; this.STENCIL_BACK_FAIL= 34817 ; this.STENCIL_BACK_FUNC= 34816 ; this.STENCIL_BACK_PASS_DEPTH_FAIL= 34818 ; this.STENCIL_BACK_PASS_DEPTH_PASS= 34819 ; this.STENCIL_BACK_REF= 36003 ; this.STENCIL_BACK_VALUE_MASK= 36004 ; this.STENCIL_BACK_WRITEMASK= 36005 ; this.STENCIL_BITS= 3415 ; this.STENCIL_BUFFER_BIT= 1024 ; this.STENCIL_CLEAR_VALUE= 2961 ; this.STENCIL_FAIL= 2964 ; this.STENCIL_FUNC= 2962 ; this.STENCIL_INDEX= 6401 ; this.STENCIL_INDEX8= 36168 ; this.STENCIL_PASS_DEPTH_FAIL= 2965 ; this.STENCIL_PASS_DEPTH_PASS= 2966 ; this.STENCIL_REF= 2967 ; this.STENCIL_TEST= 2960 ; this.STENCIL_VALUE_MASK= 2963 ; this.STENCIL_WRITEMASK= 2968 ; this.STREAM_DRAW= 35040 ; this.SUBPIXEL_BITS= 3408 ; this.TEXTURE= 5890 ; this.TEXTURE0= 33984 ; this.TEXTURE1= 33985 ; this.TEXTURE2= 33986 ; this.TEXTURE3= 33987 ; this.TEXTURE4= 33988 ; this.TEXTURE5= 33989 ; this.TEXTURE6= 33990 ; this.TEXTURE7= 33991 ; this.TEXTURE8= 33992 ; this.TEXTURE9= 33993 ; this.TEXTURE10= 33994 ; this.TEXTURE11= 33995 ; this.TEXTURE12= 33996 ; this.TEXTURE13= 33997 ; this.TEXTURE14= 33998 ; this.TEXTURE15= 33999 ; this.TEXTURE16= 34000 ; this.TEXTURE17= 34001 ; this.TEXTURE18= 34002 ; this.TEXTURE19= 34003 ; this.TEXTURE20= 34004 ; this.TEXTURE21= 34005 ; this.TEXTURE22= 34006 ; this.TEXTURE23= 34007 ; this.TEXTURE24= 34008 ; this.TEXTURE25= 34009 ; this.TEXTURE26= 34010 ; this.TEXTURE27= 34011 ; this.TEXTURE28= 34012 ; this.TEXTURE29= 34013 ; this.TEXTURE30= 34014 ; this.TEXTURE31= 34015 ; this.TEXTURE_2D= 3553 ; this.TEXTURE_BINDING_2D= 32873 ; this.TEXTURE_BINDING_CUBE_MAP= 34068 ; this.TEXTURE_CUBE_MAP= 34067 ; this.TEXTURE_CUBE_MAP_NEGATIVE_X= 34070 ; this.TEXTURE_CUBE_MAP_NEGATIVE_Y= 34072 ; this.TEXTURE_CUBE_MAP_NEGATIVE_Z= 34074 ; this.TEXTURE_CUBE_MAP_POSITIVE_X= 34069 ; this.TEXTURE_CUBE_MAP_POSITIVE_Y= 34071 ; this.TEXTURE_CUBE_MAP_POSITIVE_Z= 34073 ; this.TEXTURE_MAG_FILTER= 10240 ; this.TEXTURE_MIN_FILTER= 10241 ; this.TEXTURE_WRAP_S= 10242 ; this.TEXTURE_WRAP_T= 10243 ; this.TRIANGLES= 4 ; this.TRIANGLE_FAN= 6 ; this.TRIANGLE_STRIP= 5 ; this.UNPACK_ALIGNMENT= 3317 ; this.UNPACK_COLORSPACE_CONVERSION_WEBGL= 37443 ; this.UNPACK_FLIP_Y_WEBGL= 37440 ; this.UNPACK_PREMULTIPLY_ALPHA_WEBGL= 37441 ; this.UNSIGNED_BYTE= 5121 ; this.UNSIGNED_INT= 5125 ; this.UNSIGNED_SHORT= 5123 ; this.UNSIGNED_SHORT_4_4_4_4= 32819 ; this.UNSIGNED_SHORT_5_5_5_1= 32820 ; this.UNSIGNED_SHORT_5_6_5= 33635 ; this.VALIDATE_STATUS= 35715 ; this.VENDOR= 7936 ; this.VERSION= 7938 ; this.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING= 34975 ; this.VERTEX_ATTRIB_ARRAY_ENABLED= 34338 ; this.VERTEX_ATTRIB_ARRAY_NORMALIZED= 34922 ; this.VERTEX_ATTRIB_ARRAY_POINTER= 34373 ; this.VERTEX_ATTRIB_ARRAY_SIZE= 34339 ; this.VERTEX_ATTRIB_ARRAY_STRIDE= 34340 ; this.VERTEX_ATTRIB_ARRAY_TYPE= 34341 ; this.VERTEX_SHADER= 35633 ; this.VIEWPORT= 2978 ; this.ZERO = 0 ;
 
+
+    var ext_OES_element_index_uint = 'OES_element_index_uint';
+    this._drawElementsType = gl.getExtension(ext_OES_element_index_uint) ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
+    if(!this.isUIntElementTypeAvailable())console.log(ext_OES_element_index_uint + ' not enabled, using UNSIGNED_SHORT.');
+
+
     var SIZE_OF_VERTEX  = GLKit.Vec3.SIZE,
         SIZE_OF_COLOR   = GLKit.Color.SIZE,
         SIZE_OF_UV      = GLKit.Vec2.SIZE;
@@ -2331,16 +2386,16 @@ GLKit.GL.prototype.rotateAxis3f  = function(angle,x,y,z){this._mModelView = GLKi
 /*---------------------------------------------------------------------------------------------------------*/
 
 
-GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,indexUInt16Array,mode,count,offset)
+GLKit.GL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,indexArray,mode,count,offset,type,drawType)
 {
     var gl = this.gl;
 
     this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
     this.setMatricesUniform();
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexUInt16Array,gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexArray,gl.DYNAMIC_DRAW);
     gl.drawElements(mode  || this.TRIANGLES,
-                    count || indexUInt16Array.length,
-                    gl.UNSIGNED_SHORT,
+                    count || indexArray.length,
+                    type  || gl.UNSIGNED_SHORT,
                     offset || 0);
 };
 
@@ -2928,7 +2983,7 @@ GLKit.GL.prototype.getScreenCoord = function(v)
 GLKit.GL.prototype.getModelViewMatrix  = function(){return this._mModelView;};
 GLKit.GL.prototype.getProjectionMatrix = function(){return this._camera.projectionMatrix;};
 
-
+GLKit.GL.prototype.isUIntElementTypeAvailable = function(){return this._drawElementsType == this.UNSIGNED_INT;};
 GLKit.CameraBasic = function()
 {
     this.position = GLKit.Vec3.make();
@@ -3143,176 +3198,6 @@ GLKit.GLUtil.__bVertexPyramid = new Float32Array([ 0.0,1.0,0.0,-1.0,-1.0,1.0,1.0
 GLKit.GLUtil.__bNormalPyramid = new Float32Array([0, -0.4472135901451111, -0.8944271802902222, 0, -0.4472135901451111, -0.8944271802902222, 0, -0.4472135901451111, -0.8944271802902222, -0.8944271802902222, -0.4472135901451111, 0, -0.8944271802902222, -0.4472135901451111, 0, -0.8944271802902222, -0.4472135901451111, 0, 0, -0.4472135901451111, 0.8944271802902222, 0, -0.4472135901451111, 0.8944271802902222, 0, -0.4472135901451111, 0.8944271802902222, 0.8944271802902222, -0.4472135901451111, 0, 0.8944271802902222, -0.4472135901451111, 0, 0.8944271802902222, -0.4472135901451111, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0]);
 GLKit.GLUtil.__bColorPyramid  = new Float32Array(GLKit.GLUtil.__bVertexPyramid.length / GLKit.Vec3.SIZE * GLKit.Color.SIZE);
 GLKit.GLUtil.__bIndexPyramid  = new Uint16Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12,13,14,12,15,14]);
-
-GLKit.LineBuffer = function(gl,size)
-{
-    this._gl      = gl;
-
-    this._vbo     = null;
-    this.vertices = null;
-    this.colors   = null;
-
-    this._vertIndex = 0;
-    this._colIndex  = 0;
-
-    if(size)this.allocate(size);
-};
-
-/*---------------------------------------------------------------------------------------------------------*/
-
-//probably shouldnt do this
-GLKit.LineBuffer.prototype.bind   = function()
-{
-    var glkgl = this._gl,
-        gl    = glkgl.gl;
-
-    glkgl.disableDefaultNormalAttribArray();
-    glkgl.disableDefaultTexCoordsAttribArray();
-    gl.bindBuffer(gl.ARRAY_BUFFER,this._vbo);
-};
-
-GLKit.LineBuffer.prototype.unbind = function()
-{
-    var glkgl = this._gl;
-
-    glkgl.enableDefaultNormalAttribArray();
-    glkgl.enableDefaultTexCoordsAttribArray();
-    glkgl.bindDefaultVBO();
-};
-
-GLKit.LineBuffer.prototype.pushVertex3f = function(x,y,z)
-{
-    var vertices = this.vertices;
-
-    //if(this._safeAllocate && this._vertIndex > vertices.length - 3)this.allocate(vertices.length * 1.1);
-
-    vertices[this._vertIndex++] = x;
-    vertices[this._vertIndex++] = y;
-    vertices[this._vertIndex++] = z;
-};
-
-GLKit.LineBuffer.prototype.pushColor4f = function(r,g,b,a)
-{
-    var colors = this.colors;
-
-    colors[this._colIndex++] = r;
-    colors[this._colIndex++] = g;
-    colors[this._colIndex++] = b;
-    colors[this._colIndex++] = a;
-};
-
-GLKit.LineBuffer.prototype.setVertex3f = function(x,y,z,index3)
-{
-    index3*=3;
-    var vertices = this.vertices;
-
-    vertices[index3  ] = x;
-    vertices[index3+1] = y;
-    vertices[index3+2] = z;
-};
-
-GLKit.LineBuffer.prototype.setColor4f = function(r,g,b,a,index4)
-{
-    index4*=4;
-    var colors = this.colors;
-
-    colors[index4  ] = r;
-    colors[index4+1] = g;
-    colors[index4+2] = b;
-    colors[index4+3] = a;
-};
-
-GLKit.LineBuffer.prototype.pushVertex    = function(v){this.pushVertex3f(v[0],v[1],v[2]);};
-GLKit.LineBuffer.prototype.pushColor     = function(c){this.pushColor4f(c[0],c[1],c[2],c[3]);};
-GLKit.LineBuffer.prototype.setVertex     = function(v,index){this.setVertex3f(v[0],v[1],v[2],index);};
-GLKit.LineBuffer.prototype.setColor      = function(c,index){this.setColor4f(c[0],c[1],c[2],c[3],index);};
-
-/*---------------------------------------------------------------------------------------------------------*/
-
-GLKit.LineBuffer.prototype.buffer = function()
-{
-    var glkl          = this._gl,
-        gl            = glkl.gl,
-        glArrayBuffer = gl.ARRAY_BUFFER,
-        glFloat       = gl.FLOAT;
-
-
-
-    var vblen = this.vertices.byteLength,
-        cblen = this.colors.byteLength;
-
-    var offsetV = 0,
-        offsetC = offsetV + vblen;
-
-    gl.bufferData(glArrayBuffer,vblen + cblen, gl.DYNAMIC_DRAW);
-    gl.bufferSubData(glArrayBuffer,offsetV,this.vertices);
-    gl.bufferSubData(glArrayBuffer,offsetC,this.colors);
-    gl.vertexAttribPointer(glkl.getDefaultVertexAttrib(),glkl.SIZE_OF_VERTEX,glFloat,false,0,offsetV);
-    gl.vertexAttribPointer(glkl.getDefaultColorAttrib(), glkl.SIZE_OF_COLOR, glFloat,false,0,offsetC);
-};
-
-GLKit.LineBuffer.prototype.draw = function(first,count)
-{
-    var glkgl = this._gl,
-        gl    = glkgl.gl;
-
-   glkgl.setMatricesUniform();
-   gl.drawArrays(glkgl.getDrawMode(),
-                 first || 0,
-                 count || this.vertices.length / glkgl.SIZE_OF_VERTEX);
-};
-
-/*---------------------------------------------------------------------------------------------------------*/
-
-GLKit.LineBuffer.prototype.reset = function()
-{
-    this._vertIndex = 0;
-    this._colIndex  = 0;
-};
-
-GLKit.LineBuffer.prototype.dispose  = function()
-{
-    this._gl.gl.deleteBuffer(this._vbo);
-    this.vertices = null;
-    this.colors   = null;
-    this.reset();
-};
-
-GLKit.LineBuffer.prototype.allocate = function(size)
-{
-    var glkgl = this._gl,
-        gl    = glkgl.gl;
-
-    //need to deleteBuffer, instead of reusing it, otherwise error, hm
-    if(this._vbo){gl.deleteBuffer(this._vbo);}this._vbo = gl.createBuffer();
-    this.vertices = this.vertices || new Float32Array(0);
-    this.colors   = this.colors   || new Float32Array(0);
-
-    var vertLen = this.vertices.length,
-        colsLen = this.colors.length;
-
-    if(vertLen < size)
-    {
-        var temp;
-
-        temp = new Float32Array(size);
-        temp.set(this.vertices);
-        temp.set(new Float32Array(temp.length - vertLen),vertLen);
-        this.vertices = temp;
-
-        temp = new Float32Array(size / 3 * 4);
-        temp.set(this.colors);
-        temp.set(new Float32Array(temp.length - colsLen),colsLen);
-        this.colors = temp;
-
-    }
-};
-
-/*---------------------------------------------------------------------------------------------------------*/
-
-GLKit.LineBuffer.prototype.getSizeAllocated = function(){return this.vertices.length;};
-GLKit.LineBuffer.prototype.getSizePushed    = function(){return this._vertIndex;};
-
 
 GLKit.Geom3d = function()
 {
@@ -4508,6 +4393,8 @@ GLKit.ISOBand = function(sizeX,sizeZ,unitScaleX,unitScaleZ)
     this._funcArg2 = 0;
     this._isoLevel = 0;
 
+    this._interpolateValues = true;
+
     this._numTriangles = 0;
 
     //TODO CHECK MAX ELEMENT EXCEED
@@ -4521,6 +4408,9 @@ GLKit.ISOBand = function(sizeX,sizeZ,unitScaleX,unitScaleZ)
     this._tempCellVerticesVals = new Float32Array(4);
 
     this._indices = [];
+
+    //temp TODO remove
+    this.__appUintTypeEnabled = GLKit.Application.getInstance().gl.isUIntElementTypeAvailable();
 
     /*---------------------------------------------------------------------------------------------------------*/
 
@@ -4787,7 +4677,7 @@ GLKit.ISOBand.prototype.march = function()
                     entryTopLu3 = entryTopLu[k+3];
 
                     //get edge vertex 0 according to topological entry
-
+                    //TODO collapse
                     edgeIndexTemp = entryTopLu0 == 0 ? edgeIndexTop :
                                     entryTopLu0 == 1 ? edgeIndexRight :
                                     entryTopLu0 == 2 ? edgeIndexBottom :
@@ -4797,7 +4687,7 @@ GLKit.ISOBand.prototype.march = function()
                     indices.push(edgeIndexTemp);
 
                     //get edge vertex 1 according to topological entry
-
+                    //TODO collapse
                     edgeIndexTemp = entryTopLu2 == 0 ? edgeIndexTop :
                                     entryTopLu2 == 1 ? edgeIndexRight :
                                     entryTopLu2 == 2 ? edgeIndexBottom :
@@ -4971,14 +4861,18 @@ GLKit.ISOBand.prototype.march = function()
         }
     }
 
-    this._indices = new Uint16Array(indices);
+    //temp
+    this._indices = this.__appUintTypeEnabled ?  new Uint32Array(indices) :  new Uint16Array(indices);
 };
 
 //visual debug need isoline/isoband switch
 GLKit.ISOBand.prototype._draw = function(gl)
 {
-    var edges = this._edges;
-    gl.drawElements(edges,null,gl.fillColorBuffer(gl.getColorBuffer(),new Float32Array(edges.length/3*4)),null,this._indices,gl.getDrawMode());
+    var edges   = this._edges,
+        colors  = gl.fillColorBuffer(gl.getColorBuffer(),new Float32Array(edges.length/3*4)),
+        indices =  this._indices;
+
+     gl.drawElements(edges,null,colors,null,indices,gl.getDrawMode(),indices.length,0,this.__appUintTypeEnabled ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT);
 };
 
 
@@ -5014,21 +4908,21 @@ GLKit.ISOBand.prototype._intrpl = function(index0,index1,out,offset)
         return;
     }
 
-    var v10v = v1v - v0v;
 
-    out[offset+0] = -v0v * (v1x - v0x) / v10v + v0x;
-    out[offset+1] = -v0v * (v1y - v0y) / v10v + v0y;
-    out[offset+2] = -v0v * (v1z - v0z) / v10v + v0z;
+    if(this._interpolateValues)
+    {
+        var v10v = v1v - v0v;
 
-    /*
-
-    out[offset+0] =  (v1x - v0x) * 0.5 + v0x;
-    out[offset+1] =  (v1y - v0y) * 0.5 + v0y;
-    out[offset+2] =  (v1z - v0z) * 0.5 + v0z;
-
-    */
-
-
+        out[offset+0] = -v0v * (v1x - v0x) / v10v + v0x;
+        out[offset+1] = -v0v * (v1y - v0y) / v10v + v0y;
+        out[offset+2] = -v0v * (v1z - v0z) / v10v + v0z;
+    }
+    else
+    {
+        out[offset+0] =  (v1x - v0x) * 0.5 + v0x;
+        out[offset+1] =  (v1y - v0y) * 0.5 + v0y;
+        out[offset+2] =  (v1z - v0z) * 0.5 + v0z;
+    }
 };
 
 
@@ -5216,6 +5110,733 @@ GLKit.ParametricSurface.prototype.pointOnSurfaceWithArg = function(u,v,arg)
                            this.funcY(u,v,arg),
                            this.funcZ(u,v,arg));
 };
+
+
+GLKit.LineBuffer2d = function(gl,size)
+{
+    this._gl      = gl;
+
+    this._vbo     = null;
+    this.vertices = null;
+    this.colors   = null;
+
+    this._vertIndex = 0;
+    this._colIndex  = 0;
+
+    if(size)this.allocate(size);
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
+
+//probably shouldnt do this
+GLKit.LineBuffer2d.prototype.bind   = function()
+{
+    var glkgl = this._gl,
+        gl    = glkgl.gl;
+
+    glkgl.disableDefaultNormalAttribArray();
+    glkgl.disableDefaultTexCoordsAttribArray();
+    gl.bindBuffer(gl.ARRAY_BUFFER,this._vbo);
+};
+
+GLKit.LineBuffer2d.prototype.unbind = function()
+{
+    var glkgl = this._gl;
+
+    glkgl.enableDefaultNormalAttribArray();
+    glkgl.enableDefaultTexCoordsAttribArray();
+    glkgl.bindDefaultVBO();
+};
+
+GLKit.LineBuffer2d.prototype.pushVertex3f = function(x,y,z)
+{
+    var vertices = this.vertices;
+
+    //if(this._safeAllocate && this._vertIndex > vertices.length - 3)this.allocate(vertices.length * 1.1);
+
+    vertices[this._vertIndex++] = x;
+    vertices[this._vertIndex++] = y;
+    vertices[this._vertIndex++] = z;
+};
+
+GLKit.LineBuffer2d.prototype.pushColor4f = function(r,g,b,a)
+{
+    var colors = this.colors;
+
+    colors[this._colIndex++] = r;
+    colors[this._colIndex++] = g;
+    colors[this._colIndex++] = b;
+    colors[this._colIndex++] = a;
+};
+
+GLKit.LineBuffer2d.prototype.setVertex3f = function(x,y,z,index3)
+{
+    index3*=3;
+    var vertices = this.vertices;
+
+    vertices[index3  ] = x;
+    vertices[index3+1] = y;
+    vertices[index3+2] = z;
+};
+
+GLKit.LineBuffer2d.prototype.setColor4f = function(r,g,b,a,index4)
+{
+    index4*=4;
+    var colors = this.colors;
+
+    colors[index4  ] = r;
+    colors[index4+1] = g;
+    colors[index4+2] = b;
+    colors[index4+3] = a;
+};
+
+GLKit.LineBuffer2d.prototype.pushVertex    = function(v){this.pushVertex3f(v[0],v[1],v[2]);};
+GLKit.LineBuffer2d.prototype.pushColor     = function(c){this.pushColor4f(c[0],c[1],c[2],c[3]);};
+GLKit.LineBuffer2d.prototype.setVertex     = function(v,index){this.setVertex3f(v[0],v[1],v[2],index);};
+GLKit.LineBuffer2d.prototype.setColor      = function(c,index){this.setColor4f(c[0],c[1],c[2],c[3],index);};
+
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.LineBuffer2d.prototype.buffer = function()
+{
+    var glkl          = this._gl,
+        gl            = glkl.gl,
+        glArrayBuffer = gl.ARRAY_BUFFER,
+        glFloat       = gl.FLOAT;
+
+
+
+    var vblen = this.vertices.byteLength,
+        cblen = this.colors.byteLength;
+
+    var offsetV = 0,
+        offsetC = offsetV + vblen;
+
+    gl.bufferData(glArrayBuffer,vblen + cblen, gl.DYNAMIC_DRAW);
+    gl.bufferSubData(glArrayBuffer,offsetV,this.vertices);
+    gl.bufferSubData(glArrayBuffer,offsetC,this.colors);
+    gl.vertexAttribPointer(glkl.getDefaultVertexAttrib(),glkl.SIZE_OF_VERTEX,glFloat,false,0,offsetV);
+    gl.vertexAttribPointer(glkl.getDefaultColorAttrib(), glkl.SIZE_OF_COLOR, glFloat,false,0,offsetC);
+};
+
+GLKit.LineBuffer2d.prototype.draw = function(first,count)
+{
+    var glkgl = this._gl,
+        gl    = glkgl.gl;
+
+   glkgl.setMatricesUniform();
+   gl.drawArrays(glkgl.getDrawMode(),
+                 first || 0,
+                 count || this.vertices.length / glkgl.SIZE_OF_VERTEX);
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.LineBuffer2d.prototype.reset = function()
+{
+    this._vertIndex = 0;
+    this._colIndex  = 0;
+};
+
+GLKit.LineBuffer2d.prototype.dispose  = function()
+{
+    this._gl.gl.deleteBuffer(this._vbo);
+    this.vertices = null;
+    this.colors   = null;
+    this.reset();
+};
+
+GLKit.LineBuffer2d.prototype.allocate = function(size)
+{
+    var glkgl = this._gl,
+        gl    = glkgl.gl;
+
+    //need to deleteBuffer, instead of reusing it, otherwise error, hm
+    if(this._vbo){gl.deleteBuffer(this._vbo);}this._vbo = gl.createBuffer();
+    this.vertices = this.vertices || new Float32Array(0);
+    this.colors   = this.colors   || new Float32Array(0);
+
+    var vertLen = this.vertices.length,
+        colsLen = this.colors.length;
+
+    if(vertLen < size)
+    {
+        var temp;
+
+        temp = new Float32Array(size);
+        temp.set(this.vertices);
+        temp.set(new Float32Array(temp.length - vertLen),vertLen);
+        this.vertices = temp;
+
+        temp = new Float32Array(size / 3 * 4);
+        temp.set(this.colors);
+        temp.set(new Float32Array(temp.length - colsLen),colsLen);
+        this.colors = temp;
+  }
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.LineBuffer2d.prototype.getSizeAllocated = function(){return this.vertices.length;};
+GLKit.LineBuffer2d.prototype.getSizePushed    = function(){return this._vertIndex;};
+
+
+GLKit.LineBuffer3d = function(numPoints,numSegments,diameter,sliceSegmentFunc)
+{
+    GLKit.Geom3d.apply(this,arguments);
+
+    numSegments = numSegments || 10;
+    diameter    = diameter    || 0.25;
+
+    this._numSegments = numSegments;
+    this._numPoints   = numPoints;
+
+    var len = numPoints * numSegments * 3 * 2;
+
+    this.points        = new Float32Array(numPoints * 3);
+    this._verticesNorm = new Float32Array(len);
+
+    this.vertices = new Float32Array(len);
+    this.colors   = new Float32Array(this.vertices.length / 3 * 4);
+    this.normals  = new Float32Array(len);
+    this.indices  = [];
+
+    var indices = this.indices,
+        index,indexSeg;
+
+    var i, j;
+    var v0,v1,v2,v3;
+
+    if(numSegments > 2)
+    {
+        len = numSegments - 1;
+
+        //close front
+        i = -1;
+        while(++i < len)indices.push(0,i,i+1);
+
+        i = -1;
+        while (++i < numPoints - 1)
+        {
+
+            index = i * numSegments;
+            j = -1;
+            while (++j < len)
+            {
+                indexSeg = index + j;
+
+                v0 = indexSeg;
+                v1 = indexSeg + 1;
+                v2 = indexSeg + numSegments + 1;
+                v3 = indexSeg + numSegments;
+
+                indices.push(v0,v1,v3,
+                             v1,v2,v3);
+            }
+
+            v0 = index + len;
+            v1 = index;
+            v2 = index + len + 1;
+            v3 = index + numSegments + len;
+
+            indices.push(v0,v1,v3,
+                         v1,v2,v3);
+        }
+
+        //close back
+        index = i = (numPoints - 1) * numSegments;
+        j     = i + numSegments;
+        while (++i < j - 1)indices.push(index, i, i + 1);
+    }
+    else
+    {
+        i = -1;
+        while(++i < numPoints - 1)
+        {
+            index = i * 2;
+            indices.push(index,
+                         index + 1,
+                         index + 2,
+                         index + 1,
+                         index + 3,
+                         index + 2);
+
+        }
+    }
+
+    sliceSegmentFunc = sliceSegmentFunc || function(i,j,numPoints,numSegments)
+                                           {
+                                               var step = Math.PI * 2 / numSegments;
+                                               return [Math.cos(step * j),Math.sin(step * j)];
+                                           };
+
+    this.applySliceSegmentFunc(sliceSegmentFunc,diameter);
+
+
+    this.indices = new Uint16Array(indices);
+
+    this._tempVec0  = GLKit.Vec3.make();
+    this._bPoint0  = GLKit.Vec3.make();
+    this._bPoint1  = GLKit.Vec3.make();
+    this._bPoint01 = GLKit.Vec3.make();
+    this._axisY    = GLKit.Vec3.AXIS_Y();
+};
+
+GLKit.LineBuffer3d.prototype = Object.create(GLKit.Geom3d.prototype);
+
+GLKit.LineBuffer3d.prototype.applySliceSegmentFunc = function(func,baseDiameter)
+{
+    baseDiameter = baseDiameter || 1.0;
+
+    var numPoints    = this._numPoints,
+        numSegments  = this._numSegments,
+        verticesNorm = this._verticesNorm;
+
+    var funcRes;
+
+    var index;
+    var i, j, k;
+
+    i = -1;
+    while(++i < numPoints)
+    {
+        j = -1;
+        index = i * numSegments;
+
+        while(++j < numSegments)
+        {
+            k    = (index + j) * 3 * 2;
+
+            funcRes = func(i,j,numPoints,numSegments);
+
+            verticesNorm[k+0] = funcRes[0];
+            verticesNorm[k+2] = funcRes[1];
+
+            verticesNorm[k+3] = verticesNorm[k+0] * baseDiameter;
+            verticesNorm[k+5] = verticesNorm[k+2] * baseDiameter;
+        }
+    }
+};
+
+GLKit.LineBuffer3d.prototype.setPoint3f = function(index,x,y,z)
+{
+    index *= 3;
+
+    var points = this.points;
+
+    points[index  ] = x;
+    points[index+1] = y;
+    points[index+2] = z;
+};
+
+GLKit.LineBuffer3d.prototype.setPoints = function(array)
+{
+    var points = this.points;
+    var i = -1,i3;
+
+    while(++i<points.length)
+    {
+        i3 = i * 3;
+        points[i  ] = array[i  ];
+        points[i+1] = array[i+1];
+        points[i+2] = array[i+2];
+    }
+};
+
+//Should seperate this
+GLKit.LineBuffer3d.prototype.setDiameter = function(index,value)
+{
+    var numSegments  = this._numSegments,
+        verticesNorm = this._verticesNorm;
+
+    var offset = numSegments * 3 * 2;
+    var i,l;
+    var val;
+
+    if(arguments.length == 2)
+    {
+        var indx = index;
+            val  = value;
+
+        i = indx * offset;
+        l = i + offset;
+
+        while(i < l)
+        {
+            verticesNorm[i+3] = verticesNorm[i+0] * val;
+            verticesNorm[i+5] = verticesNorm[i+2] * val;
+            i+=6;
+        }
+
+        return;
+    }
+
+    if(arguments.length == 1)
+    {
+        i   = 0;
+        l   = this._numPoints * offset;
+        val = arguments[0];
+
+        while(i < l)
+        {
+            verticesNorm[i+3] = verticesNorm[i+0] * val;
+            verticesNorm[i+5] = verticesNorm[i+2] * val;
+            i+=6;
+        }
+    }
+};
+
+GLKit.LineBuffer3d.prototype.update = function()
+{
+    var numPoints   = this._numPoints,
+        numSegments = this._numSegments;
+
+    var points       = this.points,
+        vertices     = this.vertices,
+        verticesNorm = this._verticesNorm;
+
+    var Vec3  = GLKit.Vec3,
+        Mat44 = GLKit.Mat44;
+
+    var tempVec = this._tempVec0;
+
+    var p0  = this._bPoint0,
+        p1  = this._bPoint1,
+        p01 = this._bPoint01,
+        up  = this._axisY;
+
+    var mat    = Mat44.make(),
+        matRot = Mat44.make();
+
+    var index,index3,index6;
+
+    //direction from current point -> next point, prev point -> current point
+    var dir01,dir_10;
+    var angle,axis;
+
+    //BEGIN - calculate first point
+    Vec3.set3f(p0,points[0],points[1],points[2]);
+    Vec3.set3f(p1,points[3],points[4],points[5]);
+
+    dir01 = Vec3.normalize(Vec3.subbed(p1,p0));
+    angle = Math.acos(Vec3.dot(dir01,up));
+    axis  = Vec3.normalize(Vec3.cross(up,dir01));
+
+    Mat44.identity(mat);
+    mat[12] = p0[0];
+    mat[13] = p0[1];
+    mat[14] = p0[2];
+
+    Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2],matRot);
+    mat = Mat44.multPost(mat,matRot);
+
+    j = -1;
+    while(++j < numSegments)
+    {
+        index3 = j * 3;
+        index6 = j * 6;
+
+        tempVec[0] = verticesNorm[index6+3];
+        tempVec[1] = verticesNorm[index6+4];
+        tempVec[2] = verticesNorm[index6+5];
+
+        Mat44.multVec3(mat,tempVec);
+
+        vertices[index3  ] = tempVec[0];
+        vertices[index3+1] = tempVec[1];
+        vertices[index3+2] = tempVec[2];
+    }
+    //END - calculate first point
+
+
+    //calc first prev dir
+    Vec3.set3f(p0, points[3],points[4],points[5]);
+    Vec3.set3f(p01,points[0],points[1],points[2]);
+    dir_10 = Vec3.normalize(Vec3.subbed(p0,p01));
+
+    var i3;
+    var i = 0;
+    var j;
+    while(++i < numPoints - 1)
+    {
+        //set current point
+        i3 = i * 3;
+        p0[0] = points[i3  ];
+        p0[1] = points[i3+1];
+        p0[2] = points[i3+2];
+
+        //set next point
+        i3 = (i + 1) * 3;
+        p1[0] = points[i3  ];
+        p1[1] = points[i3+1];
+        p1[2] = points[i3+2];
+
+        //calculate direction
+        dir01  = Vec3.normalize(Vec3.subbed(p1,p0));
+
+        //interpolate with previous direction
+        dir01[0] = dir01[0] * 0.5 + dir_10[0] * 0.5;
+        dir01[1] = dir01[1] * 0.5 + dir_10[1] * 0.5;
+        dir01[2] = dir01[2] * 0.5 + dir_10[2] * 0.5;
+
+        //get dir angle + axis
+        angle = Math.acos(Vec3.dot(dir01,up));
+        axis  = Vec3.normalize(Vec3.cross(up,dir01));
+
+        //reset transformation matrix
+        Mat44.identity(mat);
+
+        //set translation
+        mat[12] = p0[0];
+        mat[13] = p0[1];
+        mat[14] = p0[2];
+
+        //set rotation
+        Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2],matRot);
+
+        //multiply matrices
+        mat = Mat44.multPost(mat,matRot);
+
+        j = -1;
+        while(++j < numSegments)
+        {
+            index  = (i * numSegments + j);
+            index3 = index * 3;
+            index6 = index * 6;
+
+            //lookup vertex
+            tempVec[0] = verticesNorm[index6+3];
+            tempVec[1] = verticesNorm[index6+4];
+            tempVec[2] = verticesNorm[index6+5];
+
+            //transform vertex copy by matrix
+            Mat44.multVec3(mat,tempVec);
+
+            //reassign transformed vertex
+            vertices[index3  ] = tempVec[0];
+            vertices[index3+1] = tempVec[1];
+            vertices[index3+2] = tempVec[2];
+        }
+
+        //assign current direction to prev
+        dir_10[0] = dir01[0];
+        dir_10[1] = dir01[1];
+        dir_10[2] = dir01[2];
+    }
+
+    var len = points.length;
+
+    //BEGIN - calculate last point
+    Vec3.set3f(p0,points[len - 6],points[len - 5],points[len - 4]);
+    Vec3.set3f(p1,points[len - 3],points[len - 2],points[len - 1]);
+
+    dir01 = Vec3.normalize(Vec3.subbed(p1,p0));
+    angle = Math.acos(Vec3.dot(dir01,up));
+    axis  = Vec3.normalize(Vec3.cross(up,dir01));
+
+    Mat44.identity(mat);
+    mat[12] = p1[0];
+    mat[13] = p1[1];
+    mat[14] = p1[2];
+
+    Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2],matRot);
+    mat = Mat44.multPost(mat,matRot);
+
+    i  = (i * numSegments);
+
+    j = -1;
+    while(++j < numSegments)
+    {
+        index  = i + j;
+        index3 = index * 3;
+        index6 = index * 6;
+
+        tempVec[0] = verticesNorm[index6+3];
+        tempVec[1] = verticesNorm[index6+4];
+        tempVec[2] = verticesNorm[index6+5];
+
+        Mat44.multVec3(mat,tempVec);
+
+        vertices[index3  ] = tempVec[0];
+        vertices[index3+1] = tempVec[1];
+        vertices[index3+2] = tempVec[2];
+    }
+    //END - calculate last point
+};
+
+GLKit.LineBuffer3d.prototype.getNumSegments = function(){return this._numSegments;};
+GLKit.LineBuffer3d.prototype.getNumPoints   = function(){return this._numPoints;};
+
+GLKit.LineBuffer3d.prototype._draw = function(gl){gl.drawElements(this.vertices,this.normals,gl.fillColorBuffer(gl.getColorBuffer(),this.colors),null,this.indices,gl.TRIANGLES);};
+
+
+//TODO: Add close, smooth in out intrpl, pre post points
+GLKit.Spline = function()
+{
+    this.points     = null;
+    this.vertices   = null;
+
+    this._detail    = 20;
+    this._tension   = 0;
+    this._bias      = 0;
+    this._numPoints = null;
+    this._numVerts  = null;
+
+    this._tempVec0  = GLKit.Vec3.make();
+    this._tempVec1  = GLKit.Vec3.make();
+    this._tempMat0  = GLKit.Mat44.make();
+    this._tempMat1  = GLKit.Mat44.make();
+    this._tempMat2  = GLKit.Mat44.make();
+
+    this._axisY     = GLKit.Vec3.AXIS_Y();
+};
+
+GLKit.Spline.prototype.setPoint3f = function(index,x,y,z)
+{
+    var points = this.points;
+
+    index*=3;
+    points[index  ] = x;
+    points[index+1] = y;
+    points[index+2] = z;
+};
+
+GLKit.Spline.prototype.setPoints =  function(arr)
+{
+    var num         = this._numPoints = arr.length / 3,
+        numVerts    = this._numVerts  = (num - 1) * (this._detail - 1) + 1;
+
+    this.points     = new Float32Array(arr);
+    this.vertices   = new Float32Array(numVerts * 3);
+};
+
+GLKit.Spline.prototype.update = function()
+{
+    var detail    = this._detail,
+        detail_1  = detail - 1,
+        points    = this.points,
+        numPoints = this._numPoints,
+        vertices  = this.vertices;
+
+    var tension       = this._tension,
+        bias          = this._bias,
+        hermiteIntrpl = GLKit.Math.hermiteIntrpl;
+
+    var i, j, t;
+    var len = numPoints - 1;
+
+    var index,index_1,index1,index2,
+        vertIndex;
+
+    var x, y, z;
+
+    i = -1;
+    while(++i < len)
+    {
+        index    = i;
+
+        index1   = Math.min((index + 1),len) * 3;
+        index2   = Math.min((index + 2),len) * 3;
+        index_1  = Math.max(0,(index - 1))   * 3;
+        index   *= 3;
+
+        j = -1;
+        while(++j < detail_1)
+        {
+            t = j / detail_1;
+
+            x = hermiteIntrpl(points[index_1],
+                              points[index  ],
+                              points[index1 ],
+                              points[index2 ],
+                              t,tension,bias);
+
+            y = hermiteIntrpl(points[index_1 + 1],
+                              points[index   + 1],
+                              points[index1  + 1],
+                              points[index2  + 1],
+                              t,tension,bias);
+
+            z = hermiteIntrpl(points[index_1 + 2],
+                              points[index   + 2],
+                              points[index1  + 2],
+                              points[index2  + 2],
+                              t,tension,bias);
+
+            vertIndex = (i * detail_1 + j) * 3;
+
+            vertices[vertIndex  ] = x;
+            vertices[vertIndex+1] = y;
+            vertices[vertIndex+2] = z;
+        }
+    }
+
+    var vertLen   = vertices.length,
+        pointsLen = points.length;
+
+    vertices[vertLen-3] = points[pointsLen-3];
+    vertices[vertLen-2] = points[pointsLen-2];
+    vertices[vertLen-1] = points[pointsLen-1];
+
+};
+
+GLKit.Spline.prototype.setDetail  = function(detail) {this._detail  = detail;};
+GLKit.Spline.prototype.setTension = function(tension){this._tension = tension;};
+GLKit.Spline.prototype.setBias    = function(bias)   {this._bias    = bias;};
+
+GLKit.Spline.prototype.getNumPoints   = function(){return this._numPoints;};
+GLKit.Spline.prototype.getNumVertices = function(){return this._numVerts;};
+
+GLKit.Spline.prototype.getVec3OnPoints = function(val,out)
+{
+    out = out || this._tempVec0;
+
+    var points    = this.points,
+        numPoints = this._numPoints,
+        len       = numPoints - 1;
+
+    var index  = Math.floor(numPoints * val),
+        index1 = Math.min(index + 1, len);
+
+        index *= 3;
+        index1*= 3;
+
+    var localIntrpl    = (val % (1 / numPoints)) * numPoints,
+        localIntrplInv = 1.0 - localIntrpl;
+
+    out[0] = points[index  ] * localIntrplInv + points[index1  ] * localIntrpl;
+    out[1] = points[index+1] * localIntrplInv + points[index1+1] * localIntrpl;
+    out[2] = points[index+2] * localIntrplInv + points[index1+2] * localIntrpl;
+
+    return out;
+
+};
+
+GLKit.Spline.prototype.getVec3OnSpline = function(val,out)
+{
+    out = out || this._tempVec0;
+
+    var vertices = this.vertices,
+        numVerts = this._numVerts,
+        len      = numVerts - 1;
+
+    var index  = Math.min(Math.floor(numVerts * val),len),
+        index1 = Math.min(index + 1,len);
+
+    var localIntrpl    = (val % (1.0 / numVerts)) * numVerts,
+        localIntrplInv = 1.0 - localIntrpl;
+
+    index  *= 3;
+    index1 *= 3;
+
+    out[0] = vertices[index  ] * localIntrplInv + vertices[index1  ] * localIntrpl;
+    out[1] = vertices[index+1] * localIntrplInv + vertices[index1+1] * localIntrpl;
+    out[2] = vertices[index+2] * localIntrplInv + vertices[index1+2] * localIntrpl;
+
+    return out;
+};
+
+
 
 
 GLKit.Mouse = function()
