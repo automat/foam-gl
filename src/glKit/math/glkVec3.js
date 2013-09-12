@@ -134,6 +134,24 @@ GLKit.Vec3 =
         return x*x+y*y+z*z;
     },
 
+    safeNormalize : function(v)
+    {
+        var x = v[0],
+            y = v[1],
+            z = v[2];
+
+        var d = Math.sqrt(x*x+y*y+z*z);
+        d = d || 1;
+
+        var l  = 1/d;
+
+        v[0] *= l;
+        v[1] *= l;
+        v[2] *= l;
+
+        return v;
+    },
+
     normalize : function(v)
     {
         var x = v[0],
