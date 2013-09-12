@@ -146,6 +146,31 @@ GLKit.LineBuffer3d.prototype.setPoint3f = function(index,x,y,z)
     points[index+2] = z;
 };
 
+GLKit.LineBuffer3d.prototype.setPoint = function(index,v)
+{
+    index *= 3;
+
+    var points = this.points;
+
+    points[index  ] = v[0];
+    points[index+1] = v[1];
+    points[index+2] = v[2];
+};
+
+GLKit.LineBuffer3d.prototype.getPoint = function(index,out)
+{
+    out    = out || this._tempVec0;
+    index *= 3;
+
+    var points = this.points;
+
+    out[0] = points[index  ];
+    out[1] = points[index+1];
+    out[2] = points[index+2];
+
+    return out;
+};
+
 GLKit.LineBuffer3d.prototype.setPoints = function(array)
 {
     var points = this.points;
@@ -235,9 +260,9 @@ GLKit.LineBuffer3d.prototype.update = function()
     Vec3.set3f(p0,points[0],points[1],points[2]);
     Vec3.set3f(p1,points[3],points[4],points[5]);
 
-    dir01 = Vec3.normalize(Vec3.subbed(p1,p0));
+    dir01 = Vec3.safeNormalize(Vec3.subbed(p1,p0));
     angle = Math.acos(Vec3.dot(dir01,up));
-    axis  = Vec3.normalize(Vec3.cross(up,dir01));
+    axis  = Vec3.safeNormalize(Vec3.cross(up,dir01));
 
     Mat44.identity(mat);
     mat[12] = p0[0];
@@ -269,7 +294,7 @@ GLKit.LineBuffer3d.prototype.update = function()
     //calc first prev dir
     Vec3.set3f(p0, points[3],points[4],points[5]);
     Vec3.set3f(p01,points[0],points[1],points[2]);
-    dir_10 = Vec3.normalize(Vec3.subbed(p0,p01));
+    dir_10 = Vec3.safeNormalize(Vec3.subbed(p0,p01));
 
     var i3;
     var i = 0;
@@ -289,7 +314,7 @@ GLKit.LineBuffer3d.prototype.update = function()
         p1[2] = points[i3+2];
 
         //calculate direction
-        dir01  = Vec3.normalize(Vec3.subbed(p1,p0));
+        dir01  = Vec3.safeNormalize(Vec3.subbed(p1,p0));
 
         //interpolate with previous direction
         dir01[0] = dir01[0] * 0.5 + dir_10[0] * 0.5;
@@ -298,7 +323,7 @@ GLKit.LineBuffer3d.prototype.update = function()
 
         //get dir angle + axis
         angle = Math.acos(Vec3.dot(dir01,up));
-        axis  = Vec3.normalize(Vec3.cross(up,dir01));
+        axis  = Vec3.safeNormalize(Vec3.cross(up,dir01));
 
         //reset transformation matrix
         Mat44.identity(mat);
@@ -347,9 +372,9 @@ GLKit.LineBuffer3d.prototype.update = function()
     Vec3.set3f(p0,points[len - 6],points[len - 5],points[len - 4]);
     Vec3.set3f(p1,points[len - 3],points[len - 2],points[len - 1]);
 
-    dir01 = Vec3.normalize(Vec3.subbed(p1,p0));
+    dir01 = Vec3.safeNormalize(Vec3.subbed(p1,p0));
     angle = Math.acos(Vec3.dot(dir01,up));
-    axis  = Vec3.normalize(Vec3.cross(up,dir01));
+    axis  = Vec3.safeNormalize(Vec3.cross(up,dir01));
 
     Mat44.identity(mat);
     mat[12] = p1[0];
