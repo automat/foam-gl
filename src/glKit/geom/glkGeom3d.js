@@ -7,8 +7,6 @@ GLKit.Geom3d = function()
     this.texCoords = null;
 };
 
-
-
 //TODO merge
 GLKit.Geom3d.prototype.updateVertexNormals = function()
 {
@@ -84,7 +82,7 @@ GLKit.Geom3d.prototype.updateVertexNormals = function()
         i+=3;
     }
 
-    var x, y, z, l, il;
+    var x, y, z, l;
 
     i = 0;
     while(i < normals.length)
@@ -95,16 +93,82 @@ GLKit.Geom3d.prototype.updateVertexNormals = function()
         z = normals[i+2];
 
         l = Math.sqrt(x*x+y*y+z*z);
+        l = 1 / (l || 1);
 
-        il = 1 / (l != 0 ? l : 1);
-
-        normals[i  ] *= il;
-        normals[i+1] *= il;
-        normals[i+2] *= il;
+        normals[i  ] *= l;
+        normals[i+1] *= l;
+        normals[i+2] *= l;
 
         i+=3;
     }
 
+};
+
+
+GLKit.Geom3d.prototype.setVertex = function(index,v)
+{
+    index *= 3;
+    var vertices = this.vertices;
+    vertices[index  ] = v[0];
+    vertices[index+1] = v[1];
+    vertices[index+2] = v[2];
+};
+
+GLKit.Geom3d.prototype.setVertex3f = function(index,x,y,z)
+{
+    index*=3;
+    var vertices = this.vertices;
+    vertices[index  ] = x;
+    vertices[index+1] = y;
+    vertices[index+2] = z;
+};
+
+GLKit.Geom3d.prototype.setColor4f = function(index,r,g,b,a)
+{
+    index *= 4;
+    var colors = this.colors;
+    colors[index  ] = r;
+    colors[index+1] = g;
+    colors[index+2] = b;
+    colors[index+3] = a;
+};
+
+GLKit.Geom3d.prototype.setColor3f = function(index,r,g,b)
+{
+    index *= 4;
+    var colors = this.colors;
+    colors[index  ] = r;
+    colors[index+1] = g;
+    colors[index+2] = b;
+};
+
+GLKit.Geom3d.prototype.setColor2f = function(index,k,a)
+{
+    index *= 4;
+    var colors = this.colors;
+    colors[index  ] = k;
+    colors[index+1] = k;
+    colors[index+2] = k;
+    colors[index+3] = a;
+};
+
+GLKit.Geom3d.prototype.setColor1f = function(index,k)
+{
+    index *= 4;
+    var colors = this.colors;
+    colors[index  ] = k;
+    colors[index+1] = k;
+    colors[index+2] = k;
+};
+
+GLKit.Geom3d.prototype.setColor = function(index,color)
+{
+    index*=4;
+    var colors = this.colors;
+    colors[index  ] = color[0];
+    colors[index+1] = color[1];
+    colors[index+2] = color[2];
+    colors[index+3] = color[3];
 };
 
 GLKit.Geom3d.prototype._draw = function(gl)
