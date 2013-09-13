@@ -171,6 +171,23 @@ GLKit.Geom3d.prototype.setColor = function(index,color)
     colors[index+3] = color[3];
 };
 
+GLKit.Geom3d.prototype.setTexCoord2f = function(index,u,v)
+{
+    index*=2;
+    var texCoords = this.texCoords;
+    texCoords[index  ] = u;
+    texCoords[index+1] = v;
+};
+
+GLKit.Geom3d.prototype.setTexCoord = function(index,v)
+{
+    index*=2;
+    var texCoords = this.texCoords;
+    texCoords[index  ] = v[0];
+    texCoords[index+1] = v[1];
+};
+
+
 GLKit.Geom3d.prototype._draw = function(gl)
 {
     gl.drawElements(this.vertices,this.normals,this.colors,this.texCoords,this.indices,gl._drawMode);
