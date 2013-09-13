@@ -25,8 +25,8 @@
 
 
         var arr = [-2,0,0,-1,0,0,0,0,0,1,0,0,2,0,0];
-        var lineBuffer = this._line3dBuffer = new GLKit.LineBuffer3d(arr.length/3,16,0.25);
-            lineBuffer.setPoints(arr);
+        var lineBuffer = this._line3dBuffer = new GLKit.LineBuffer3d(arr,16,0.25);
+
 
 
         lineBuffer.update();
