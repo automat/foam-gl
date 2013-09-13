@@ -5,120 +5,29 @@ GLKit.LineBuffer3d = function(points,numSegments,diameter,sliceSegmentFunc)
     numSegments = numSegments || 10;
     diameter    = diameter    || 0.25;
 
-    this._numSegments = numSegments;
-    var numPoints = this._numPoints  = points.length / 3;
-
-
+    var numPoints = points.length / 3;
     var len = numPoints * numSegments * 3 * 2;
 
-    this.points        = new Float32Array(points);
+    this._numPoints    = numPoints;
+    this._numSegments  = numSegments;
     this._verticesNorm = new Float32Array(len);
 
+    this.points    = new Float32Array(points);
     this.vertices  = new Float32Array(len);
     this.normals   = new Float32Array(len);
     this.colors    = new Float32Array(len / 3 * 4);
     this.indices   = [];
     this.texCoords = null;
 
-    var indices   = this.indices;
-    var texCoords;
+    this._sliceSegFunc = sliceSegmentFunc || function(i,j,numPoints,numSegments)
+                         {
+                             var step = Math.PI * 2 / numSegments;
+                             return [Math.cos(step * j),Math.sin(step * j)];
+                         };
 
-    var index,indexSeg,indexTex;
+    this._initDiameter = diameter;
 
-    var i, j;
-    var v0,v1,v2,v3;
-    var nh,nv;
-
-    if(numSegments > 2)
-    {
-        len = numSegments - 1;
-
-        //close front
-        i = -1;
-        while(++i < len)indices.push(0,i,i+1);
-
-        i = -1;
-        while (++i < numPoints - 1)
-        {
-
-            index = i * numSegments;
-            j = -1;
-            while (++j < len)
-            {
-                indexSeg = index + j;
-
-                v0 = indexSeg;
-                v1 = indexSeg + 1;
-                v2 = indexSeg + numSegments + 1;
-                v3 = indexSeg + numSegments;
-
-                indices.push(v0,v1,v3,
-                             v1,v2,v3);
-            }
-
-            v0 = index + len;
-            v1 = index;
-            v2 = index + len + 1;
-            v3 = index + numSegments + len;
-
-            indices.push(v0,v1,v3,
-                         v1,v2,v3);
-        }
-
-        //close back
-        index = i = (numPoints - 1) * numSegments;
-        j     = i + numSegments;
-        while (++i < j - 1)indices.push(index, i, i + 1);
-    }
-    else
-    {
-        i = -1;
-        while(++i < numPoints - 1)
-        {
-            index = i * 2;
-            indices.push(index,
-                         index + 1,
-                         index + 2,
-                         index + 1,
-                         index + 3,
-                         index + 2);
-
-        }
-
-
-
-        texCoords = this.texCoords = new Float32Array(len / 3 * 2);
-
-        i = -1;
-        while(++i < numPoints)
-        {
-            index = i * numSegments;
-            nh    = i / (numPoints - 1);
-
-            j = -1;
-            while(++j < numSegments)
-            {
-                indexTex = (index + j) * 2;
-                nv       = 1 - j / (numSegments - 1);
-
-                texCoords[indexTex]   = nh;
-                texCoords[indexTex+1] = nv;
-            }
-        }
-    }
-
-
-
-    sliceSegmentFunc = sliceSegmentFunc || function(i,j,numPoints,numSegments)
-                                           {
-                                               var step = Math.PI * 2 / numSegments;
-                                               return [Math.cos(step * j),Math.sin(step * j)];
-                                           };
-
-    this.applySliceSegmentFunc(sliceSegmentFunc,diameter);
-
-
-    this.indices = new Uint16Array(indices);
+    this.setNumSegments(numSegments);
 
     this._tempVec0 = GLKit.Vec3.make();
     this._bPoint0  = GLKit.Vec3.make();
@@ -133,9 +42,42 @@ GLKit.LineBuffer3d.prototype = Object.create(GLKit.Geom3d.prototype);
 
 /*---------------------------------------------------------------------------------------------------------*/
 
+GLKit.LineBuffer3d.prototype.setPoints = function(arr)
+{
+    if(arr.length == this.vertices.length)
+    {
+
+    }
+    else
+    {
+
+    }
+
+    var numPoints   = arr.length / 3;
+    var numSegments = this._numSegments;
+    var len = numPoints * numSegments * 3 * 2;
+
+    this._numPoints    = numPoints;
+    this._numSegments  = numSegments;
+    this._verticesNorm = new Float32Array(len);
+
+    this.points    = new Float32Array(arr);
+    this.vertices  = new Float32Array(len);
+    this.normals   = new Float32Array(len);
+    this.colors    = new Float32Array(len / 3 * 4);
+    this.indices   = [];
+
+
+}
+
+
+/*---------------------------------------------------------------------------------------------------------*/
+
 
 GLKit.LineBuffer3d.prototype.applySliceSegmentFunc = function(func,baseDiameter)
 {
+    this._sliceSegFunc = func;
+
     baseDiameter = baseDiameter || 1.0;
 
     var numPoints    = this._numPoints,
@@ -208,6 +150,11 @@ GLKit.LineBuffer3d.prototype.getPoint = function(index,out)
 
 /*---------------------------------------------------------------------------------------------------------*/
 
+GLKit.LineBuffer3d.prototype.setUnitDiameter = function(value)
+{
+
+};
+
 //Should seperate this
 GLKit.LineBuffer3d.prototype.setDiameter = function(index,value)
 {
@@ -251,10 +198,106 @@ GLKit.LineBuffer3d.prototype.setDiameter = function(index,value)
     }
 };
 
+//TODO: Cleanup / unroll ...
 GLKit.LineBuffer3d.prototype.setNumSegments = function(numSegments)
 {
+    numSegments = numSegments < 2 ? 2 : numSegments;
 
-}
+    var numPoints = this._numPoints;
+    var indices   = this.indices = [];
+    var texCoords;
+
+    var i,j;
+    var v0,v1,v2,v3;
+    var nh,nv;
+    var index, indexSeg, indexTex;
+    var len;
+
+    indices.length = 0;
+
+    if(numSegments > 2)
+    {
+        len = numSegments - 1;
+
+        //close front
+        i = -1;
+        while(++i < len)indices.push(0,i,i+1);
+
+        i = -1;
+        while (++i < numPoints - 1)
+        {
+
+            index = i * numSegments;
+            j = -1;
+            while (++j < len)
+            {
+                indexSeg = index + j;
+
+                v0 = indexSeg;
+                v1 = indexSeg + 1;
+                v2 = indexSeg + numSegments + 1;
+                v3 = indexSeg + numSegments;
+
+                indices.push(v0,v1,v3,
+                    v1,v2,v3);
+            }
+
+            v0 = index + len;
+            v1 = index;
+            v2 = index + len + 1;
+            v3 = index + numSegments + len;
+
+            indices.push(v0,v1,v3,
+                v1,v2,v3);
+        }
+
+        //close back
+        index = i = (numPoints - 1) * numSegments;
+        j     = i + numSegments;
+        while (++i < j - 1)indices.push(index, i, i + 1);
+    }
+    else
+    {
+        len = numPoints * numSegments * 3 * 2;
+
+        i = -1;
+        while(++i < numPoints - 1)
+        {
+            index = i * 2;
+            indices.push(index,
+                index + 1,
+                index + 2,
+                index + 1,
+                index + 3,
+                index + 2);
+
+        }
+
+        texCoords = this.texCoords = new Float32Array(len / 3 * 2);
+
+        i = -1;
+        while(++i < numPoints)
+        {
+            index = i * numSegments;
+            nh    = i / (numPoints - 1);
+
+            j = -1;
+            while(++j < numSegments)
+            {
+                indexTex = (index + j) * 2;
+                nv       = 1 - j / (numSegments - 1);
+
+                texCoords[indexTex]   = nh;
+                texCoords[indexTex+1] = nv;
+            }
+        }
+
+
+    }
+
+    this.indices = new Uint16Array(indices);
+    this.applySliceSegmentFunc(this._sliceSegFunc,this._initDiameter);
+};
 
 /*---------------------------------------------------------------------------------------------------------*/
 
@@ -479,6 +522,7 @@ GLKit.LineBuffer3d.prototype.setSegTexCoordMapping = function(scaleH,offsetH,sca
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
+
 
 GLKit.LineBuffer3d.prototype.getNumSegments = function(){return this._numSegments;};
 GLKit.LineBuffer3d.prototype.getNumPoints   = function(){return this._numPoints;};
