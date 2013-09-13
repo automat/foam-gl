@@ -624,7 +624,7 @@ GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,c
                        count || vertexFloat32Array.length / this.SIZE_OF_VERTEX);
 };
 
-GLKit.GL.prototype.drawGeometry = function(geom) {geom._draw(this);};
+GLKit.GL.prototype.drawGeometry = function(geom,count,offset) {geom._draw(this,count,offset);};
 
 
 /*---------------------------------------------------------------------------------------------------------*/
