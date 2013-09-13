@@ -1,4 +1,4 @@
-GLKit.LineBuffer3d = function(numPoints,numSegments,diameter,sliceSegmentFunc)
+GLKit.LineBuffer3d = function(points,numSegments,diameter,sliceSegmentFunc)
 {
     GLKit.Geom3d.apply(this,arguments);
 
@@ -6,23 +6,28 @@ GLKit.LineBuffer3d = function(numPoints,numSegments,diameter,sliceSegmentFunc)
     diameter    = diameter    || 0.25;
 
     this._numSegments = numSegments;
-    this._numPoints   = numPoints;
+    var numPoints = this._numPoints  = points.length / 3;
+
 
     var len = numPoints * numSegments * 3 * 2;
 
-    this.points        = new Float32Array(numPoints * 3);
+    this.points        = new Float32Array(points);
     this._verticesNorm = new Float32Array(len);
 
-    this.vertices = new Float32Array(len);
-    this.colors   = new Float32Array(this.vertices.length / 3 * 4);
-    this.normals  = new Float32Array(len);
-    this.indices  = [];
+    this.vertices  = new Float32Array(len);
+    this.normals   = new Float32Array(len);
+    this.colors    = new Float32Array(len / 3 * 4);
+    this.indices   = [];
+    this.texCoords = null;
 
-    var indices = this.indices,
-        index,indexSeg;
+    var indices   = this.indices;
+    var texCoords;
+
+    var index,indexSeg,indexTex;
 
     var i, j;
     var v0,v1,v2,v3;
+    var nh,nv;
 
     if(numSegments > 2)
     {
@@ -79,7 +84,30 @@ GLKit.LineBuffer3d = function(numPoints,numSegments,diameter,sliceSegmentFunc)
                          index + 2);
 
         }
+
+
+
+        texCoords = this.texCoords = new Float32Array(len / 3 * 2);
+
+        i = -1;
+        while(++i < numPoints)
+        {
+            index = i * numSegments;
+            nh    = i / (numPoints - 1);
+
+            j = -1;
+            while(++j < numSegments)
+            {
+                indexTex = (index + j) * 2;
+                nv       = 1 - j / (numSegments - 1);
+
+                texCoords[indexTex]   = nh;
+                texCoords[indexTex+1] = nv;
+            }
+        }
     }
+
+
 
     sliceSegmentFunc = sliceSegmentFunc || function(i,j,numPoints,numSegments)
                                            {
@@ -92,14 +120,19 @@ GLKit.LineBuffer3d = function(numPoints,numSegments,diameter,sliceSegmentFunc)
 
     this.indices = new Uint16Array(indices);
 
-    this._tempVec0  = GLKit.Vec3.make();
+    this._tempVec0 = GLKit.Vec3.make();
     this._bPoint0  = GLKit.Vec3.make();
     this._bPoint1  = GLKit.Vec3.make();
     this._bPoint01 = GLKit.Vec3.make();
     this._axisY    = GLKit.Vec3.AXIS_Y();
+
+    /*---------------------------------------------------------------------------------------------------------*/
 };
 
 GLKit.LineBuffer3d.prototype = Object.create(GLKit.Geom3d.prototype);
+
+/*---------------------------------------------------------------------------------------------------------*/
+
 
 GLKit.LineBuffer3d.prototype.applySliceSegmentFunc = function(func,baseDiameter)
 {
@@ -134,6 +167,8 @@ GLKit.LineBuffer3d.prototype.applySliceSegmentFunc = function(func,baseDiameter)
         }
     }
 };
+
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.LineBuffer3d.prototype.setPoint3f = function(index,x,y,z)
 {
@@ -171,19 +206,7 @@ GLKit.LineBuffer3d.prototype.getPoint = function(index,out)
     return out;
 };
 
-GLKit.LineBuffer3d.prototype.setPoints = function(array)
-{
-    var points = this.points;
-    var i = -1,i3;
-
-    while(++i<points.length)
-    {
-        i3 = i * 3;
-        points[i  ] = array[i  ];
-        points[i+1] = array[i+1];
-        points[i+2] = array[i+2];
-    }
-};
+/*---------------------------------------------------------------------------------------------------------*/
 
 //Should seperate this
 GLKit.LineBuffer3d.prototype.setDiameter = function(index,value)
@@ -227,6 +250,13 @@ GLKit.LineBuffer3d.prototype.setDiameter = function(index,value)
         }
     }
 };
+
+GLKit.LineBuffer3d.prototype.setNumSegments = function(numSegments)
+{
+
+}
+
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.LineBuffer3d.prototype.update = function()
 {
@@ -406,7 +436,56 @@ GLKit.LineBuffer3d.prototype.update = function()
     //END - calculate last point
 };
 
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.LineBuffer3d.prototype.setSegVTexCoordMapping = function(scale,offset){this.setSegTexCoordMapping(1,0,scale,offset || 0);};
+GLKit.LineBuffer3d.prototype.setSegHTexCoordMapping = function(scale,offset){this.setSegTexCoordMapping(scale,offset || 0,1,0);};
+
+GLKit.LineBuffer3d.prototype.setSegTexCoordMapping = function(scaleH,offsetH,scaleV,offsetV)
+{
+    var numPoints     = this._numPoints,
+        numSegments   = this._numSegments,
+        numSegments_1 = numSegments - 1;
+
+    var texCoords = this.texCoords;
+    var i, j, index, indexTex;
+    var nh,nv;
+
+    if(numSegments > 2)
+    {
+
+    }
+    else
+    {
+        i = -1;
+        while(++i < numPoints)
+        {
+            index = i * numSegments;
+            nh    = (i / (numPoints - 1)) * scaleH - offsetH;
+
+            j = -1;
+            while(++j < numSegments)
+            {
+                indexTex = (index + j) * 2;
+                nv       = (1 - j / numSegments_1) * scaleV - offsetV;
+
+                texCoords[indexTex  ] = nh;
+                texCoords[indexTex+1] = nv;
+            }
+        }
+
+    }
+
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
+
 GLKit.LineBuffer3d.prototype.getNumSegments = function(){return this._numSegments;};
 GLKit.LineBuffer3d.prototype.getNumPoints   = function(){return this._numPoints;};
 
-GLKit.LineBuffer3d.prototype._draw = function(gl){gl.drawElements(this.vertices,this.normals,gl.fillColorBuffer(gl.getColorBuffer(),this.colors),null,this.indices,gl.TRIANGLES);};
+
+GLKit.LineBuffer3d.prototype._draw = function(gl,count,offset)
+{
+    var indices = this.indices;
+    gl.drawElements(this.vertices,this.normals,gl.fillColorBuffer(gl.getColorBuffer(),this.colors),this.texCoords,indices,gl.getDrawMode(),count || indices.length, offset || 0 );
+};
