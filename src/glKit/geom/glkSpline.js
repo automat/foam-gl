@@ -167,3 +167,51 @@ GLKit.Spline.prototype.getVec3OnSpline = function(val,out)
 
 
 
+//hm
+GLKit.Spline.prototype.getPointsLineLengthSq = function()
+{
+    var points    = this.points;
+
+    var dx = 0,
+        dy = 0,
+        dz = 0;
+
+    var i = points.length;
+    while(i > 6)
+    {
+        dx += points[i-3] - points[i-6];
+        dy += points[i-2] - points[i-5];
+        dz += points[i-1] - points[i-4];
+
+        i-=3;
+    }
+
+    return dx*dx+dy*dy+dz*dz;
+
+};
+
+GLKit.Spline.prototype.getSplineLineLengthSq = function()
+{
+    var vertices = this.vertices;
+
+    var dx = 0,
+        dy = 0,
+        dz = 0;
+
+    var i = vertices.length;
+    while(i > 6)
+    {
+        dx += vertices[i-3] - vertices[i-6];
+        dy += vertices[i-2] - vertices[i-5];
+        dz += vertices[i-1] - vertices[i-4];
+
+        i-=3;
+    }
+
+    return dx*dx+dy*dy+dz*dz;
+};
+
+GLKit.Spline.prototype.getPointsLineLength = function(){return Math.sqrt(this.getPointsLineLengthSq());};
+GLKit.Spline.prototype.getSplinePointsLength = function(){return Math.sqrt(this.getSplineLineLengthSq())};
+
+
