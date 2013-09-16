@@ -23,12 +23,12 @@ GLKit.Application = function(parentDomElement)
     this._targetFPS = 60;
     this._frames    = 0;
 
-    this._time;
+    this._time         = 0;
     this._timeStart    = Date.now();
     this._timeNext     = Date.now();
     this._timeInterval = 1000/this._targetFPS;
-    this._timeElapsed;
-    this._timeDelta;
+    this._timeElapsed  = 0;
+    this._timeDelta    = 0;
 
     /*---------------------------------------------------------------------------------*/
 
@@ -87,7 +87,7 @@ GLKit.Application.prototype.setUpdate = function(bool){this._update = bool;};
 
 GLKit.Application.prototype._updateLoop = function()
 {
-    if(!this._update)return;
+    if(!this._update){this._update();return};
 
     requestAnimationFrame(this._updateLoop.bind(this),null);
 
@@ -132,14 +132,10 @@ GLKit.Application.prototype.getTargetFPS = function(){return this._targetFPS;};
 GLKit.Application.prototype._initListeners = function()
 {
     var glCanvas = this.glWindow.getCanvas3d();
-        glCanvas.addEventListener('mousedown', this._onMouseDown.bind(this));
-        glCanvas.addEventListener('mouseup',   this._onMouseUp.bind(this));
-        glCanvas.addEventListener('mousemove', this._onMouseMove.bind(this));
-        glCanvas.addEventListener('keydown',   this._onKeyDown.bind(this));
-        glCanvas.addEventListener('keyup',     this._onKeyUp.bind(this));
-        glCanvas.addEventListener('mousewheel',this._onMouseWheel.bind(this));
 
-    document.addEventListener('mousemove',this._onMouseMove.bind(this));
+    this.setMouseListenerTarget(glCanvas);
+    this.setKeyListenerTarget(glCanvas);
+
     window.addEventListener('resize',this._onWindowResize.bind(this));
 };
 
@@ -168,6 +164,20 @@ GLKit.Application.prototype.onMouseUp             = function(e){};
 GLKit.Application.prototype.onMouseDown           = function(e){};
 GLKit.Application.prototype.onMouseWheel          = function(e){};
 GLKit.Application.prototype.onMouseMove           = function(e){};
+
+GLKit.Application.prototype.setMouseListenerTarget = function(element)
+{
+    element.addEventListener('mousedown', this._onMouseDown.bind(this));
+    element.addEventListener('mouseup',   this._onMouseUp.bind(this));
+    element.addEventListener('mousemove', this._onMouseMove.bind(this));
+    element.addEventListener('mousewheel',this._onMouseWheel.bind(this));
+};
+
+GLKit.Application.prototype.setKeyListenerTarget = function(element)
+{
+    element.addEventListener('keydown',   this._onKeyDown.bind(this));
+    element.addEventListener('keyup',     this._onKeyUp.bind(this));
+};
 
 GLKit.Application.prototype.isKeyDown          = function(){return this._keyDown;};
 GLKit.Application.prototype.isMouseDown        = function(){return this._mouseDown;};

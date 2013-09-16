@@ -504,6 +504,24 @@ GLKit.Vec3 =
         return x*x+y*y+z*z;
     },
 
+    safeNormalize : function(v)
+    {
+        var x = v[0],
+            y = v[1],
+            z = v[2];
+
+        var d = Math.sqrt(x*x+y*y+z*z);
+        d = d || 1;
+
+        var l  = 1/d;
+
+        v[0] *= l;
+        v[1] *= l;
+        v[2] *= l;
+
+        return v;
+    },
+
     normalize : function(v)
     {
         var x = v[0],
@@ -2411,7 +2429,7 @@ GLKit.GL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,c
                        count || vertexFloat32Array.length / this.SIZE_OF_VERTEX);
 };
 
-GLKit.GL.prototype.drawGeometry = function(geom) {geom._draw(this);};
+GLKit.GL.prototype.drawGeometry = function(geom,count,offset) {geom._draw(this,count,offset);};
 
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -3208,8 +3226,6 @@ GLKit.Geom3d = function()
     this.texCoords = null;
 };
 
-
-
 //TODO merge
 GLKit.Geom3d.prototype.updateVertexNormals = function()
 {
@@ -3285,7 +3301,7 @@ GLKit.Geom3d.prototype.updateVertexNormals = function()
         i+=3;
     }
 
-    var x, y, z, l, il;
+    var x, y, z, l;
 
     i = 0;
     while(i < normals.length)
@@ -3296,17 +3312,100 @@ GLKit.Geom3d.prototype.updateVertexNormals = function()
         z = normals[i+2];
 
         l = Math.sqrt(x*x+y*y+z*z);
+        l = 1 / (l || 1);
 
-        il = 1 / (l != 0 ? l : 1);
-
-        normals[i  ] *= il;
-        normals[i+1] *= il;
-        normals[i+2] *= il;
+        normals[i  ] *= l;
+        normals[i+1] *= l;
+        normals[i+2] *= l;
 
         i+=3;
     }
 
 };
+
+
+GLKit.Geom3d.prototype.setVertex = function(index,v)
+{
+    index *= 3;
+    var vertices = this.vertices;
+    vertices[index  ] = v[0];
+    vertices[index+1] = v[1];
+    vertices[index+2] = v[2];
+};
+
+GLKit.Geom3d.prototype.setVertex3f = function(index,x,y,z)
+{
+    index*=3;
+    var vertices = this.vertices;
+    vertices[index  ] = x;
+    vertices[index+1] = y;
+    vertices[index+2] = z;
+};
+
+GLKit.Geom3d.prototype.setColor4f = function(index,r,g,b,a)
+{
+    index *= 4;
+    var colors = this.colors;
+    colors[index  ] = r;
+    colors[index+1] = g;
+    colors[index+2] = b;
+    colors[index+3] = a;
+};
+
+GLKit.Geom3d.prototype.setColor3f = function(index,r,g,b)
+{
+    index *= 4;
+    var colors = this.colors;
+    colors[index  ] = r;
+    colors[index+1] = g;
+    colors[index+2] = b;
+};
+
+GLKit.Geom3d.prototype.setColor2f = function(index,k,a)
+{
+    index *= 4;
+    var colors = this.colors;
+    colors[index  ] = k;
+    colors[index+1] = k;
+    colors[index+2] = k;
+    colors[index+3] = a;
+};
+
+GLKit.Geom3d.prototype.setColor1f = function(index,k)
+{
+    index *= 4;
+    var colors = this.colors;
+    colors[index  ] = k;
+    colors[index+1] = k;
+    colors[index+2] = k;
+};
+
+GLKit.Geom3d.prototype.setColor = function(index,color)
+{
+    index*=4;
+    var colors = this.colors;
+    colors[index  ] = color[0];
+    colors[index+1] = color[1];
+    colors[index+2] = color[2];
+    colors[index+3] = color[3];
+};
+
+GLKit.Geom3d.prototype.setTexCoord2f = function(index,u,v)
+{
+    index*=2;
+    var texCoords = this.texCoords;
+    texCoords[index  ] = u;
+    texCoords[index+1] = v;
+};
+
+GLKit.Geom3d.prototype.setTexCoord = function(index,v)
+{
+    index*=2;
+    var texCoords = this.texCoords;
+    texCoords[index  ] = v[0];
+    texCoords[index+1] = v[1];
+};
+
 
 GLKit.Geom3d.prototype._draw = function(gl)
 {
@@ -5281,112 +5380,76 @@ GLKit.LineBuffer2d.prototype.getSizeAllocated = function(){return this.vertices.
 GLKit.LineBuffer2d.prototype.getSizePushed    = function(){return this._vertIndex;};
 
 
-GLKit.LineBuffer3d = function(numPoints,numSegments,diameter,sliceSegmentFunc)
+//TODO:
+//Fix shared normals on caps
+//
+
+GLKit.LineBuffer3d = function(points,numSegments,diameter,sliceSegmentFunc,closed)
 {
     GLKit.Geom3d.apply(this,arguments);
 
     numSegments = numSegments || 10;
     diameter    = diameter    || 0.25;
 
-    this._numSegments = numSegments;
-    this._numPoints   = numPoints;
+    this._closedCaps   = (typeof closed === 'undefined') ? true : closed;
+    this._numSegments  = numSegments;
 
-    var len = numPoints * numSegments * 3 * 2;
+    //caches vertices transformed by slicesegfunc for diameter scaling
+    //...,vnorm0x,vnorm0y,vnorm0z,vnorm0xScaled,,vnorm0yScaled,vnorm0zScaled,...
+    this._verticesNorm = null;
+    this.points        = null;
 
-    this.points        = new Float32Array(numPoints * 3);
-    this._verticesNorm = new Float32Array(len);
+    this._sliceSegFunc = sliceSegmentFunc ||
+                        (function(i,j,numPoints,numSegments)
+                         {
+                             var step  = Math.PI * 2 / numSegments,
+                                 angle = step * j;
 
-    this.vertices = new Float32Array(len);
-    this.colors   = new Float32Array(this.vertices.length / 3 * 4);
-    this.normals  = new Float32Array(len);
-    this.indices  = [];
+                             return [Math.cos(angle),Math.sin(angle)];
+                         });
 
-    var indices = this.indices,
-        index,indexSeg;
+    this._initDiameter = diameter;
 
-    var i, j;
-    var v0,v1,v2,v3;
-
-    if(numSegments > 2)
-    {
-        len = numSegments - 1;
-
-        //close front
-        i = -1;
-        while(++i < len)indices.push(0,i,i+1);
-
-        i = -1;
-        while (++i < numPoints - 1)
-        {
-
-            index = i * numSegments;
-            j = -1;
-            while (++j < len)
-            {
-                indexSeg = index + j;
-
-                v0 = indexSeg;
-                v1 = indexSeg + 1;
-                v2 = indexSeg + numSegments + 1;
-                v3 = indexSeg + numSegments;
-
-                indices.push(v0,v1,v3,
-                             v1,v2,v3);
-            }
-
-            v0 = index + len;
-            v1 = index;
-            v2 = index + len + 1;
-            v3 = index + numSegments + len;
-
-            indices.push(v0,v1,v3,
-                         v1,v2,v3);
-        }
-
-        //close back
-        index = i = (numPoints - 1) * numSegments;
-        j     = i + numSegments;
-        while (++i < j - 1)indices.push(index, i, i + 1);
-    }
-    else
-    {
-        i = -1;
-        while(++i < numPoints - 1)
-        {
-            index = i * 2;
-            indices.push(index,
-                         index + 1,
-                         index + 2,
-                         index + 1,
-                         index + 3,
-                         index + 2);
-
-        }
-    }
-
-    sliceSegmentFunc = sliceSegmentFunc || function(i,j,numPoints,numSegments)
-                                           {
-                                               var step = Math.PI * 2 / numSegments;
-                                               return [Math.cos(step * j),Math.sin(step * j)];
-                                           };
-
-    this.applySliceSegmentFunc(sliceSegmentFunc,diameter);
-
-
-    this.indices = new Uint16Array(indices);
-
-    this._tempVec0  = GLKit.Vec3.make();
+    this._tempVec0 = GLKit.Vec3.make();
     this._bPoint0  = GLKit.Vec3.make();
     this._bPoint1  = GLKit.Vec3.make();
     this._bPoint01 = GLKit.Vec3.make();
     this._axisY    = GLKit.Vec3.AXIS_Y();
+
+    /*---------------------------------------------------------------------------------------------------------*/
+
+    if(points)this.setPoints(points);
+
 };
 
 GLKit.LineBuffer3d.prototype = Object.create(GLKit.Geom3d.prototype);
 
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.LineBuffer3d.prototype.setPoints = function(arr)
+{
+    this.points = new Float32Array(arr);
+
+    if(!(this.vertices && this.vertices.length == arr.length))
+    {
+        var numSegments = this._numSegments,
+            numPoints   = this._numPoints = arr.length / 3;
+        var len         = numPoints * numSegments * 3;
+
+        this._verticesNorm = new Float32Array(len * 2);
+        this.vertices      = new Float32Array(len);
+        this.normals       = new Float32Array(len);
+        this.colors        = new Float32Array(len / 3 * 4);
+
+        this.setNumSegments(numSegments);
+    }
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
+
 GLKit.LineBuffer3d.prototype.applySliceSegmentFunc = function(func,baseDiameter)
 {
-    baseDiameter = baseDiameter || 1.0;
+    baseDiameter = baseDiameter || 0.25;
 
     var numPoints    = this._numPoints,
         numSegments  = this._numSegments,
@@ -5416,7 +5479,12 @@ GLKit.LineBuffer3d.prototype.applySliceSegmentFunc = function(func,baseDiameter)
             verticesNorm[k+5] = verticesNorm[k+2] * baseDiameter;
         }
     }
+
+    this._sliceSegFunc = func;
+
 };
+
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.LineBuffer3d.prototype.setPoint3f = function(index,x,y,z)
 {
@@ -5429,62 +5497,168 @@ GLKit.LineBuffer3d.prototype.setPoint3f = function(index,x,y,z)
     points[index+2] = z;
 };
 
-GLKit.LineBuffer3d.prototype.setPoints = function(array)
+GLKit.LineBuffer3d.prototype.setPoint = function(index,v)
 {
-    var points = this.points;
-    var i = -1,i3;
+    index *= 3;
 
-    while(++i<points.length)
+    var points = this.points;
+
+    points[index  ] = v[0];
+    points[index+1] = v[1];
+    points[index+2] = v[2];
+};
+
+GLKit.LineBuffer3d.prototype.getPoint = function(index,out)
+{
+    out    = out || this._tempVec0;
+    index *= 3;
+
+    var points = this.points;
+
+    out[0] = points[index  ];
+    out[1] = points[index+1];
+    out[2] = points[index+2];
+
+    return out;
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.LineBuffer3d.prototype.setUnitDiameter = function(value)
+{
+    var numSegments  = this._numSegments,
+        verticesNorm = this._verticesNorm;
+
+    var offset = numSegments * 3 * 2;
+
+    var i = 0,
+        l = this._numPoints * offset;
+
+    while(i < l)
     {
-        i3 = i * 3;
-        points[i  ] = array[i  ];
-        points[i+1] = array[i+1];
-        points[i+2] = array[i+2];
+        verticesNorm[i + 3] = verticesNorm[i + 0] * value;
+        verticesNorm[i + 5] = verticesNorm[i + 2] * value;
+        i+=6;
     }
 };
 
-//Should seperate this
 GLKit.LineBuffer3d.prototype.setDiameter = function(index,value)
 {
     var numSegments  = this._numSegments,
         verticesNorm = this._verticesNorm;
 
     var offset = numSegments * 3 * 2;
-    var i,l;
-    var val;
 
-    if(arguments.length == 2)
-    {
-        var indx = index;
-            val  = value;
-
-        i = indx * offset;
+    var i = index * offset,
         l = i + offset;
 
-        while(i < l)
-        {
-            verticesNorm[i+3] = verticesNorm[i+0] * val;
-            verticesNorm[i+5] = verticesNorm[i+2] * val;
-            i+=6;
-        }
-
-        return;
-    }
-
-    if(arguments.length == 1)
+    while (i < l)
     {
-        i   = 0;
-        l   = this._numPoints * offset;
-        val = arguments[0];
-
-        while(i < l)
-        {
-            verticesNorm[i+3] = verticesNorm[i+0] * val;
-            verticesNorm[i+5] = verticesNorm[i+2] * val;
-            i+=6;
-        }
+        verticesNorm[i + 3] = verticesNorm[i + 0] * value;
+        verticesNorm[i + 5] = verticesNorm[i + 2] * value;
+        i += 6;
     }
 };
+
+//TODO: Cleanup / unroll ...
+GLKit.LineBuffer3d.prototype.setNumSegments = function(numSegments)
+{
+    numSegments = numSegments < 2 ? 2 : numSegments;
+
+    var numPoints = this._numPoints;
+    var indices   = this.indices = [];
+    var texCoords;
+
+    var i,j;
+    var v0,v1,v2,v3;
+    var nh,nv;
+    var index, indexSeg, indexTex;
+    var len;
+
+    if(numSegments > 2)
+    {
+
+        len = numSegments - 1;
+
+        i = -1;
+        while (++i < numPoints - 1)
+        {
+
+            index = i * numSegments;
+            j = -1;
+            while (++j < len)
+            {
+                indexSeg = index + j;
+
+                v0 = indexSeg;
+                v1 = indexSeg + 1;
+                v2 = indexSeg + numSegments + 1;
+                v3 = indexSeg + numSegments;
+
+                indices.push(v0,v1,v3,
+                             v1,v2,v3);
+            }
+
+
+            v0 = index + len;
+            v1 = index;
+            v2 = index + len + 1;
+            v3 = index + numSegments + len;
+
+            indices.push(v0,v1,v3,
+                         v1,v2,v3);
+
+        }
+
+        if(this._closedCaps)
+        {
+            len = numSegments - 2;
+            i = -1;while(++i < len)indices.push(0,i+1,i+2);
+
+            len += (numPoints - 1) * numSegments;
+            i   = j = len - numSegments + 1;
+            while(++i < len)indices.push(j,i,i+1);
+        }
+    }
+    else
+    {
+        i = -1;
+        while(++i < numPoints - 1)
+        {
+            index = i * 2;
+            indices.push(index,    index + 1,index + 2,
+                         index + 1,index + 3,index + 2);
+
+        }
+    }
+
+    len = numPoints * numSegments * 3 ;
+
+    texCoords = this.texCoords = new Float32Array(len / 3 * 2);
+
+    i = -1;
+    while(++i < numPoints)
+    {
+        index = i * numSegments;
+        nh    = i / (numPoints - 1);
+
+        j = -1;
+        while(++j < numSegments)
+        {
+            indexTex = (index + j) * 2;
+            nv       = 1 - j / (numSegments - 1);
+
+            texCoords[indexTex]   = nh;
+            texCoords[indexTex+1] = nv;
+        }
+    }
+
+
+    this.indices = new Uint16Array(indices);
+    this.applySliceSegmentFunc(this._sliceSegFunc,this._initDiameter);
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.LineBuffer3d.prototype.update = function()
 {
@@ -5518,9 +5692,9 @@ GLKit.LineBuffer3d.prototype.update = function()
     Vec3.set3f(p0,points[0],points[1],points[2]);
     Vec3.set3f(p1,points[3],points[4],points[5]);
 
-    dir01 = Vec3.normalize(Vec3.subbed(p1,p0));
+    dir01 = Vec3.safeNormalize(Vec3.subbed(p1,p0));
     angle = Math.acos(Vec3.dot(dir01,up));
-    axis  = Vec3.normalize(Vec3.cross(up,dir01));
+    axis  = Vec3.safeNormalize(Vec3.cross(up,dir01));
 
     Mat44.identity(mat);
     mat[12] = p0[0];
@@ -5552,7 +5726,7 @@ GLKit.LineBuffer3d.prototype.update = function()
     //calc first prev dir
     Vec3.set3f(p0, points[3],points[4],points[5]);
     Vec3.set3f(p01,points[0],points[1],points[2]);
-    dir_10 = Vec3.normalize(Vec3.subbed(p0,p01));
+    dir_10 = Vec3.safeNormalize(Vec3.subbed(p0,p01));
 
     var i3;
     var i = 0;
@@ -5572,7 +5746,7 @@ GLKit.LineBuffer3d.prototype.update = function()
         p1[2] = points[i3+2];
 
         //calculate direction
-        dir01  = Vec3.normalize(Vec3.subbed(p1,p0));
+        dir01  = Vec3.safeNormalize(Vec3.subbed(p1,p0));
 
         //interpolate with previous direction
         dir01[0] = dir01[0] * 0.5 + dir_10[0] * 0.5;
@@ -5581,7 +5755,7 @@ GLKit.LineBuffer3d.prototype.update = function()
 
         //get dir angle + axis
         angle = Math.acos(Vec3.dot(dir01,up));
-        axis  = Vec3.normalize(Vec3.cross(up,dir01));
+        axis  = Vec3.safeNormalize(Vec3.cross(up,dir01));
 
         //reset transformation matrix
         Mat44.identity(mat);
@@ -5630,9 +5804,9 @@ GLKit.LineBuffer3d.prototype.update = function()
     Vec3.set3f(p0,points[len - 6],points[len - 5],points[len - 4]);
     Vec3.set3f(p1,points[len - 3],points[len - 2],points[len - 1]);
 
-    dir01 = Vec3.normalize(Vec3.subbed(p1,p0));
+    dir01 = Vec3.safeNormalize(Vec3.subbed(p1,p0));
     angle = Math.acos(Vec3.dot(dir01,up));
-    axis  = Vec3.normalize(Vec3.cross(up,dir01));
+    axis  = Vec3.safeNormalize(Vec3.cross(up,dir01));
 
     Mat44.identity(mat);
     mat[12] = p1[0];
@@ -5664,10 +5838,85 @@ GLKit.LineBuffer3d.prototype.update = function()
     //END - calculate last point
 };
 
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.LineBuffer3d.prototype.setSegVTexCoordMapping = function(scale,offset){this.setSegTexCoordMapping(1,0,scale,offset || 0);};
+GLKit.LineBuffer3d.prototype.setSegHTexCoordMapping = function(scale,offset){this.setSegTexCoordMapping(scale,offset || 0,1,0);};
+
+GLKit.LineBuffer3d.prototype.setSegTexCoordMapping = function (scaleH, offsetH, scaleV, offsetV)
+{
+    var numPoints     = this._numPoints,
+        numSegments   = this._numSegments,
+        numSegments_1 = numSegments - 1;
+
+    var texCoords = this.texCoords;
+    var i, j, index, indexTex;
+    var nh, nv;
+
+    i = -1;
+    while (++i < numPoints)
+    {
+        index = i * numSegments;
+        nh = (i / (numPoints - 1)) * scaleH - offsetH;
+
+        j = -1;
+        while (++j < numSegments)
+        {
+            indexTex = (index + j) * 2;
+            nv = (1 - j / numSegments_1) * scaleV - offsetV;
+
+            texCoords[indexTex  ] = nh;
+            texCoords[indexTex + 1] = nv;
+        }
+    }
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.LineBuffer3d.prototype.setCloseCaps = function(bool)
+{
+    if(this._closedCaps == bool || this._numSegments == 2)return;
+
+    var indices = this.indices,
+        temp    = new Array(this.indices.length);
+
+    var i = -1;while(++i<temp.length)temp[i] = indices[i];
+
+    var numPoints   = this._numPoints,
+        numSegments = this._numSegments;
+    var len;
+
+    if(bool)
+    {
+        len = numSegments - 2;
+        i = -1;while(++i < len)temp.push(0,i+1,i+2);
+
+        len += (numPoints - 1) * numSegments;
+        i   = j = len - numSegments + 1;
+        while(++i < len)temp.push(j,i,i+1);
+    }
+    else
+    {
+        temp = temp.slice(0,indices.length - (numSegments - 2) * 2 * 3);
+    }
+
+    this.indices = new Uint16Array(temp);
+    this.updateVertexNormals();
+    this._closedCaps = bool;
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
+
 GLKit.LineBuffer3d.prototype.getNumSegments = function(){return this._numSegments;};
 GLKit.LineBuffer3d.prototype.getNumPoints   = function(){return this._numPoints;};
 
-GLKit.LineBuffer3d.prototype._draw = function(gl){gl.drawElements(this.vertices,this.normals,gl.fillColorBuffer(gl.getColorBuffer(),this.colors),null,this.indices,gl.TRIANGLES);};
+/*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.LineBuffer3d.prototype._draw = function(gl,count,offset)
+{
+    var indices = this.indices;
+    gl.drawElements(this.vertices,this.normals,gl.fillColorBuffer(gl.getColorBuffer(),this.colors),this.texCoords,indices,gl.getDrawMode(),count || indices.length, offset || 0 );
+};
 
 
 //TODO: Add close, smooth in out intrpl, pre post points
@@ -5838,6 +6087,54 @@ GLKit.Spline.prototype.getVec3OnSpline = function(val,out)
 
 
 
+//hm
+GLKit.Spline.prototype.getPointsLineLengthSq = function()
+{
+    var points    = this.points;
+
+    var dx = 0,
+        dy = 0,
+        dz = 0;
+
+    var i = points.length;
+    while(i > 6)
+    {
+        dx += points[i-3] - points[i-6];
+        dy += points[i-2] - points[i-5];
+        dz += points[i-1] - points[i-4];
+
+        i-=3;
+    }
+
+    return dx*dx+dy*dy+dz*dz;
+
+};
+
+GLKit.Spline.prototype.getSplineLineLengthSq = function()
+{
+    var vertices = this.vertices;
+
+    var dx = 0,
+        dy = 0,
+        dz = 0;
+
+    var i = vertices.length;
+    while(i > 6)
+    {
+        dx += vertices[i-3] - vertices[i-6];
+        dy += vertices[i-2] - vertices[i-5];
+        dz += vertices[i-1] - vertices[i-4];
+
+        i-=3;
+    }
+
+    return dx*dx+dy*dy+dz*dz;
+};
+
+GLKit.Spline.prototype.getPointsLineLength = function(){return Math.sqrt(this.getPointsLineLengthSq());};
+GLKit.Spline.prototype.getSplinePointsLength = function(){return Math.sqrt(this.getSplineLineLengthSq())};
+
+
 
 GLKit.Mouse = function()
 {
@@ -5945,12 +6242,12 @@ GLKit.Application = function(parentDomElement)
     this._targetFPS = 60;
     this._frames    = 0;
 
-    this._time;
+    this._time         = 0;
     this._timeStart    = Date.now();
     this._timeNext     = Date.now();
     this._timeInterval = 1000/this._targetFPS;
-    this._timeElapsed;
-    this._timeDelta;
+    this._timeElapsed  = 0;
+    this._timeDelta    = 0;
 
     /*---------------------------------------------------------------------------------*/
 
@@ -6009,7 +6306,7 @@ GLKit.Application.prototype.setUpdate = function(bool){this._update = bool;};
 
 GLKit.Application.prototype._updateLoop = function()
 {
-    if(!this._update)return;
+    if(!this._update){this._update();return};
 
     requestAnimationFrame(this._updateLoop.bind(this),null);
 
@@ -6054,14 +6351,10 @@ GLKit.Application.prototype.getTargetFPS = function(){return this._targetFPS;};
 GLKit.Application.prototype._initListeners = function()
 {
     var glCanvas = this.glWindow.getCanvas3d();
-        glCanvas.addEventListener('mousedown', this._onMouseDown.bind(this));
-        glCanvas.addEventListener('mouseup',   this._onMouseUp.bind(this));
-        glCanvas.addEventListener('mousemove', this._onMouseMove.bind(this));
-        glCanvas.addEventListener('keydown',   this._onKeyDown.bind(this));
-        glCanvas.addEventListener('keyup',     this._onKeyUp.bind(this));
-        glCanvas.addEventListener('mousewheel',this._onMouseWheel.bind(this));
 
-    document.addEventListener('mousemove',this._onMouseMove.bind(this));
+    this.setMouseListenerTarget(glCanvas);
+    this.setKeyListenerTarget(glCanvas);
+
     window.addEventListener('resize',this._onWindowResize.bind(this));
 };
 
@@ -6090,6 +6383,20 @@ GLKit.Application.prototype.onMouseUp             = function(e){};
 GLKit.Application.prototype.onMouseDown           = function(e){};
 GLKit.Application.prototype.onMouseWheel          = function(e){};
 GLKit.Application.prototype.onMouseMove           = function(e){};
+
+GLKit.Application.prototype.setMouseListenerTarget = function(element)
+{
+    element.addEventListener('mousedown', this._onMouseDown.bind(this));
+    element.addEventListener('mouseup',   this._onMouseUp.bind(this));
+    element.addEventListener('mousemove', this._onMouseMove.bind(this));
+    element.addEventListener('mousewheel',this._onMouseWheel.bind(this));
+};
+
+GLKit.Application.prototype.setKeyListenerTarget = function(element)
+{
+    element.addEventListener('keydown',   this._onKeyDown.bind(this));
+    element.addEventListener('keyup',     this._onKeyUp.bind(this));
+};
 
 GLKit.Application.prototype.isKeyDown          = function(){return this._keyDown;};
 GLKit.Application.prototype.isMouseDown        = function(){return this._mouseDown;};
