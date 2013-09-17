@@ -6237,7 +6237,8 @@ GLKit.Application = function(parentDomElement)
 
     this.mouse = new GLKit.Mouse();
 
-    this._update          = true;
+    this._bUpdateLoopInit = false;
+    this._bUpdate         = true;
 
     this._targetFPS = 60;
     this._frames    = 0;
@@ -6269,7 +6270,9 @@ GLKit.Application.prototype.setSize = function(width, height)
     this.camera.setPerspective(45.0,glWindow.getAspectRatio(),0.1,100.0);
 
     this._updateGLViewport();
-    this._updateLoop();
+
+    if(this._bUpdate && !this._bUpdateLoopInit){this._updateLoop();this._bUpdateLoopInit = true;}
+    else if(!this._bUpdate)this._update();
 };
 
 GLKit.Application.prototype.setCamera = function(camera)
@@ -6306,8 +6309,6 @@ GLKit.Application.prototype.setUpdate = function(bool){this._update = bool;};
 
 GLKit.Application.prototype._updateLoop = function()
 {
-    if(!this._update){this._update();return};
-
     requestAnimationFrame(this._updateLoop.bind(this),null);
 
     var time         = this._time = Date.now(),

@@ -6,9 +6,6 @@
     {
         GLKit.Application.apply(this,arguments);
 
-        this.setSize(window.innerWidth,window.innerHeight);
-        this.setTargetFPS(60);
-
         this._zoom = 3;
 
         var light0 = this._light0 = new GLKit.Light(this.gl.LIGHT_0);
@@ -23,6 +20,8 @@
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
 
+        this.setSize(window.innerWidth,window.innerHeight);
+        this.setTargetFPS(60);
     }
 
     App.prototype = Object.create(GLKit.Application.prototype);
