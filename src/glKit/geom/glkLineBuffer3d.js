@@ -504,7 +504,6 @@ GLKit.LineBuffer3d.prototype.setCloseCaps = function(bool)
         var j;
         len += (numPoints - 1) * numSegments + 1;
         i   = j = len - numSegments + 1;
-        console.log(len);
         while(++i < len)temp.push(j,i,i+1);
     }
     else

@@ -34,6 +34,8 @@ var rootPath = '../src/glKit/',
         'geom/glkLineBuffer2d.js',
         'geom/glkLineBuffer3d.js',
         'geom/glkSpline.js',
+        'geom/glkLine2dUtil.js',
+        'geom/glkPolygon2dUtil.js',
         'util/glkMouse.js',
         'app/glkWindow.js',
         'app/glkApplication.js'
