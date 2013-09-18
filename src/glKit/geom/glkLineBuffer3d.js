@@ -227,16 +227,6 @@ GLKit.LineBuffer3d.prototype.setNumSegments = function(numSegments)
                          v1,v2,v3);
 
         }
-
-        if(this._closedCaps)
-        {
-            len = numSegments - 2;
-            i = -1;while(++i < len)indices.push(0,i+1,i+2);
-
-            len += (numPoints - 1) * numSegments;
-            i   = j = len - numSegments + 1;
-            while(++i < len)indices.push(j,i,i+1);
-        }
     }
     else
     {
@@ -272,7 +262,7 @@ GLKit.LineBuffer3d.prototype.setNumSegments = function(numSegments)
     }
 
 
-    this.indices = new Uint16Array(indices);
+    this.setCloseCaps(this._closedCaps);
     this.applySliceSegmentFunc(this._sliceSegFunc,this._initDiameter);
 };
 
@@ -493,7 +483,7 @@ GLKit.LineBuffer3d.prototype.setSegTexCoordMapping = function (scaleH, offsetH, 
 
 GLKit.LineBuffer3d.prototype.setCloseCaps = function(bool)
 {
-    if(this._closedCaps == bool || this._numSegments == 2)return;
+    if(this._numSegments == 2)return;
 
     var indices = this.indices,
         temp    = new Array(this.indices.length);
@@ -504,13 +494,17 @@ GLKit.LineBuffer3d.prototype.setCloseCaps = function(bool)
         numSegments = this._numSegments;
     var len;
 
+
     if(bool)
     {
+
         len = numSegments - 2;
         i = -1;while(++i < len)temp.push(0,i+1,i+2);
 
-        len += (numPoints - 1) * numSegments;
+        var j;
+        len += (numPoints - 1) * numSegments + 1;
         i   = j = len - numSegments + 1;
+        console.log(len);
         while(++i < len)temp.push(j,i,i+1);
     }
     else

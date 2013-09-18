@@ -132,6 +132,7 @@
         gl.useLighting(true);
         gl.useMaterial(true);
 
+        gl.drawMode(gl.TRIANGLES);
         gl.light(light0);
         gl.material(this._material0);
         gl.drawGeometry(lineBuffer);
