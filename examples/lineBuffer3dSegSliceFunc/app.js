@@ -6,9 +6,6 @@
     {
         GLKit.Application.apply(this,arguments);
 
-        this.setSize(window.innerWidth,window.innerHeight);
-        this.setTargetFPS(60);
-
         this._zoom = 3;
 
         var light0 = this._light0 = new GLKit.Light(this.gl.LIGHT_0);
@@ -49,6 +46,10 @@
                                                  return [ Math.cos(a) * 0.0125,
                                                          (Math.sin(a) - d) * 0.075];
                                              });
+
+        this.setSize(window.innerWidth,window.innerHeight);
+        this.setTargetFPS(60);
+
     }
 
     App.prototype = Object.create(GLKit.Application.prototype);

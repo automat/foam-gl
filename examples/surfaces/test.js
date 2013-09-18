@@ -6,9 +6,6 @@
     {
         GLKit.Application.apply(this,arguments);
 
-        this.setSize(window.innerWidth,window.innerHeight);
-        this.setTargetFPS(60);
-
         this._zoom = 3;
 
         var light0 = this._light0 = new GLKit.Light(this.gl.LIGHT_0);
@@ -44,6 +41,11 @@
                                   [0,2*Math.PI]);
             surface1.applyFunctions();
             surface1.updateVertexNormals();
+
+
+        this.setSize(window.innerWidth,window.innerHeight);
+        this.setTargetFPS(60);
+
 
     }
 

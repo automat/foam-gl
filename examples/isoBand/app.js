@@ -6,14 +6,15 @@
     {
         GLKit.Application.apply(this,arguments);
 
-        this.setSize(window.innerWidth,window.innerHeight);
-        this.setTargetFPS(60);
-
         this._zoom = 6;
 
         var isoBand = this._isoBand = new GLKit.ISOBand(10,10,4,4);
             isoBand.setFunction(function(x,y){return Math.sin(x*y*5);})
             isoBand.applyFunction();
+
+        this.setSize(window.innerWidth,window.innerHeight);
+        this.setTargetFPS(60);
+
     }
 
     App.prototype = Object.create(GLKit.Application.prototype);

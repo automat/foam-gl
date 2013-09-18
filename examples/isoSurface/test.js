@@ -6,9 +6,6 @@
     {
         GLKit.Application.apply(this,arguments);
 
-        this.setSize(window.innerWidth,window.innerHeight);
-        this.setTargetFPS(60);
-
         this._zoom = 8;
 
         this.camera.setPosition3f(6,6,6);
@@ -86,6 +83,11 @@
                                       return m0 + m1 + m2 + m3 + m4 + m5 + m6 + m7 + m8 + m9 + m10 + m11 + m12 + m13  - 1.5
 
                                   },0);
+
+
+        this.setSize(window.innerWidth,window.innerHeight);
+        this.setTargetFPS(60);
+
 
 
 

@@ -6,8 +6,6 @@
     {
         GLKit.Application.apply(this,arguments);
 
-        this.setSize(window.innerWidth,window.innerHeight);
-        this.setTargetFPS(60);
 
         this._zoom = 3;
 
@@ -34,6 +32,10 @@
             material.setAmbient3f(0.7,0.7,0.7);
             material.setSpecular3f(1,1,1);
             material.shininess = 20.0;
+
+        this.setSize(window.innerWidth,window.innerHeight);
+        this.setTargetFPS(60);
+
 
     }
 

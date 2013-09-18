@@ -6,9 +6,6 @@
     {
         GLKit.Application.apply(this,arguments);
 
-        this.setSize(window.innerWidth,window.innerHeight);
-        this.setTargetFPS(60);
-
         this._zoom = 6;
 
         this._sampleData = [1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,
@@ -47,6 +44,10 @@
         var isoBand = this._isoBand = new GLKit.ISOBand(32,32,4,4);
             isoBand.setData(this._sampleData,32,32);
             isoBand.setFunction(function(x,y,time){return Math.sin(x*x*2+time*10)+Math.sin(y*y*2+time*10);});
+
+        this.setSize(window.innerWidth,window.innerHeight);
+        this.setTargetFPS(60);
+
 
     }
 

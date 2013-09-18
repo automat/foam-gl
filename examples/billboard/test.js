@@ -14,16 +14,14 @@
     {
         GLKit.Application.apply(this,arguments);
 
-        this.setSize(window.innerWidth,window.innerHeight);
-        this.setTargetFPS(60);
-
         this._zoom = 3;
 
         this._texture0 = this.gl.loadTextureWithImage(texImage0);
         this._texture1 = this.gl.loadTextureWithImage(texImage1);
         this._texture2 = this.gl.loadTextureWithImage(texImage2);
 
-
+        this.setSize(window.innerWidth,window.innerHeight);
+        this.setTargetFPS(60);
     }
 
     TestApp.prototype = Object.create(GLKit.Application.prototype);

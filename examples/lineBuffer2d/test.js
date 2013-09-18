@@ -6,8 +6,6 @@
     {
         GLKit.Application.apply(this,arguments);
 
-        this.setSize(window.innerWidth,window.innerHeight);
-        this.setTargetFPS(60);
 
         this._zoom = 3;
 
@@ -24,6 +22,10 @@
             material.shininess = 20.0;
 
         var buffer = this._buffer = new GLKit.LineBuffer2d(this.gl,1500 * 100 * 3);
+
+        this.setSize(window.innerWidth,window.innerHeight);
+        this.setTargetFPS(60);
+
 
     }
 
