@@ -1,14 +1,133 @@
 GLKit.Polygon2DUtil =
 {
-    makeVertexCountIncreased : function(polygon,count,out)
+    /*---------------------------------------------------------------------------------------------------------*/
+
+    makeVertexCountFitted : function(polygon,count)
     {
+        var diff    = polygon.length * 0.5 - count;
+
+        return diff < 0 ? this.makeVertexCountIncreased(polygon, Math.abs(diff)) :
+               diff > 0 ? this.makeVertexCountDecreased(polygon, diff) :
+               polygon;
+    },
+
+    makeVertexCountIncreased : function(polygon,count)
+    {
+        count = (typeof count == 'undefined') ? 1 : count;
+
+        var out = polygon.slice();
+        if(count <= 0 )return polygon;
+
+        var i = -1,j;
+        var len;
+        var max;
+
+        var jc,jn;
+
+        var x, y, mx, my;
+        var dx,dy,d;
+
+        var edgeSIndex,
+            edgeEIndex;
+
+        while(++i < count)
+        {
+            max = -Infinity;
+            len = out.length * 0.5;
+
+            edgeSIndex = edgeEIndex = 0;
+
+            j = -1;
+            while(++j < len - 1)
+            {
+                jc = j * 2;
+                jn = (j + 1) * 2;
+
+                dx = out[jn    ] - out[jc    ];
+                dy = out[jn + 1] - out[jc + 1];
+                d  = dx * dx + dy * dy;
+
+                if(d > max){max = d;edgeSIndex = j;}
+            }
+
+            jc = j * 2;
+            dx = out[0] - out[jc    ];
+            dy = out[1] - out[jc + 1];
+            d  = dx * dx + dy * dy;
+
+            edgeSIndex = (d > max) ? j : edgeSIndex;
+            edgeEIndex = edgeSIndex == len - 1 ? 0 : edgeSIndex + 1;
+
+            edgeSIndex*= 2;
+            edgeEIndex*= 2;
+
+            x = out[edgeSIndex    ];
+            y = out[edgeSIndex + 1];
+
+            mx = x + (out[edgeEIndex    ] - x) * 0.5;
+            my = y + (out[edgeEIndex + 1] - y) * 0.5;
+
+            out.splice(edgeEIndex,0,mx,my);
+        }
+
+        return out;
 
     },
 
-    makeVertexCountDecreased : function(polygon,count,out)
+    makeVertexCountDecreased : function(polygon,count)
     {
+        count = (typeof count == 'undefined') ? 1 : count;
+
+        var out = polygon.slice();
+        if((out.length * 0.5 - count) < 3 || count == 0)return out;
+
+        var i = -1, j;
+        var len;
+        var min;
+
+        var jc,jn;
+        var dx,dy,d;
+
+        var edgeSIndex,
+            edgeEIndex;
+
+        while(++i < count)
+        {
+            min = Infinity;
+            len = out.length * 0.5;
+
+            edgeSIndex = edgeEIndex = 0;
+
+            j = -1;
+            while(++j < len - 1)
+            {
+                jc = j * 2;
+                jn = (j + 1) * 2;
+
+                dx = out[jn    ] - out[jc    ];
+                dy = out[jn + 1] - out[jc + 1];
+                d  = dx * dx + dy * dy;
+
+                if(d < min){min = d;edgeSIndex = j;}
+            }
+
+            jc = j * 2;
+            dx = out[0] - out[jc    ];
+            dy = out[1] - out[jc + 1];
+            d  = dx * dx + dy * dy;
+
+            edgeSIndex = (d < min) ? j : edgeSIndex;
+            edgeEIndex = edgeSIndex == len - 1 ? 0 : edgeSIndex + 1;
+
+            out.splice(edgeEIndex * 2,2);
+        }
+
+        return out;
 
     },
+
+    /*---------------------------------------------------------------------------------------------------------*/
+
 
     makeEdgesSubdivided : function(polygon,count,out)
     {
@@ -61,6 +180,9 @@ GLKit.Polygon2DUtil =
 
         return out;
     },
+
+    /*---------------------------------------------------------------------------------------------------------*/
+
 
     makeSmoothedLinear : function(polygon,count,out)
     {
@@ -124,8 +246,6 @@ GLKit.Polygon2DUtil =
 
     },
 
-
-
     /*---------------------------------------------------------------------------------------------------------*/
 
     makeOptHeading : function(polygon,tolerance)
@@ -174,7 +294,6 @@ GLKit.Polygon2DUtil =
         if(Math.abs(ph - ch) > tolerance)temp.push(x,y);
 
         return temp;
-
     },
 
 
