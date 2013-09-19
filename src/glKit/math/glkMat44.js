@@ -361,7 +361,7 @@ GLKit.Mat44 =
         var i = -1;
         while(++i<16)
         {
-            if(!isFloatEqual(m0[i],m1[i]))return false;
+            if(!GLKit.Math.isFloatEqual(m0[i],m1[i]))return false;
         }
         return true;
 
