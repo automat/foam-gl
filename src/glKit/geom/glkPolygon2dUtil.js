@@ -1,5 +1,131 @@
 GLKit.Polygon2DUtil =
 {
+    makeVertexCountIncreased : function(polygon,count,out)
+    {
+
+    },
+
+    makeVertexCountDecreased : function(polygon,count,out)
+    {
+
+    },
+
+    makeEdgesSubdivided : function(polygon,count,out)
+    {
+        count = count || 1;
+
+        var j = -1;
+
+        var len;
+        var i, i2, i4;
+        var x, y, mx, my;
+
+
+        if(out)
+        {
+            out.length = polygon.length;
+            i = -1;while(++i < polygon.length){out[i] = polygon[i];}
+        }
+        else out = polygon.slice();
+
+
+        while(++j < count)
+        {
+            len = out.length * 0.5 - 1;
+            i = -1;
+            while(++i < len)
+            {
+                i2 = i * 2;
+                i4 = (i * 2) * 2;
+                x  = out[i4];
+                y  = out[i4 + 1];
+
+                i2 = i2 + 1;
+                i4 = i2 * 2;
+                mx = x + (out[i4    ] - x) * 0.5;
+                my = y + (out[i4 + 1] - y) * 0.5;
+
+                out.splice(i4,0,mx,my);
+            }
+
+            i2 = i   * 2;
+            i4 = i2 * 2;
+
+            x  = out[i4];
+            y  = out[i4 + 1];
+            mx = x + (out[0] - x) * 0.5;
+            my = y + (out[1] - y) * 0.5;
+
+            out.splice((i2 + 1) * 2,0,mx,my);
+        }
+
+        return out;
+    },
+
+    makeSmoothedLinear : function(polygon,count,out)
+    {
+        count = count || 1;
+
+        var i2,i4;
+        var px,py,dx,dy;
+
+        var i;
+        var j;
+
+        var temp    = polygon.slice(),
+            tempLen = temp.length;
+        var len     = tempLen * 0.5 ;
+
+        if(out)out.length = tempLen  * 2;
+        else out = new Array(tempLen  * 2);
+
+        j = -1;
+        while(++j < count)
+        {
+            tempLen    = temp.length;
+            len        = tempLen * 0.5;
+            out.length = tempLen * 2;
+
+            i = -1;
+            while(++i < len - 1)
+            {
+                i2 = i * 2;
+                px = temp[i2    ];
+                py = temp[i2 + 1] ;
+                i2 = (i + 1) * 2;
+                dx = temp[i2    ] - px;
+                dy = temp[i2 + 1] - py;
+
+                i4 = i * 4;
+                out[i4  ] = px + dx * 0.25;
+                out[i4+1] = py + dy * 0.25;
+                out[i4+2] = px + dx * 0.75;
+                out[i4+3] = py + dy * 0.75;
+            }
+
+            i2 = i * 2;
+
+            px = temp[i2    ];
+            py = temp[i2 + 1] ;
+            dx = temp[0] - px;
+            dy = temp[1] - py;
+
+            i4 = i * 4;
+            out[i4  ] = px + dx * 0.25;
+            out[i4+1] = py + dy * 0.25;
+            out[i4+2] = px + dx * 0.75;
+            out[i4+3] = py + dy * 0.75;
+
+
+            temp = out.slice();
+        }
+
+        return out;
+
+    },
+
+
+
     /*---------------------------------------------------------------------------------------------------------*/
 
     makeOptHeading : function(polygon,tolerance)
@@ -14,25 +140,24 @@ GLKit.Polygon2DUtil =
 
         var px = polygon[0],
             py = polygon[1],
-            x, y,nx,ny;
+            x, y;
 
         var ph = Math.atan2(polygon[3] - py,polygon[2] - px),
             ch;
 
-
         temp.push(px,py);
 
-        var i = 0;
+        var i = 0,i2;
 
         while(++i < len)
         {
-            x = polygon[i*2  ];
-            y = polygon[i*2+1];
+            i2 = i * 2;
+            x = polygon[i2  ];
+            y = polygon[i2+1];
 
-            nx = polygon[(i+1)*2  ];
-            ny = polygon[(i+1)*2+1];
-
-            ch = Math.atan2(ny - y, nx - x);
+            i2 = (i + 1) * 2;
+            ch = Math.atan2(polygon[i2+1] - y,
+                            polygon[i2  ] - x);
 
             if(Math.abs(ph - ch) > tolerance)temp.push(x,y);
 
@@ -41,6 +166,10 @@ GLKit.Polygon2DUtil =
             ph = ch;
         }
 
+        x = polygon[polygon.length - 2];
+        y = polygon[polygon.length - 1];
+
+        ch = Math.atan2(polygon[1] - y, polygon[0] - x);
 
         if(Math.abs(ph - ch) > tolerance)temp.push(x,y);
 
