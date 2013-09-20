@@ -1269,7 +1269,7 @@ GLKit.Mat44 =
         var i = -1;
         while(++i<16)
         {
-            if(!isFloatEqual(m0[i],m1[i]))return false;
+            if(!GLKit.Math.isFloatEqual(m0[i],m1[i]))return false;
         }
         return true;
 
@@ -6239,6 +6239,252 @@ GLKit.Polygon2DUtil =
 {
     /*---------------------------------------------------------------------------------------------------------*/
 
+    makeVertexCountFitted : function(polygon,count)
+    {
+        var diff    = polygon.length * 0.5 - count;
+
+        return diff < 0 ? this.makeVertexCountIncreased(polygon, Math.abs(diff)) :
+               diff > 0 ? this.makeVertexCountDecreased(polygon, diff) :
+               polygon;
+    },
+
+    makeVertexCountIncreased : function(polygon,count)
+    {
+        count = (typeof count == 'undefined') ? 1 : count;
+
+        var out = polygon.slice();
+        if(count <= 0 )return polygon;
+
+        var i = -1,j;
+        var len;
+        var max;
+
+        var jc,jn;
+
+        var x, y, mx, my;
+        var dx,dy,d;
+
+        var edgeSIndex,
+            edgeEIndex;
+
+        while(++i < count)
+        {
+            max = -Infinity;
+            len = out.length * 0.5;
+
+            edgeSIndex = edgeEIndex = 0;
+
+            j = -1;
+            while(++j < len - 1)
+            {
+                jc = j * 2;
+                jn = (j + 1) * 2;
+
+                dx = out[jn    ] - out[jc    ];
+                dy = out[jn + 1] - out[jc + 1];
+                d  = dx * dx + dy * dy;
+
+                if(d > max){max = d;edgeSIndex = j;}
+            }
+
+            jc = j * 2;
+            dx = out[0] - out[jc    ];
+            dy = out[1] - out[jc + 1];
+            d  = dx * dx + dy * dy;
+
+            edgeSIndex = (d > max) ? j : edgeSIndex;
+            edgeEIndex = edgeSIndex == len - 1 ? 0 : edgeSIndex + 1;
+
+            edgeSIndex*= 2;
+            edgeEIndex*= 2;
+
+            x = out[edgeSIndex    ];
+            y = out[edgeSIndex + 1];
+
+            mx = x + (out[edgeEIndex    ] - x) * 0.5;
+            my = y + (out[edgeEIndex + 1] - y) * 0.5;
+
+            out.splice(edgeEIndex,0,mx,my);
+        }
+
+        return out;
+
+    },
+
+    makeVertexCountDecreased : function(polygon,count)
+    {
+        count = (typeof count == 'undefined') ? 1 : count;
+
+        var out = polygon.slice();
+        if((out.length * 0.5 - count) < 3 || count == 0)return out;
+
+        var i = -1, j;
+        var len;
+        var min;
+
+        var jc,jn;
+        var dx,dy,d;
+
+        var edgeSIndex,
+            edgeEIndex;
+
+        while(++i < count)
+        {
+            min = Infinity;
+            len = out.length * 0.5;
+
+            edgeSIndex = edgeEIndex = 0;
+
+            j = -1;
+            while(++j < len - 1)
+            {
+                jc = j * 2;
+                jn = (j + 1) * 2;
+
+                dx = out[jn    ] - out[jc    ];
+                dy = out[jn + 1] - out[jc + 1];
+                d  = dx * dx + dy * dy;
+
+                if(d < min){min = d;edgeSIndex = j;}
+            }
+
+            jc = j * 2;
+            dx = out[0] - out[jc    ];
+            dy = out[1] - out[jc + 1];
+            d  = dx * dx + dy * dy;
+
+            edgeSIndex = (d < min) ? j : edgeSIndex;
+            edgeEIndex = edgeSIndex == len - 1 ? 0 : edgeSIndex + 1;
+
+            out.splice(edgeEIndex * 2,2);
+        }
+
+        return out;
+
+    },
+
+    /*---------------------------------------------------------------------------------------------------------*/
+
+
+    makeEdgesSubdivided : function(polygon,count,out)
+    {
+        count = count || 1;
+
+        var j = -1;
+
+        var len;
+        var i, i2, i4;
+        var x, y, mx, my;
+
+
+        if(out)
+        {
+            out.length = polygon.length;
+            i = -1;while(++i < polygon.length){out[i] = polygon[i];}
+        }
+        else out = polygon.slice();
+
+
+        while(++j < count)
+        {
+            len = out.length * 0.5 - 1;
+            i = -1;
+            while(++i < len)
+            {
+                i2 = i * 2;
+                i4 = (i * 2) * 2;
+                x  = out[i4];
+                y  = out[i4 + 1];
+
+                i2 = i2 + 1;
+                i4 = i2 * 2;
+                mx = x + (out[i4    ] - x) * 0.5;
+                my = y + (out[i4 + 1] - y) * 0.5;
+
+                out.splice(i4,0,mx,my);
+            }
+
+            i2 = i   * 2;
+            i4 = i2 * 2;
+
+            x  = out[i4];
+            y  = out[i4 + 1];
+            mx = x + (out[0] - x) * 0.5;
+            my = y + (out[1] - y) * 0.5;
+
+            out.splice((i2 + 1) * 2,0,mx,my);
+        }
+
+        return out;
+    },
+
+    /*---------------------------------------------------------------------------------------------------------*/
+
+
+    makeSmoothedLinear : function(polygon,count,out)
+    {
+        count = count || 1;
+
+        var i2,i4;
+        var px,py,dx,dy;
+
+        var i;
+        var j;
+
+        var temp    = polygon.slice(),
+            tempLen = temp.length;
+        var len     = tempLen * 0.5 ;
+
+        if(out)out.length = tempLen  * 2;
+        else out = new Array(tempLen  * 2);
+
+        j = -1;
+        while(++j < count)
+        {
+            tempLen    = temp.length;
+            len        = tempLen * 0.5;
+            out.length = tempLen * 2;
+
+            i = -1;
+            while(++i < len - 1)
+            {
+                i2 = i * 2;
+                px = temp[i2    ];
+                py = temp[i2 + 1] ;
+                i2 = (i + 1) * 2;
+                dx = temp[i2    ] - px;
+                dy = temp[i2 + 1] - py;
+
+                i4 = i * 4;
+                out[i4  ] = px + dx * 0.25;
+                out[i4+1] = py + dy * 0.25;
+                out[i4+2] = px + dx * 0.75;
+                out[i4+3] = py + dy * 0.75;
+            }
+
+            i2 = i * 2;
+
+            px = temp[i2    ];
+            py = temp[i2 + 1] ;
+            dx = temp[0] - px;
+            dy = temp[1] - py;
+
+            i4 = i * 4;
+            out[i4  ] = px + dx * 0.25;
+            out[i4+1] = py + dy * 0.25;
+            out[i4+2] = px + dx * 0.75;
+            out[i4+3] = py + dy * 0.75;
+
+
+            temp = out.slice();
+        }
+
+        return out;
+
+    },
+
+    /*---------------------------------------------------------------------------------------------------------*/
+
     makeOptHeading : function(polygon,tolerance)
     {
         if(polygon.length < 4)return polygon;
@@ -6251,25 +6497,24 @@ GLKit.Polygon2DUtil =
 
         var px = polygon[0],
             py = polygon[1],
-            x, y,nx,ny;
+            x, y;
 
         var ph = Math.atan2(polygon[3] - py,polygon[2] - px),
             ch;
 
-
         temp.push(px,py);
 
-        var i = 0;
+        var i = 0,i2;
 
         while(++i < len)
         {
-            x = polygon[i*2  ];
-            y = polygon[i*2+1];
+            i2 = i * 2;
+            x = polygon[i2  ];
+            y = polygon[i2+1];
 
-            nx = polygon[(i+1)*2  ];
-            ny = polygon[(i+1)*2+1];
-
-            ch = Math.atan2(ny - y, nx - x);
+            i2 = (i + 1) * 2;
+            ch = Math.atan2(polygon[i2+1] - y,
+                            polygon[i2  ] - x);
 
             if(Math.abs(ph - ch) > tolerance)temp.push(x,y);
 
@@ -6278,11 +6523,14 @@ GLKit.Polygon2DUtil =
             ph = ch;
         }
 
+        x = polygon[polygon.length - 2];
+        y = polygon[polygon.length - 1];
+
+        ch = Math.atan2(polygon[1] - y, polygon[0] - x);
 
         if(Math.abs(ph - ch) > tolerance)temp.push(x,y);
 
         return temp;
-
     },
 
 
