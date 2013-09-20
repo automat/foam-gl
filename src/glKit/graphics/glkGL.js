@@ -237,6 +237,7 @@ GLKit.GL = function(context3d,context2d)
         SIZE_OF_POINT    = this.SIZE_OF_POINT    = SIZE_OF_VERTEX;
 
     var ELLIPSE_DETAIL_MAX = this.ELLIPSE_DETAIL_MAX = 30;
+    this.ELLIPSE_DETAIL_MIN = 3;
 
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -285,9 +286,12 @@ GLKit.GL = function(context3d,context2d)
     this._bVertexEllipse   = new Float32Array(SIZE_OF_VERTEX * ELLIPSE_DETAIL_MAX);
     this._bNormalEllipse   = new Float32Array(this._bVertexEllipse.length);
     this._bColorEllipse    = new Float32Array(SIZE_OF_COLOR  * ELLIPSE_DETAIL_MAX);
-    this._bIndexEllipse    = new Uint16Array((this._bVertexEllipse.length * 0.5 - 2) * SIZE_OF_FACE);
     this._bTexCoordEllipse = new Float32Array(SIZE_OF_UV * ELLIPSE_DETAIL_MAX);
 
+    this._bVertexCircle    = new Float32Array(SIZE_OF_VERTEX * ELLIPSE_DETAIL_MAX);
+    this._bNormalCircle    = new Float32Array(this._bVertexCircle.length);
+    this._bColorCircle     = new Float32Array(SIZE_OF_COLOR * ELLIPSE_DETAIL_MAX);
+    this._bTexCoordCircle  = new Float32Array(SIZE_OF_UV * ELLIPSE_DETAIL_MAX);
 
     this._bVertexCube = new Float32Array([-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5, 0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5,-0.5, 0.5,-0.5,-0.5, 0.5,0.5,-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5]);
     this._bColorCube  = new Float32Array(this._bVertexCube.length / SIZE_OF_VERTEX * SIZE_OF_COLOR);
@@ -301,6 +305,8 @@ GLKit.GL = function(context3d,context2d)
                                           20,21,22,20,22,23]);
     this._bTexCoordCube = null;
 
+
+    this._circleDetailLast = 10.0;
     this._sphereDetailLast = 10.0;
 
     this._bVertexSphere    = null;
@@ -331,7 +337,8 @@ GLKit.GL = function(context3d,context2d)
     this._lineBoxHeight = 1;
     this._lineCylinderRadius = 0.5;
 
-    this._genSphere(this._sphereDetailLast);
+    this._genSphere();
+    this._genCircle();
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init Matrices
@@ -754,17 +761,26 @@ GLKit.GL.prototype.getDrawMode = function(){return this._drawMode;};
 
 GLKit.GL.prototype.sphereDetail = function(detail)
 {
-    if(detail != this._sphereDetailLast)
-    {
-        this._genSphere(detail);
-        this._sphereDetailLast = detail;
-    }
+    if(detail == this._sphereDetailLast)return;
+    this._sphereDetailLast = detail;
+    this._genSphere();
 };
+
+GLKit.GL.prototype.circleDetail = function(detail)
+{
+    if(detail == this._circleDetailLast )return;
+    this._circleDetailLast  = Math.max(this.ELLIPSE_DETAIL_MIN,Math.min(detail,this.ELLIPSE_DETAIL_MAX));
+    this._cirlceVertexCount = this._circleDetailLast * 3;
+    this._genCircle();
+};
+
+
+GLKit.GL.prototype.lineWidth = function(size){this.gl.lineWidth(size);};
 
 GLKit.GL.prototype.useBillboard = function(bool){this._bBillboarding = bool;};
 GLKit.GL.prototype.pointSize = function(value){this.gl.uniform1f(this._uPointSize,value);};
 
-//Temp
+//Temp TODO:remove
 GLKit.GL.prototype.lineSize   = function(width,height){this._lineBoxWidth  = width;this._lineBoxHeight = height;};
 GLKit.GL.prototype.lineRadius = function(radius){this._lineCylinderRadius = radius;};
 
@@ -848,7 +864,7 @@ GLKit.GL.prototype.point3f = function(x,y,z) {this._bVertexPoint[0] = x;this._bV
 GLKit.GL.prototype.point2f = function(x,y){this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;this._bVertexPoint[2] = 0;this.point(this._bVertexPoint);};
 GLKit.GL.prototype.pointv  = function(arr){this._bVertexPoint[0] = arr[0];this._bVertexPoint[1] = arr[1];this._bVertexPoint[2] = arr[2];this.point(this._bVertexPoint);};
 
-GLKit.GL.prototype.lineWidth = function(size){this.gl.lineWidth(size);};
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.line  = function(vertices)
 {
@@ -879,6 +895,8 @@ GLKit.GL.prototype.line2fv = function(v0,v1)
     this.linef(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);
 };
 
+/*---------------------------------------------------------------------------------------------------------*/
+
 GLKit.GL.prototype.quadf = function(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3)
 {
     var v = this._bVertexQuad;
@@ -898,6 +916,7 @@ GLKit.GL.prototype.quadv = function(v0,v1,v2,v3)
 
 GLKit.GL.prototype.quad = function(vertices,normals,texCoords){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexQuad),normals,this.fillColorBuffer(this._bColor,this._bColorQuad),texCoords,this._drawMode,0,4);};
 
+/*---------------------------------------------------------------------------------------------------------*/
 
 //TODO:cleanup
 GLKit.GL.prototype.rect = function(width,height)
@@ -951,9 +970,7 @@ GLKit.GL.prototype.rect = function(width,height)
     this.drawArrays(vertices,this._bNormalRect,this.fillColorBuffer(this._bColor,this._bColorRect),this._bTexCoordQuadDefault,this._drawMode,0,4);
 };
 
-
-
-
+/*---------------------------------------------------------------------------------------------------------*/
 
 GLKit.GL.prototype.triangle = function(v0,v1,v2)
 {
@@ -978,10 +995,63 @@ GLKit.GL.prototype.trianglef = function(v0,v1,v2,v3,v4,v5,v6,v7,v8)
 GLKit.GL.prototype.trianglev = function(vertices,normals,texCoords){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexTriangle),normals,this.fillColorBuffer(this._bColor,this._bColorTriangle),texCoords,this._drawMode,0,3);}
 
 /*---------------------------------------------------------------------------------------------------------*/
+
+GLKit.GL.prototype.circle3f = function(x,y,z,radius)
+{
+    radius = radius || 0.5;
+
+    this.pushMatrix();
+    this.translate3f(x,y,z);
+    this.scale1f(radius);
+    this.drawArrays(this._bVertexCircle,this._bNormalCircle,this.fillColorBuffer(this._bColor,this._bColorCircle),this._bTexCoordCircle,this.getDrawMode(),0,this._circleDetailLast);
+    this.popMatrix();
+};
+
+GLKit.GL.prototype.cirlce2f = function(x,y,radius){this.circle3f(x,0,y,radius);};
+GLKit.GL.prototype.circle = function(radius){this.circle3f(0,0,0,radius)};
+GLKit.GL.prototype.circlev = function(v,radius){this.circle3f(v[0],v[1],v[2],radius);};
+GLKit.GL.prototype.circles = function(centers,radii){};
+
+GLKit.GL.prototype._genCircle = function()
+{
+    var cx = 0,
+        cy = 0;
+
+    var d = this._circleDetailLast,
+        v = this._bVertexCircle,
+        l = d * 3;
+
+    var i = 0;
+
+    var theta = 2 * Math.PI / d,
+        c = Math.cos(theta),
+        s = Math.sin(theta),
+        t;
+
+    var ox = 1,
+        oy = 0;
+
+    while(i < l)
+    {
+        v[i  ] = ox + cx;
+        v[i+1] = 0;
+        v[i+2] = oy + cy;
+
+        t  = ox;
+        ox = c * ox - s * oy;
+        oy = s * t  + c * oy;
+
+        i+=3;
+    }
+
+
+};
+
+/*---------------------------------------------------------------------------------------------------------*/
 // convenience draw
 /*---------------------------------------------------------------------------------------------------------*/
 
-
+//TODO:remove
 
 GLKit.GL.prototype.box = function(width,height,depth)
 {
@@ -1052,8 +1122,10 @@ GLKit.GL.prototype.lineCylinder = function(v0,v1)
 // Geometry gen
 /*---------------------------------------------------------------------------------------------------------*/
 
-GLKit.GL.prototype._genSphere = function(segments)
+GLKit.GL.prototype._genSphere = function()
 {
+    var segments = this._sphereDetailLast;
+
     var vertices  = [],
         normals   = [],
         texCoords = [],
