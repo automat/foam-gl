@@ -93,6 +93,7 @@ GLKit.Polygon2DUtil =
 
         while(++i < count)
         {
+
             min = Infinity;
             len = out.length * 0.5;
 
@@ -120,6 +121,7 @@ GLKit.Polygon2DUtil =
             edgeEIndex = edgeSIndex == len - 1 ? 0 : edgeSIndex + 1;
 
             out.splice(edgeEIndex * 2,2);
+
         }
 
         return out;
@@ -133,10 +135,10 @@ GLKit.Polygon2DUtil =
     {
         count = count || 1;
 
-        var j = -1;
+        var i, j, k;
+        var i2,i4;
 
         var len;
-        var i, i2, i4;
         var x, y, mx, my;
 
 
@@ -147,10 +149,11 @@ GLKit.Polygon2DUtil =
         }
         else out = polygon.slice();
 
-
+        j = -1;
         while(++j < count)
         {
-            len = out.length * 0.5 - 1;
+
+            len = out.length * 0.5 -1;
             i = -1;
             while(++i < len)
             {
@@ -188,15 +191,12 @@ GLKit.Polygon2DUtil =
     {
         count = count || 1;
 
-        var i2,i4;
         var px,py,dx,dy;
 
-        var i;
-        var j;
+        var i, j, k;
 
         var temp    = polygon.slice(),
             tempLen = temp.length;
-        var len     = tempLen * 0.5 ;
 
         if(out)out.length = tempLen  * 2;
         else out = new Array(tempLen  * 2);
@@ -205,38 +205,25 @@ GLKit.Polygon2DUtil =
         while(++j < count)
         {
             tempLen    = temp.length;
-            len        = tempLen * 0.5;
             out.length = tempLen * 2;
 
-            i = -1;
-            while(++i < len - 1)
+            i = 0;
+            while(i < tempLen)
             {
-                i2 = i * 2;
-                px = temp[i2    ];
-                py = temp[i2 + 1] ;
-                i2 = (i + 1) * 2;
-                dx = temp[i2    ] - px;
-                dy = temp[i2 + 1] - py;
+                px = temp[i    ];
+                py = temp[i + 1] ;
+                k  = (i + 2) % tempLen;
+                dx = temp[k    ] - px;
+                dy = temp[k + 1] - py;
 
-                i4 = i * 4;
-                out[i4  ] = px + dx * 0.25;
-                out[i4+1] = py + dy * 0.25;
-                out[i4+2] = px + dx * 0.75;
-                out[i4+3] = py + dy * 0.75;
+                k = i * 2;
+                out[k  ] = px + dx * 0.25;
+                out[k+1] = py + dy * 0.25;
+                out[k+2] = px + dx * 0.75;
+                out[k+3] = py + dy * 0.75;
+
+                i+=2;
             }
-
-            i2 = i * 2;
-
-            px = temp[i2    ];
-            py = temp[i2 + 1] ;
-            dx = temp[0] - px;
-            dy = temp[1] - py;
-
-            i4 = i * 4;
-            out[i4  ] = px + dx * 0.25;
-            out[i4+1] = py + dy * 0.25;
-            out[i4+2] = px + dx * 0.75;
-            out[i4+3] = py + dy * 0.75;
 
 
             temp = out.slice();
@@ -782,28 +769,74 @@ GLKit.Polygon2DUtil =
 
     /*---------------------------------------------------------------------------------------------------------*/
 
-    //Sutherland-Hodgman without handling area seperation if concave polygon is clipped
-
-    makeClipping : function(polygon0,polygon1)
+    //Sutherland-Hodgman
+    makeClippingSH : function(polygon,clippingPolygon)
     {
-        var len0 = polygon0.length * 0.5,
-            len1 = polygon1.length * 0.5;
+        var len0 = polygon.length * 0.5,
+            len1 = clippingPolygon.length ;
 
 
         var Line2dUtil = GLKit.Line2dUtil;
 
         var out = [];
 
+        var clipEdgeSx,clipEdgeSy,
+            clipEdgeEx,clipEdgeEy;
+
+        var polyEdgeSx, polyEdgeSy,
+            polyEdgeEx, polyEdgeEy;
+
+        var polyVertIsOnLeft;
+
+        console.log(clippingPolygon);
+
         var i, j;
 
-        var i2, j2;
+        var i2, j2, i4;
 
-        i = -1;
+        i = 0;
+        while(i < len1)
+        {
+            clipEdgeSx = clippingPolygon[i  ];
+            clipEdgeSy = clippingPolygon[i+1];
+
+            i2 = (i + 2) % len1;
+            clipEdgeEx = clippingPolygon[i2];
+            clipEdgeEy = clippingPolygon[i2+1];
+
+
+
+            console.log((i+2),'/',len1,(i+2)%len1,(i+2)/len1);
+
+
+            /*
+            j = -1;
+            while(++j < len0 - 1)
+            {
+                j2 = j * 2;
+                polyEdgeSx = polygon[j2  ];
+                polyEdgeSx = polygon[j2+1];
+                j2 = (j + 1) * 2;
+                polyEdgeEx = polygon[j2  ];
+                polyEdgeEy = polygon[j2+1];
+
+                polyVertIsOnLeft = Line2dUtil.isPointLeft()
+
+            }
+            */
+
+            i+=2;
+        }
        // while(++i <)
 
 
 
         return out;
+
+    },
+
+    makeClippingV : function(polygon,clippingPolygon)
+    {
 
     },
 
