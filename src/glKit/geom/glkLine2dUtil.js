@@ -3,6 +3,10 @@ GLKit.Line2dUtil =
 
     //TODO: clean up
 
+    isPointLeft : function(x0,y0,x1,y1,x2,y2)
+    {
+        return ( x1 - x0 ) * ( y2 - y0 ) - (x2 - x0) * (y1 - y0);
+    },
 
     //http://alienryderflex.com/intersect/
     isIntersectionf : function(ax,ay,bx,by,cx,cy,dx,dy,out)

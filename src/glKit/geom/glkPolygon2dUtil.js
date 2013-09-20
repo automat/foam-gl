@@ -418,7 +418,7 @@ GLKit.Polygon2DUtil =
 
         if (segs == 0) return false;
 
-        var isSegmentIntersectionf = GLKit.Line2DUtil.isSegmentIntersectionf;
+        var isSegmentIntersectionf = GLKit.Line2dUtil.isSegmentIntersectionf;
 
         var segSxi,segSyi,
             segSxj,segSyj;
@@ -702,20 +702,14 @@ GLKit.Polygon2DUtil =
 
         var temp = new Array(2);
 
-        if (GLKit.Line2DUtil.isIntersectionf(a,b,c1,d1,c2,d2,e,f,temp))
+        if (GLKit.Line2dUtil.isIntersectionf(a,b,c1,d1,c2,d2,e,f,temp))
         {
             out[0] = temp[0];
             out[1] = temp[1];
         }
-    }
+    },
 
     /*---------------------------------------------------------------------------------------------------------*/
-    ,
-
-    isPointLeft : function(x0,y0,x1,y1,x2,y2)
-    {
-        return ( x1 - x0 ) * ( y2 - y0 ) - (x2 - x0) * (y1 - y0);
-    },
 
     isPointInPolygon : function(x,y,points)
     {
@@ -724,6 +718,8 @@ GLKit.Polygon2DUtil =
 
         var index0,
             index1;
+
+        var Line2dUtil = GLKit.Line2dUtil;
 
         var i = -1;
         while(++i < len - 1)
@@ -735,18 +731,18 @@ GLKit.Polygon2DUtil =
             {
                 if(points[index1+1] > y)
                 {
-                    if(this.isPointLeft(points[index0],points[index0 + 1],
-                        points[index1],points[index1 + 1],
-                        x,y)>0)++wn;
+                    if(Line2dUtil.isPointLeft(points[index0],points[index0 + 1],
+                                              points[index1],points[index1 + 1],
+                                              x,y)>0)++wn;
                 }
             }
             else
             {
                 if(points[index1+1] <= y)
                 {
-                    if(this.isPointLeft(points[index0],points[index0 + 1],
-                        points[index1],points[index1 + 1],
-                        x,y)<0)--wn;
+                    if(Line2dUtil.isPointLeft(points[index0],points[index0 + 1],
+                                              points[index1],points[index1 + 1],
+                                              x,y)<0)--wn;
 
                 }
             }
@@ -782,9 +778,39 @@ GLKit.Polygon2DUtil =
         }
 
         return out;
-    }
+    },
 
     /*---------------------------------------------------------------------------------------------------------*/
+
+    //Sutherland-Hodgman without handling area seperation if concave polygon is clipped
+
+    makeClipping : function(polygon0,polygon1)
+    {
+        var len0 = polygon0.length * 0.5,
+            len1 = polygon1.length * 0.5;
+
+
+        var Line2dUtil = GLKit.Line2dUtil;
+
+        var out = [];
+
+        var i, j;
+
+        var i2, j2;
+
+        i = -1;
+       // while(++i <)
+
+
+
+        return out;
+
+    },
+
+    makeScanFill : function(polygon)
+    {
+
+    }
 
 
 
