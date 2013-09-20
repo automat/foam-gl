@@ -1,4 +1,4 @@
-GLKit.Line2DUtil =
+GLKit.Line2dUtil =
 {
 
     //TODO: clean up
