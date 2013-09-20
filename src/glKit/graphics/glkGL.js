@@ -812,6 +812,8 @@ GLKit.GL.prototype.point   = function(vector)
 
 GLKit.GL.prototype.points = function(vertices,colors)
 {
+    if(vertices.length == 0)return;
+
     colors = colors || this.fillColorBuffer(this._bColor4f,new Float32Array(vertices.length / 3 * 4));
 
     var gl = this.gl,
@@ -843,13 +845,20 @@ GLKit.GL.prototype.points = function(vertices,colors)
 };
 
 GLKit.GL.prototype.point3f = function(x,y,z) {this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;this._bVertexPoint[2] = z;this.point(this._bVertexPoint);};
-GLKit.GL.prototype.point2f = function(x,y){this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;his._bVertexPoint[2] = 0;this.point(this._bVertexPoint);};
+GLKit.GL.prototype.point2f = function(x,y){this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;this._bVertexPoint[2] = 0;this.point(this._bVertexPoint);};
 GLKit.GL.prototype.pointv  = function(arr){this._bVertexPoint[0] = arr[0];this._bVertexPoint[1] = arr[1];this._bVertexPoint[2] = arr[2];this.point(this._bVertexPoint);};
 
 GLKit.GL.prototype.lineWidth = function(size){this.gl.lineWidth(size);};
-GLKit.GL.prototype.line  = function(vertices){this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexLine),null,this.fillColorBuffer(this._bColor,this._bColorLine),null,this._drawMode,0, 2);};
+
+GLKit.GL.prototype.line  = function(vertices)
+{
+    if(vertices.length == 0)return;
+    this.drawArrays(this.fillVertexBuffer(vertices,this._bVertexLine),null,this.fillColorBuffer(this._bColor,this._bColorLine),null,this._drawMode,0, 2);
+};
+
 GLKit.GL.prototype.linev = function(vertices)
 {
+    if(vertices.length == 0)return;
     var v = new Float32Array(vertices),
         l = vertices.length / this.SIZE_OF_VERTEX;
     this.drawArrays(v,null,this.fillColorBuffer(this._bColor, new Float32Array(l*this.SIZE_OF_COLOR)),null,this._drawMode,0, l);
@@ -865,7 +874,7 @@ GLKit.GL.prototype.linef = function(x0,y0,z0,x1,y1,z1)
     this.drawArrays(v,null,this.fillColorBuffer(this._bColor,this._bColorLine),null,this._drawMode,0,2);
 };
 
-GLKit.GL.prototype.line2v = function(v0,v1)
+GLKit.GL.prototype.line2fv = function(v0,v1)
 {
     this.linef(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);
 };
