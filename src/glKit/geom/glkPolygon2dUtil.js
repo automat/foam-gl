@@ -11,6 +11,8 @@ GLKit.Polygon2DUtil =
                polygon;
     },
 
+
+    //TODO: modulo loop
     makeVertexCountIncreased : function(polygon,count)
     {
         count = (typeof count == 'undefined') ? 1 : count;
@@ -74,6 +76,8 @@ GLKit.Polygon2DUtil =
 
     },
 
+
+    //TODO: modulo loop
     makeVertexCountDecreased : function(polygon,count)
     {
         count = (typeof count == 'undefined') ? 1 : count;
@@ -769,6 +773,7 @@ GLKit.Polygon2DUtil =
 
     /*---------------------------------------------------------------------------------------------------------*/
 
+    /*
     //Sutherland-Hodgman
     makeClippingSH : function(polygon,clippingPolygon)
     {
@@ -805,26 +810,6 @@ GLKit.Polygon2DUtil =
             clipEdgeEy = clippingPolygon[i2+1];
 
 
-
-            console.log((i+2),'/',len1,(i+2)%len1,(i+2)/len1);
-
-
-            /*
-            j = -1;
-            while(++j < len0 - 1)
-            {
-                j2 = j * 2;
-                polyEdgeSx = polygon[j2  ];
-                polyEdgeSx = polygon[j2+1];
-                j2 = (j + 1) * 2;
-                polyEdgeEx = polygon[j2  ];
-                polyEdgeEy = polygon[j2+1];
-
-                polyVertIsOnLeft = Line2dUtil.isPointLeft()
-
-            }
-            */
-
             i+=2;
         }
        // while(++i <)
@@ -844,6 +829,8 @@ GLKit.Polygon2DUtil =
     {
 
     }
+
+    */
 
 
 
