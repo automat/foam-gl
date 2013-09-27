@@ -1,4 +1,4 @@
-var kMath =
+var fMath =
 {
     PI          : Math.PI,
     HALF_PI     : Math.PI * 0.5,
@@ -133,4 +133,4 @@ var kMath =
 };
 
 
-module.exports = kMath;
+module.exports = fMath;

@@ -1,4 +1,4 @@
-var kMath = require('./fMath'),
+var fMath = require('./fMath'),
     Mat33 = require('./fMat33');
 
 //for node debug
@@ -126,7 +126,7 @@ var Mat44 =
     {
         var len = Math.sqrt(x * x + y * y + z * z);
 
-        if(Math.sqrt(x * x + y * y + z * z) < kMath.EPSILON) { return null; }
+        if(Math.sqrt(x * x + y * y + z * z) < fMath.EPSILON) { return null; }
 
         var s, c, t,
             a00, a01, a02, a03,
@@ -419,7 +419,7 @@ var Mat44 =
         var i = -1;
         while(++i<16)
         {
-            if(!kMath.isFloatEqual(m0[i],m1[i]))return false;
+            if(!fMath.isFloatEqual(m0[i],m1[i]))return false;
         }
         return true;
 

@@ -1,5 +1,5 @@
 var Default = require('../system/fDefault'),
-    glkError  = require('../system/fError');
+    fError  = require('../system/fError');
 
 function AppImpl()
 {
@@ -46,10 +46,10 @@ AppImpl.prototype.isInitialized = function()    {return this._isInitialized;};
 
 AppImpl.prototype.setUpdate     = function(bool){this._bUpdate = bool;};
 
-AppImpl.prototype.init    = function(appObj)      {throw new Error(glkError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.setSize = function(width,height){throw new Error(glkError.METHOD_NOT_IMPLEMENTED);};
+AppImpl.prototype.init    = function(appObj)      {throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
+AppImpl.prototype.setSize = function(width,height){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
 
-AppImpl.prototype.setFullWindowFrame = function(bool){throw new Error(glkError.METHOD_NOT_IMPLEMENTED);};
+AppImpl.prototype.setFullWindowFrame = function(bool){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
 AppImpl.prototype.isFullWindowFrame  = function()    {return this._isFullWindowFrame;};
 
 AppImpl.prototype.setFullscreen = function(bool){return false;};
@@ -72,12 +72,12 @@ AppImpl.prototype.getTargetFPS = function()   {return this._targetFPS;};
 AppImpl.prototype.setWindowTitle       = function(title){this._windowTitle = title;};
 AppImpl.prototype.restrictMouseToFrame = function(bool) {this._mouseBounds = bool;};
 
-AppImpl.prototype.getFramesElapsed  = function(){throw new Error(glkError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.getSecondsElapsed = function(){throw new Error(glkError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.getTime           = function(){throw new Error(glkError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.getTimeStart      = function(){throw new Error(glkError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.getTimeNext       = function(){throw new Error(glkError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.getTimeDelta      = function(){throw new Error(glkError.METHOD_NOT_IMPLEMENTED);};
+AppImpl.prototype.getFramesElapsed  = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
+AppImpl.prototype.getSecondsElapsed = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
+AppImpl.prototype.getTime           = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
+AppImpl.prototype.getTimeStart      = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
+AppImpl.prototype.getTimeNext       = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
+AppImpl.prototype.getTimeDelta      = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
 
 AppImpl.prototype.isKeyDown          = function(){return this._keyDown;};
 AppImpl.prototype.isMouseDown        = function(){return this._mouseDown;};

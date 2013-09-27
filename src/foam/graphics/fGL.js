@@ -1,4 +1,4 @@
-var kError           = require('../system/fError'),
+var fError           = require('../system/fError'),
     ProgVertexShader = require('./gl/shader/fProgVertexShader'),
     ProgFragShader   = require('./gl/shader/fProgFragShader'),
     ProgLoader       = require('./gl/shader/fProgLoader'),
@@ -702,7 +702,7 @@ FGL.prototype.bufferColors = function(color,buffer)
     {
         if(color.length != buffer.length)
         {
-            throw new Error(kError.COLORS_IN_WRONG_SIZE);
+            throw new Error(fError.COLORS_IN_WRONG_SIZE);
         }
 
         while(i < buffer.length)
@@ -720,7 +720,7 @@ FGL.prototype.bufferColors = function(color,buffer)
 
 FGL.prototype.bufferVertices = function(vertices,buffer)
 {
-    if(vertices.length != buffer.length)throw (kError.VERTICES_IN_WRONG_SIZE + buffer.length + '.');
+    if(vertices.length != buffer.length)throw (fError.VERTICES_IN_WRONG_SIZE + buffer.length + '.');
     var i = -1;while(++i < buffer.length)buffer[i] = vertices[i];
     return buffer;
 };

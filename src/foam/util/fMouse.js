@@ -1,9 +1,9 @@
 var Vec2   = require('../math/fVec2'),
-    kError = require('../system/fError');
+    fError = require('../system/fError');
 
 function Mouse()
 {
-    if(Mouse.__instance)throw new Error(kError.CLASS_IS_SINGLETON);
+    if(Mouse.__instance)throw new Error(fError.CLASS_IS_SINGLETON);
 
     this._position     = Vec2.make();
     this._positionLast = Vec2.make();

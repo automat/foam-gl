@@ -1,6 +1,6 @@
 var Default     = require('../system/fDefault'),
-    kError      = require('../system/fError'),
-    kGL         = require('../graphics/fGL'),
+    fError      = require('../system/fError'),
+    fGL         = require('../graphics/fGL'),
     AppImpl     = require('./fAppImpl'),
     CameraBasic = require('../graphics/fCameraBasic'),
     plask       = require('plask');
@@ -14,7 +14,7 @@ AppImplPlask.prototype = Object.create(AppImpl.prototype);
 
 AppImplPlask.prototype.setSize = function(width,height)
 {
-    if(this._isInitialized)throw new Error(kError.PLASK_WINDOW_SIZE_SET);
+    if(this._isInitialized)throw new Error(fError.PLASK_WINDOW_SIZE_SET);
 
     this._width  = width;
     this._height = height;
@@ -65,7 +65,7 @@ AppImplPlask.prototype.init = function(appObj)
 
         init:function()
         {
-            appObj.kgl    = new kGL(this.gl,null);
+            appObj.kgl    = new fGL(this.gl,null);
             appObj.camera = new CameraBasic();
             appObj.kgl.setCamera(appObj.camera);
             appObj.camera.setPerspective(Default.CAMERA_FOV,

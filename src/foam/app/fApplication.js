@@ -1,4 +1,4 @@
-var kError       = require('../system/fError'),
+var fError       = require('../system/fError'),
     Platform     = require('../system/fPlatform'),
     AppImplWeb   = require('./fAppImplWeb'),
     AppImplPlask = require('./fAppImplPlask'),
@@ -8,10 +8,10 @@ var kError       = require('../system/fError'),
 
 function Application()
 {
-    if(Application.__instance)throw new Error(kError.CLASS_IS_SINGLETON);
+    if(Application.__instance)throw new Error(fError.CLASS_IS_SINGLETON);
 
     var target  = Platform.getTarget();
-    if(typeof target === 'undefined' )throw new Error(kError.WRONG_PLATFORM);
+    if(typeof target === 'undefined' )throw new Error(fError.WRONG_PLATFORM);
 
     this._appImpl = target == Platform.WEB   ? new AppImplWeb(arguments) :
                     target == Platform.PLASK ? new AppImplPlask(arguments) :
@@ -24,8 +24,8 @@ function Application()
     Application.__instance = this;
 }
 
-Application.prototype.setup  = function(){throw new Error(kError.APP_NO_SETUP);};
-Application.prototype.update = function(){throw new Error(kError.APP_NO_UPDATE);};
+Application.prototype.setup  = function(){throw new Error(fError.APP_NO_SETUP);};
+Application.prototype.update = function(){throw new Error(fError.APP_NO_UPDATE);};
 
 Application.prototype.setSize = function(width,height)
 {

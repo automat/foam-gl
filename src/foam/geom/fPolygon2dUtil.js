@@ -1,4 +1,4 @@
-var kMath      = require('../math/fMath'),
+var fMath      = require('../math/fMath'),
     Line2dUtil = require('./fLine2dUtil');
 
 module.exports =
@@ -246,7 +246,7 @@ module.exports =
     {
         if(polygon.length < 4)return polygon;
 
-        tolerance = tolerance || kMath.EPSILON;
+        tolerance = tolerance || fMath.EPSILON;
 
         var temp = [];
 

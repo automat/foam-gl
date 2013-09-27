@@ -1,6 +1,6 @@
 var Default     = require('../system/fDefault'),
     AppImpl     = require('./fAppImpl'),
-    kGL         = require('../graphics/fGL'),
+    fGL         = require('../graphics/fGL'),
     CameraBasic = require('../graphics/fCameraBasic');
 
 function AppImplWeb()
@@ -66,7 +66,7 @@ AppImplWeb.prototype._init = function(appObj)
         keyEventTarget   = this._keyEventTarget;
 
 
-    appObj.kgl = new kGL(this._context3d,this._context2d);
+    appObj.kgl = new fGL(this._context3d,this._context2d);
     appObj.kgl.gl.viewport(0,0,this._width,this._height);
 
     appObj.camera = new CameraBasic();

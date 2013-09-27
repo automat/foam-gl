@@ -1,4 +1,4 @@
-var kMath = require('../math/fMath'),
+var fMath = require('../math/fMath'),
     Vec3  = require('../math/fVec3'),
     Mat44 = require('../math/fMat44');
 
@@ -52,7 +52,7 @@ Spline.prototype.update = function()
 
     var tension       = this._tension,
         bias          = this._bias,
-        hermiteIntrpl = kMath.hermiteIntrpl;
+        hermiteIntrpl = fMath.hermiteIntrpl;
 
     var i, j, t;
     var len = numPoints - 1;
