@@ -1,8 +1,8 @@
-var GLKit = require('.././foam.js');
+var Foam = require('../../src/foam/foam.js');
 
 function App()
 {
-    GLKit.Application.apply(this,arguments);
+    Foam.Application.apply(this,arguments);
 
     this.setFullWindowFrame(true);
 
@@ -10,25 +10,25 @@ function App()
     this.setSize(800,600);
 }
 
-App.prototype = Object.create(GLKit.Application.prototype);
+App.prototype = Object.create(Foam.Application.prototype);
 
 App.prototype.setup = function()
 {
     var kgl = this.kgl;
 
-    var light0 = this._light0 = new GLKit.Light(kgl.LIGHT_0);
+    var light0 = this._light0 = new Foam.Light(kgl.LIGHT_0);
         light0.setAmbient3f(0,0,0);
         light0.setDiffuse3f(0.8,0.8,0.8);
         light0.setSpecular3f(1,1,1);
         light0.setPosition3f(1,1,1);
 
-    var light1 = this._light1 = new GLKit.Light(kgl.LIGHT_1);
+    var light1 = this._light1 = new Foam.Light(kgl.LIGHT_1);
         light1.setAmbient3f(0,0,0);
         light1.setDiffuse3f(0.8,0.8,0.8);
         light1.setSpecular3f(1,1,1);
         light1.setPosition3f(1,1,1);
 
-    var material = this._material0 = new GLKit.Material();
+    var material = this._material0 = new Foam.Material();
         material.setDiffuse3f(0.7,0.7,0.7);
         material.setAmbient3f(0.7,0.7,0.7);
         material.setSpecular3f(1,1,1);
@@ -54,7 +54,7 @@ App.prototype.update = function()
     kgl.drawMode(kgl.LINE_LOOP);
     this.drawSystem();
 
-    var glMath = GLKit.Math;
+    var glMath = Foam.Math;
 
     var material = this._material0;
 
@@ -64,7 +64,7 @@ App.prototype.update = function()
 
 
     //Foam.GLUtil.drawVector(gl,light0.position,Foam.Vec3.added(light0.position,light0TargetPos));
-    var lightTargetPos = GLKit.Vec3.make(Math.sin(time*0.25)*8 + 0.5,Math.sin(time*0.05),0.5);
+    var lightTargetPos = Foam.Vec3.make(Math.sin(time*0.25)*8 + 0.5,Math.sin(time*0.05),0.5);
     light0.setPosition(lightTargetPos);
 
 
@@ -152,23 +152,23 @@ App.prototype.drawSystem =  function()
     var kgl = this.kgl;
 
     kgl.color1f(0.25);
-    GLKit.fGLUtil.drawGrid(kgl,8,1);
-    GLKit.fGLUtil.drawGridCube(kgl,8,1);
-    GLKit.fGLUtil.drawAxes(kgl,4);
+    Foam.fGLUtil.drawGrid(kgl,8,1);
+    Foam.fGLUtil.drawGridCube(kgl,8,1);
+    Foam.fGLUtil.drawAxes(kgl,4);
 
     //kgl.drawMode(kgl.TRIANGLES);
     kgl.color1f(1);
     kgl.pushMatrix();
     {
         kgl.translate(this._light0.position);
-        GLKit.fGLUtil.octahedron(kgl,0.075);
+        Foam.fGLUtil.octahedron(kgl,0.075);
     }
     kgl.popMatrix();
 
     kgl.pushMatrix();
     {
         kgl.translate(this._light1.position);
-        GLKit.fGLUtil.octahedron(kgl,0.075);
+        Foam.fGLUtil.octahedron(kgl,0.075);
     }
     kgl.popMatrix();
 };

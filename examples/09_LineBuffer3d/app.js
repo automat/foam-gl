@@ -1,8 +1,8 @@
-var GLKit = require('.././foam.js');
+var Foam = require('../../src/foam/foam.js');
 
 function App()
 {
-    GLKit.Application.apply(this,arguments);
+    Foam.Application.apply(this,arguments);
 
     this.setFullWindowFrame(true);
 
@@ -10,19 +10,19 @@ function App()
     this.setSize(4024,1000);
 }
 
-App.prototype = Object.create(GLKit.Application.prototype);
+App.prototype = Object.create(Foam.Application.prototype);
 
 App.prototype.setup = function()
 {
     this._zoom = 1;
 
-    var light0 = this._light0 = new GLKit.Light(this.kgl.LIGHT_0);
+    var light0 = this._light0 = new Foam.Light(this.kgl.LIGHT_0);
     light0.setAmbient3f(0,0,0);
     light0.setDiffuse3f(0.8,0.8,0.8);
     light0.setSpecular3f(1,1,1);
     light0.setPosition3f(1,1,1);
 
-    var material = this._material0 = new GLKit.Material();
+    var material = this._material0 = new Foam.Material();
     material.setDiffuse3f(0.7,0.1,0.2);
     material.setAmbient3f(0.7,0.1,0.7);
     material.setSpecular3f(1,1,1);
@@ -39,13 +39,13 @@ App.prototype.setup = function()
         splinePoints[i * 3 + 1] = (-0.5 + n) * 4;//0;//(-0.5 + n) * 4;
         splinePoints[i * 3 + 2] = Math.sin(Math.PI * n * 10);//0;//Math.sin(Math.PI * n * 10);
     }
-    var spline = this._spline = new GLKit.Spline();
+    var spline = this._spline = new Foam.Spline();
     spline.setDetail(4);
     spline.setPoints(splinePoints);
     spline.update();
 
     var numBufferPoints = 100;
-    var lineBuffer = this._lineBuffer0 = new GLKit.LineBuffer3d(new Array(numBufferPoints * 3),16,0.35,null,true);
+    var lineBuffer = this._lineBuffer0 = new Foam.LineBuffer3d(new Array(numBufferPoints * 3),16,0.35,null,true);
 
 
 };
@@ -59,7 +59,7 @@ App.prototype.update = function()
 
     var light0 = this._light0;
 
-    var zoom = this._zoom = GLKit.Math.lerp(this._zoom, 1 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
+    var zoom = this._zoom = Foam.Math.lerp(this._zoom, 1 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
 
 
     gl.clear3f(0.1,0.1,0.1);
@@ -74,7 +74,7 @@ App.prototype.update = function()
         camRotX = ( -1 + this.mouse.getX() / this.getWidth() * 2.0 ) * Math.PI;
         camRotY = ( -1 + this.mouse.getY() / this.getHeight() * 2.0) * Math.PI * 0.5;
 
-        GLKit.Vec3.lerp3f(cam.position,
+        Foam.Vec3.lerp3f(cam.position,
             Math.cos(camRotX) * zoom,
             Math.sin(camRotY) * zoom,
             Math.sin(camRotX) * zoom,
@@ -141,7 +141,7 @@ App.prototype.update = function()
     var len        = lineBuffer0.getNumPoints();
 
     var intrpl;
-    var vec = GLKit.Vec3.make();
+    var vec = Foam.Vec3.make();
     var intrplBase,
         intrplScaled;
 
@@ -153,7 +153,7 @@ App.prototype.update = function()
         n = i / (len - 1);
 
         scale = 0.75;
-        intrplBase   = (0.5 + GLKit.Math.saw(time * 0.15) * 0.5);
+        intrplBase   = (0.5 + Foam.Math.saw(time * 0.15) * 0.5);
         intrplScaled = intrplBase * (1 + scale) - scale;
         intrpl = Math.max(0, Math.min(n * scale + intrplScaled, 1));
         lineBuffer0.setPoint(i, spline.getVec3OnSpline(intrpl, vec));
@@ -186,13 +186,13 @@ App.prototype.drawSystem =  function()
     var kgl = this.kgl;
 
     kgl.color1f(0.10);
-    GLKit.fGLUtil.drawGridCube(kgl,70,1);
+    Foam.fGLUtil.drawGridCube(kgl,70,1);
 
     kgl.color1f(0.075);
     kgl.pushMatrix();
     {
         kgl.translate3f(0,-0.01,0);
-        GLKit.fGLUtil.drawGrid(kgl,70,1);
+        Foam.fGLUtil.drawGrid(kgl,70,1);
     }
     kgl.popMatrix();
 };

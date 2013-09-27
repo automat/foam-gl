@@ -1,8 +1,8 @@
-var GLKit = require('.././foam.js');
+var Foam = require('../../src/foam/foam.js');
 
 function App()
 {
-    GLKit.Application.apply(this,arguments);
+    Foam.Application.apply(this,arguments);
 
     this.setFullWindowFrame(true);
 
@@ -10,25 +10,25 @@ function App()
     this.setSize(1024,768);
 }
 
-App.prototype = Object.create(GLKit.Application.prototype);
+App.prototype = Object.create(Foam.Application.prototype);
 
 App.prototype.setup = function()
 {
     this._zoom = 3;
 
-    var light0 = this._light0 = new GLKit.Light(this.kgl.LIGHT_0);
+    var light0 = this._light0 = new Foam.Light(this.kgl.LIGHT_0);
     light0.setAmbient3f(0,0,0);
     light0.setDiffuse3f(0.8,0.8,0.8);
     light0.setSpecular3f(1,1,1);
     light0.setPosition3f(1,1,1);
 
-    var material = this._material0 = new GLKit.Material();
+    var material = this._material0 = new Foam.Material();
     material.setDiffuse3f(0.7,0.7,0.7);
     material.setAmbient3f(0.7,0.7,0.7);
     material.setSpecular3f(1,1,1);
     material.shininess = 20.0;
 
-    var buffer = this._buffer = new GLKit.LineBuffer2d(this.kgl,1500 * 100 * 3);
+    var buffer = this._buffer = new Foam.LineBuffer2d(this.kgl,1500 * 100 * 3);
 
 };
 
@@ -41,7 +41,7 @@ App.prototype.update = function()
 
     var light0 = this._light0;
 
-    var zoom = this._zoom = GLKit.Math.lerp(this._zoom, 3 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
+    var zoom = this._zoom = Foam.Math.lerp(this._zoom, 3 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
 
 
     gl.clear3f(0.1,0.1,0.1);
@@ -56,7 +56,7 @@ App.prototype.update = function()
         camRotX = ( -1 + this.mouse.getX() / this.getWidth() * 2.0 ) * Math.PI;
         camRotY = ( -1 + this.mouse.getY() / this.getHeight() * 2.0) * Math.PI * 0.5;
 
-        GLKit.Vec3.lerp3f(cam.position,
+        Foam.Vec3.lerp3f(cam.position,
             Math.cos(camRotX) * zoom,
             Math.sin(camRotY) * zoom,
             Math.sin(camRotX) * zoom,
@@ -121,13 +121,13 @@ App.prototype.drawSystem =  function()
     var kgl = this.kgl;
 
     kgl.color1f(0.10);
-    GLKit.fGLUtil.drawGridCube(kgl,70,1);
+    Foam.fGLUtil.drawGridCube(kgl,70,1);
 
     kgl.color1f(0.075);
     kgl.pushMatrix();
     {
         kgl.translate3f(0,-0.01,0);
-        GLKit.fGLUtil.drawGrid(kgl,70,1);
+        Foam.fGLUtil.drawGrid(kgl,70,1);
     }
     kgl.popMatrix();
 };
