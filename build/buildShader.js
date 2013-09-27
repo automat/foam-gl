@@ -3,17 +3,21 @@ var fs = require('fs');
 var inPath  = '../includes/';
     outPath = '../src/glKit/graphics/gl/shader/';
 
-/*
-function shader2String(shaderSource,shaderClassName,dist)
+
+function shader2String(shaderSource,dist)
 {
     var string = fs.readFileSync(shaderSource,'utf-8');
         string = string.replace(/(\r\n|\n|\r)/gm,"");
         string = string.replace(/ +(?= )/g,'');
 
-    fs.writeFileSync(dist,shaderClassName + '="' + string + '";','utf-8');
+    fs.writeFileSync(dist,'module.exports ="' + string + '";','utf-8');
 }
-*/
 
+
+shader2String(inPath + 'fProgFragShader.glsl',outPath + 'fProgFragShader.js');
+shader2String(inPath + 'fProgVertexShader.glsl',outPath + 'fProgVertexShader.js');
+
+/*
 function shader2String(shaderSource,shaderClassName,dist)
 {
     var string = '\n';
@@ -36,7 +40,10 @@ function shader2String(shaderSource,shaderClassName,dist)
 }
 
 
-shader2String(inPath + 'glkProgFragShader.glsl',      'GLKit.ProgFragShader',     outPath + 'glkProgFragShader.js');
-shader2String(inPath + 'glkProgVertexShader.glsl',    'GLKit.ProgVertexShader',   outPath + 'glkProgVertexShader.js');
-shader2String(inPath + 'glkProgFragImgShader.glsl',   'GLKit.ProgFragImgShader',  outPath + 'glkProgFragImgShader.js');
-shader2String(inPath + 'glkProgVertexImgShader.glsl', 'GLKit.ProgVertexImgShader',outPath + 'glkProgVertexImgShader.js');
+shader2String(inPath + '_glkProgFragShader.glsl',      'Foam.ProgFragShader',     outPath + 'fProgFragShader.js');
+shader2String(inPath + '_glkProgVertexShader.glsl',    'Foam.ProgVertexShader',   outPath + 'fProgVertexShader.js');
+shader2String(inPath + '_glkProgFragImgShader.glsl',   'Foam.ProgFragImgShader',  outPath + '_glkProgFragImgShader.js');
+shader2String(inPath + '_glkProgVertexImgShader.glsl', 'Foam.ProgVertexImgShader',outPath + '_glkProgVertexImgShader.js');
+    */
+
+

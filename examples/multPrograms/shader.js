@@ -1,5 +1,0 @@
-Shader =
-{
-    Fragment : '',
-    Vertex   : ''
-};

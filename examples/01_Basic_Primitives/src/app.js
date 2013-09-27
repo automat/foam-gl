@@ -1,4 +1,4 @@
-var GLKit = require('../../src/glKit/foam.js');
+var GLKit = require('../../../src/glKit/foam.js');
 
 function App()
 {
@@ -29,6 +29,15 @@ App.prototype.update = function()
     cam.updateMatrices();
 
     this.drawSystem();
+
+    kgl.drawMode(kgl.TRIANGLES);
+    kgl.color1f(1);
+   // kgl.linef(0,0,0,1,1,1);
+
+    kgl.cube(1);
+
+
+    kgl.drawMode(kgl.LINES);
 };
 
 App.prototype.drawSystem =  function()
