@@ -1,4 +1,4 @@
-var GLKit = require('../../src/glKit/foam.js');
+var GLKit = require('.././foam.js');
 
 function App()
 {

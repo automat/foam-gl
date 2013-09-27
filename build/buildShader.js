@@ -1,7 +1,7 @@
 var fs = require('fs');
 
 var inPath  = '../includes/';
-    outPath = '../src/glKit/graphics/gl/shader/';
+    outPath = '../src/foam/graphics/gl/shader/';
 
 
 function shader2String(shaderSource,dist)

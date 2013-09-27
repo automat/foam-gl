@@ -659,7 +659,7 @@ module.exports =
     Texture     : require('./graphics/gl/glkTexture'),
 
     fGLUtil     : require('./graphics/util/glkGLUtil'),
-    kGL         : require('./graphics/glkGL'),
+    fGL         : require('./graphics/glkGL'),
 
     Mouse       : require('./util/glkMouse'),
     Color       : require('./util/glkColor'),
@@ -2959,7 +2959,7 @@ module.exports =
     toArray : function(float32Array){return Array.prototype.slice.call(float32Array);}
 };
 },{}],33:[function(require,module,exports){
-var GLKit = require('../../../src/glKit/foam.js');
+var GLKit = require('../.././foam.js');
 
 function App()
 {
