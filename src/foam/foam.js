@@ -1,14 +1,18 @@
 /**
  *
- * glKit.js - A WebGL toolbox
  *
- * glKit.js is available under the terms of the MIT license.  The full text of the
+ *  F | O | A | M
+ *
+ *
+ * Foam - A Plask/Web GL toolkit
+ *
+ * Foam is available under the terms of the MIT license.  The full text of the
  * MIT license is included below.
  *
  * MIT License
  * ===========
  *
- * Copyright (c) 2012 Henryk Wollik. All rights reserved.
+ * Copyright (c) 2013 Henryk Wollik. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
