@@ -3,81 +3,178 @@ var Vec3  = require('../../math/fVec3'),
 
 var fGLUtil = {};
 
-fGLUtil.__gridSizeLast = -1;
-fGLUtil.__gridUnitLast = -1;
+fGLUtil.__bVertexGrid    = [];
+fGLUtil.__bVertexGridF32 = null;
+fGLUtil.__bColorGridLast = Color.BLACK();
+fGLUtil.__bColorGridF32  = null;
+fGLUtil.__gridSizeLast   = -1;
+fGLUtil.__gridUnitLast   = -1;
+
+fGLUtil.__bVertexGridCube    = [];
+fGLUtil.__bVertexGridCubeF32 = null;
+fGLUtil.__bColorGridCubeLast = Color.BLACK;
+fGLUtil.__bColorGridCubeF32  = null;
+fGLUtil.__gridCubeSizeLast   = -1;
+fGLUtil.__gridCubeUnitLast   = -1;
+
+fGLUtil.__bVertexAxesF32 = new Float32Array([0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1]);
+fGLUtil.__bColorAxesF32  = new Float32Array([1,0,0,1,1,0,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,1,1]);
+fGLUtil.__axesUnitLast = -1;
 
 
-
-fGLUtil.drawGrid = function(kgl,size,unit)
+fGLUtil.drawGrid = function(fgl,size,unit)
 {
     unit = unit || 1;
 
-    var i  = -1,
-        sh = size * 0.5 * unit;
-
-    var ui;
-
-    while(++i < size + 1)
+    if(unit != this.__gridUnitLast)
     {
-        ui = unit * i;
+        var bVertexGrid = this.__bVertexGrid;
 
-        kgl.linef(-sh,0,-sh + ui,sh,0,-sh+ui);
-        kgl.linef(-sh+ui,0,-sh,-sh+ui,0,sh);
+        if(size != this.__gridSizeLast)
+        {
+            this.__genGridVertices(bVertexGrid,'__bVertexGridF32','__bColorGridF32',size);
+            this.__gridSizeLast = size;
+        }
+
+        this.__scaleGridVertices(bVertexGrid,this.__bVertexGridF32,unit);
     }
+
+    var bColorGrid32 = this.__bColorGridF32;
+    var colorLast    = this.__bColorGridLast,
+        colorfGL     = fgl.getColorBuffer();
+
+    fgl.drawArrays(this.__bVertexGridF32,
+                   null,
+                   Color.equals(colorfGL,colorLast) ?
+                   bColorGrid32 :
+                   fgl.bufferColors(colorfGL,bColorGrid32),
+                   null,
+                   fgl.LINES);
+
+    this.__gridSizeLast = size;
+    this.__gridUnitLast = unit;
+
+    Color.set(colorLast,colorfGL);
 };
 
-fGLUtil.drawAxes = function(kgl,unit)
+fGLUtil.__genGridVertices = function(verticesArr,verticesArrF32String,colorsArrF32String,size)
 {
-    kgl.color3f(1,0,0);
-    kgl.linef(0,0,0,unit,0,0);
-    kgl.color3f(0,1,0);
-    kgl.linef(0,0,0,0,unit,0);
-    kgl.color3f(0,0,1);
-    kgl.linef(0,0,0,0,0,unit);
+    var l = verticesArr.length = (size + 1) * 12;
+
+    var i  = 0,
+        sh = size * 0.5,
+        ui;
+
+    while(i < l)
+    {
+        ui = i / 12;
+
+        verticesArr[i   ] = verticesArr[i+8 ] = -sh;
+        verticesArr[i+1 ] = verticesArr[i+4 ] = verticesArr[i+7 ] = verticesArr[i+10] = 0;
+        verticesArr[i+2 ] = verticesArr[i+5 ] = verticesArr[i+6 ] = verticesArr[i+9 ] =-sh + ui;
+        verticesArr[i+3 ] = verticesArr[i+11] = sh;
+
+        i += 12;
+    }
+
+    this[verticesArrF32String] = new Float32Array(verticesArr);
+    this[colorsArrF32String]   = new Float32Array(l / 3 * 4);
 };
 
-fGLUtil.drawGridCube = function(kgl,size,unit)
+fGLUtil.__scaleGridVertices = function(verticesArr,verticesArrF32,unit)
+{
+    var i = -1;
+    var l = verticesArr.length;
+
+    while(++i < l)verticesArrF32[i] = verticesArr[i] * unit;
+};
+
+fGLUtil.drawAxes = function(fgl,unit)
 {
     unit = unit || 1;
+
+    var bVerticesAxes = this.__bVertexAxesF32;
+    var drawModeLast  = fgl.getDrawMode();
+
+    if(unit != this.__axesUnitLast){bVerticesAxes[3 ] = bVerticesAxes[10] = bVerticesAxes[17] = unit;}
+
+    fgl.drawMode(drawModeLast);
+    fgl.drawArrays(bVerticesAxes,null,this.__bColorAxesF32,null,fgl.LINES);
+
+    this.__axesUnitLast = unit;
+    fgl.drawMode(drawModeLast);
+};
+
+fGLUtil.drawGridCube = function(fgl,size,unit)
+{
+    unit = unit || 1;
+
+    if(unit != this.__gridCubeUnitLast)
+    {
+        var bVertexGrid = this.__bVertexGridCube;
+
+        if(size != this.__gridCubeSizeLast)
+        {
+            this.__genGridVertices(bVertexGrid,'__bVertexGridCubeF32','__bColorGridCubeF32',size);
+            this.__gridCubeSizeLast = size;
+        }
+
+        this.__scaleGridVertices(bVertexGrid,this.__bVertexGridCubeF32,unit);
+    }
+
+    var bColorGrid32 = this.__bColorGridCubeF32;
+    var colorLast    = this.__bColorGridCubeLast,
+        colorfGL     = fgl.getColorBuffer();
+
+    var bVertexGridCubeF32 = this.__bVertexGridCubeF32,
+        color              = Color.equals(colorfGL,colorLast) ?
+                             bColorGrid32 :
+                             fgl.bufferColors(colorfGL,bColorGrid32);
 
     var sh  = size * 0.5 * unit,
         pih = Math.PI * 0.5;
 
-    kgl.pushMatrix();
-    kgl.translate3f(0,-sh,0);
-    this.drawGrid(kgl,size,unit);
-    kgl.popMatrix();
+    //TODO: merge
 
-    kgl.pushMatrix();
-    kgl.translate3f(0,sh,0);
-    kgl.rotate3f(0,pih,0);
-    this.drawGrid(kgl,size,unit);
-    kgl.popMatrix();
+    fgl.pushMatrix();
+    fgl.translate3f(0,-sh,0);
+    fgl.drawArrays(bVertexGridCubeF32,null,color,null,fgl.LINES);
+    fgl.popMatrix();
 
-    kgl.pushMatrix();
-    kgl.translate3f(0,0,-sh);
-    kgl.rotate3f(pih,0,0);
-    this.drawGrid(kgl,size,unit);
-    kgl.popMatrix();
+    fgl.pushMatrix();
+    fgl.translate3f(0,sh,0);
+    fgl.rotate3f(0,pih,0);
+    fgl.drawArrays(bVertexGridCubeF32,null,color,null,fgl.LINES);
+    fgl.popMatrix();
 
-    kgl.pushMatrix();
-    kgl.translate3f(0,0,sh);
-    kgl.rotate3f(pih,0,0);
-    this.drawGrid(kgl,size,unit);
-    kgl.popMatrix();
+    fgl.pushMatrix();
+    fgl.translate3f(0,0,-sh);
+    fgl.rotate3f(pih,0,0);
+    fgl.drawArrays(bVertexGridCubeF32,null,color,null,fgl.LINES);
+    fgl.popMatrix();
 
-    kgl.pushMatrix();
-    kgl.translate3f(sh,0,0);
-    kgl.rotate3f(pih,0,pih);
-    this.drawGrid(kgl,size,unit);
-    kgl.popMatrix();
+    fgl.pushMatrix();
+    fgl.translate3f(0,0,sh);
+    fgl.rotate3f(pih,0,0);
+    fgl.drawArrays(bVertexGridCubeF32,null,color,null,fgl.LINES);
+    fgl.popMatrix();
 
-    kgl.pushMatrix();
-    kgl.translate3f(-sh,0,0);
-    kgl.rotate3f(pih,0,pih);
-    this.drawGrid(kgl,size,unit);
-    kgl.popMatrix();
+    fgl.pushMatrix();
+    fgl.translate3f(sh,0,0);
+    fgl.rotate3f(pih,0,pih);
+    fgl.drawArrays(bVertexGridCubeF32,null,color,null,fgl.LINES);
+    fgl.popMatrix();
 
+    fgl.pushMatrix();
+    fgl.translate3f(-sh,0,0);
+    fgl.rotate3f(pih,0,pih);
+    fgl.drawArrays(bVertexGridCubeF32,null,color,null,fgl.LINES);
+    fgl.popMatrix();
+
+    this.__gridCubeSizeLast = size;
+    this.__gridCubeUnitLast = unit;
+
+    Color.set(colorLast,colorfGL);
 };
 
 
@@ -98,150 +195,6 @@ fGLUtil.octahedron = function(kgl,size)
     kgl.drawElements(this.__bVertexOctahedron, this.__bNormalOctahedron,kgl.bufferColors(kgl._bColor, this.__bColorOctahedron),null, this.__bIndexOctahedron,kgl._drawMode);
     kgl.popMatrix();
 };
-
-/*
-var fGLUtil =
-{
-
-    drawGrid : function(gl,size,unit)
-    {
-        unit = unit || 1;
-
-        var i  = -1,
-            sh = size * 0.5 * unit;
-
-        var ui;
-
-        while(++i < size + 1)
-        {
-            ui = unit * i;
-
-            gl.linef(-sh,0,-sh + ui,sh,0,-sh+ui);
-            gl.linef(-sh+ui,0,-sh,-sh+ui,0,sh);
-        }
-
-    },
-
-    drawGridCube : function(gl,size,unit)
-    {
-        unit = unit || 1;
-
-        var sh  = size * 0.5 * unit,
-            pih = Math.PI * 0.5;
-
-        gl.pushMatrix();
-        gl.translate3f(0,-sh,0);
-        this.drawGrid(gl,size,unit);
-        gl.popMatrix();
-
-        gl.pushMatrix();
-        gl.translate3f(0,sh,0);
-        gl.rotate3f(0,pih,0);
-        this.drawGrid(gl,size,unit);
-        gl.popMatrix();
-
-        gl.pushMatrix();
-        gl.translate3f(0,0,-sh);
-        gl.rotate3f(pih,0,0);
-        this.drawGrid(gl,size,unit);
-        gl.popMatrix();
-
-        gl.pushMatrix();
-        gl.translate3f(0,0,sh);
-        gl.rotate3f(pih,0,0);
-        this.drawGrid(gl,size,unit);
-        gl.popMatrix();
-
-        gl.pushMatrix();
-        gl.translate3f(sh,0,0);
-        gl.rotate3f(pih,0,pih);
-        this.drawGrid(gl,size,unit);
-        gl.popMatrix();
-
-        gl.pushMatrix();
-        gl.translate3f(-sh,0,0);
-        gl.rotate3f(pih,0,pih);
-        this.drawGrid(gl,size,unit);
-        gl.popMatrix();
-
-    },
-
-
-    drawAxes : function(gl,unit)
-    {
-        gl.color3f(1,0,0);
-        gl.linef(0,0,0,unit,0,0);
-        gl.color3f(0,1,0);
-        gl.linef(0,0,0,0,unit,0);
-        gl.color3f(0,0,1);
-        gl.linef(0,0,0,0,0,unit);
-    },
-
-
-    //temp
-    drawVectorf : function(gl,x0,y0,z0,x1,y1,z1)
-    {
-       
-
-        var p0 = gl._bPoint0,
-            p1 = gl._bPoint1,
-            up = gl._axisY;
-
-        Vec3.set3f(p0,x0,y0,z0);
-        Vec3.set3f(p1,x1,y1,z1);
-
-        var pw = gl._lineBoxWidth,
-            ph = gl._lineBoxHeight,
-            pd = gl._drawMode;
-
-        var len = Vec3.distance(p0,p1),
-            mid = Vec3.scale(Vec3.added(p0,p1),0.5),
-            dir = Vec3.normalize(Vec3.subbed(p1,p0)),
-            c   = Vec3.dot(dir,up);
-
-        var angle = Math.acos(c),
-            axis  = Vec3.normalize(Vec3.cross(up,dir));
-
-
-        gl.drawMode(gl.LINES);
-
-        gl.linef(x0,y0,z0,x1,y1,z1);
-
-        gl.drawMode(gl.TRIANGLES);
-        gl.pushMatrix();
-        gl.translate(p1);
-        gl.rotateAxis(angle,axis);
-        this.pyramid(gl,0.025);
-        gl.popMatrix();
-
-        gl.lineSize(pw,ph);
-        gl.drawMode(pd);
-    },
-
-    drawVector : function(gl,v0,v1)
-    {
-       this.drawVectorf(gl,v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);
-    },
-
-    pyramid : function(gl,size)
-    {
-        gl.pushMatrix();
-        gl.scale3f(size,size,size);
-        gl.drawElements(this.__bVertexPyramid,this.__bNormalPyramid,gl.fillColorBuffer(gl._bColor,this.__bColorPyramid),null,this.__bIndexPyramid,gl._drawMode);
-        gl.popMatrix();
-    },
-
-
-
-    octahedron : function(gl,size)
-    {
-        gl.pushMatrix();
-        gl.scale3f(size,size,size);
-        gl.drawElements(this.__bVertexOctahedron, this.__bNormalOctahedron,gl.fillColorBuffer(gl._bColor, this.__bColorOctahedron),null, this.__bIndexOctahedron,gl._drawMode);
-        gl.popMatrix();
-    }
-};
-*/
 
 fGLUtil.__bVertexOctahedron = new Float32Array([-0.707,0,0, 0,0.707,0, 0,0,-0.707, 0,0,0.707, 0,-0.707,0, 0.707,0,0]);
 fGLUtil.__bNormalOctahedron = new Float32Array([1, -1.419496076238147e-9, 1.419496076238147e-9, -1.419496076238147e-9, -1, 1.419496076238147e-9, -1.419496076238147e-9, -1.419496076238147e-9, 1, 1.419496076238147e-9, 1.419496076238147e-9, -1, -1.419496076238147e-9, 1, 1.419496076238147e-9, -1, -1.419496076238147e-9, 1.419496076238147e-9]);
