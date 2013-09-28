@@ -3,8 +3,8 @@ function Geom3d()
     this.vertices  = null;
     this.normals   = null;
     this.colors    = null;
-    this.indices   = null;
     this.texCoords = null;
+    this.indices   = null;
 }
 
 //TODO merge
@@ -191,6 +191,18 @@ Geom3d.prototype.setTexCoord = function(index,v)
 Geom3d.prototype._draw = function(gl)
 {
     gl.drawElements(this.vertices,this.normals,this.colors,this.texCoords,this.indices,gl._drawMode);
+};
+
+Geom3d.fromBatch = function(batch)
+{
+    var geom3d = new Geom3d();
+        geom3d.vertices  = new Float32Array(batch[0]);
+        geom3d.normals   = new Float32Array(batch[1]);
+        geom3d.colors    = new Float32Array(batch[2]);
+        geom3d.texCoords = new Float32Array(batch[3]);
+        geom3d.indices   = new Uint16Array( batch[4]);
+
+    return geom3d;
 };
 
 module.exports = Geom3d;
