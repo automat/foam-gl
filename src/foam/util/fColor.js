@@ -1,3 +1,5 @@
+var fMath = require('../math/fMath');
+
 module.exports =
 {
     SIZE  : 4,
@@ -75,6 +77,16 @@ module.exports =
         c[3] = c0[3] * fi + c1[3] * f;
 
         return c;
+    },
+
+    equals : function(c0,c1)
+    {
+        return fMath.isFloatEqual(c0[0],c1[0]) &&
+               fMath.isFloatEqual(c0[1],c1[1]) &&
+               fMath.isFloatEqual(c0[2],c1[2]) &&
+               fMath.isFloatEqual(c0[3],c1[3]);
     }
+
+
 
 };
