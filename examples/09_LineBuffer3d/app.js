@@ -7,7 +7,7 @@ function App()
     this.setFullWindowFrame(true);
 
     this.setTargetFPS(60);
-    this.setSize(4024,1000);
+    this.setSize(1024,768);
 }
 
 App.prototype = Object.create(Foam.Application.prototype);
@@ -16,7 +16,7 @@ App.prototype.setup = function()
 {
     this._zoom = 1;
 
-    var light0 = this._light0 = new Foam.Light(this.kgl.LIGHT_0);
+    var light0 = this._light0 = new Foam.Light(this.fgl.LIGHT_0);
     light0.setAmbient3f(0,0,0);
     light0.setDiffuse3f(0.8,0.8,0.8);
     light0.setSpecular3f(1,1,1);
@@ -29,7 +29,7 @@ App.prototype.setup = function()
     material.shininess = 100.0;
 
 
-    var splineNumPoints = 100;
+    var splineNumPoints = 16;
     var splinePoints = new Array(splineNumPoints * 3);
     var i = -1,n;
     while(++i < splineNumPoints)
@@ -40,19 +40,19 @@ App.prototype.setup = function()
         splinePoints[i * 3 + 2] = Math.sin(Math.PI * n * 10);//0;//Math.sin(Math.PI * n * 10);
     }
     var spline = this._spline = new Foam.Spline();
-    spline.setDetail(4);
+    spline.setDetail(20);
     spline.setPoints(splinePoints);
     spline.update();
 
-    var numBufferPoints = 100;
-    var lineBuffer = this._lineBuffer0 = new Foam.LineBuffer3d(new Array(numBufferPoints * 3),16,0.35,null,true);
+    var numBufferPoints = 400;
+    var lineBuffer = this._lineBuffer0 = new Foam.LineBuffer3d(new Array(numBufferPoints * 3),10,0.075,null,true);
 
 
 };
 
 App.prototype.update = function()
 {
-    var gl        = this.kgl,
+    var gl        = this.fgl,
         cam       = this.camera,
         time      = this.getSecondsElapsed(),
         timeDelta = this.getTimeDelta();
@@ -157,6 +157,7 @@ App.prototype.update = function()
         intrplScaled = intrplBase * (1 + scale) - scale;
         intrpl = Math.max(0, Math.min(n * scale + intrplScaled, 1));
         lineBuffer0.setPoint(i, spline.getVec3OnSpline(intrpl, vec));
+        lineBuffer0.setDiameter(i, n*0.25);
 
 
 
@@ -178,12 +179,12 @@ App.prototype.update = function()
 
     gl.drawMode(gl.LINES);
     // gl.linev(lineBuffer.vertices);
-    gl.drawGeometry(lineBuffer0);
+    //gl.drawGeometry(lineBuffer0);
 };
 
 App.prototype.drawSystem =  function()
 {
-    var kgl = this.kgl;
+    var kgl = this.fgl;
 
     kgl.color1f(0.10);
     Foam.fGLUtil.drawGridCube(kgl,70,1);

@@ -1,8 +1,8 @@
-var GLKit = require('.././foam.js');
+var Foam = require('../../src/foam/foam.js');
 
 function App()
 {
-    GLKit.Application.apply(this,arguments);
+    Foam.Application.apply(this,arguments);
 
     this.setFullWindowFrame(true);
 
@@ -10,20 +10,20 @@ function App()
     this.setSize(800,600);
 }
 
-App.prototype = Object.create(GLKit.Application.prototype);
+App.prototype = Object.create(Foam.Application.prototype);
 
 App.prototype.setup = function(){};
 
 App.prototype.update = function()
 {
-    var kgl = this.kgl;
+    var fgl = this.fgl;
     var cam = this.camera;
 
     var time = this.getSecondsElapsed(),
         zoom = 1 + Math.sin(time) * 0.25;
 
-    kgl.clear3f(0.1,0.1,0.1);
-    kgl.loadIdentity();
+    fgl.clear3f(0.1,0.1,0.1);
+    fgl.loadIdentity();
 
     cam.setPosition3f(Math.cos(time)*Math.PI*zoom,zoom,Math.sin(time)*Math.PI*zoom);
     cam.updateMatrices();
@@ -33,12 +33,12 @@ App.prototype.update = function()
 
 App.prototype.drawSystem =  function()
 {
-    var kgl = this.kgl;
+    var fgl = this.fgl;
 
-    kgl.color1f(0.25);
-    GLKit.fGLUtil.drawGrid(kgl,8,1);
-    GLKit.fGLUtil.drawGridCube(kgl,8,1);
-    GLKit.fGLUtil.drawAxes(kgl,4);
+    fgl.color1f(0.25);
+    Foam.fGLUtil.drawGrid(fgl,8,1);
+    Foam.fGLUtil.drawGridCube(fgl,8,1);
+    Foam.fGLUtil.drawAxes(fgl,4);
 };
 
 var app = new App();

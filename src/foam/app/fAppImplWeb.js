@@ -66,11 +66,11 @@ AppImplWeb.prototype._init = function(appObj)
         keyEventTarget   = this._keyEventTarget;
 
 
-    appObj.kgl = new fGL(this._context3d,this._context2d);
-    appObj.kgl.gl.viewport(0,0,this._width,this._height);
+    appObj.fgl = new fGL(this._context3d,this._context2d);
+    appObj.fgl.gl.viewport(0,0,this._width,this._height);
 
     appObj.camera = new CameraBasic();
-    appObj.kgl.setCamera(appObj.camera);
+    appObj.fgl.setCamera(appObj.camera);
     appObj.camera.setPerspective(Default.CAMERA_FOV,
                                  self._ratio,
                                  Default.CAMERA_NEAR,
@@ -154,7 +154,7 @@ AppImplWeb.prototype._init = function(appObj)
 
     function updateViewportGL()
     {
-        gl = appObj.kgl;
+        gl = appObj.fgl;
         gl.gl.viewport(0,0,self._width,self._height);
         gl.clearColor(gl.getClearBuffer());
     }

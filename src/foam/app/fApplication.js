@@ -18,7 +18,7 @@ function Application()
                     null;
 
     this.mouse  = new Mouse();
-    this.kgl    = null;
+    this.fgl    = null;
     this.camera = null;
 
     Application.__instance = this;

@@ -18,7 +18,7 @@ App.prototype.setup = function()
 
     this._zoom = 3;
 
-    var light0 = this._light0 = new Foam.Light(this.kgl.LIGHT_0);
+    var light0 = this._light0 = new Foam.Light(this.fgl.LIGHT_0);
     light0.setAmbient3f(0,0,0);
     light0.setDiffuse3f(0.8,0.8,0.8);
     light0.setSpecular3f(1,1,1);
@@ -61,7 +61,7 @@ App.prototype.setup = function()
 
 App.prototype.update = function()
 {
-    var gl        = this.kgl,
+    var gl        = this.fgl,
         cam       = this.camera,
         time      = this.getSecondsElapsed(),
         timeDelta = this.getTimeDelta();
@@ -147,7 +147,7 @@ App.prototype.update = function()
 
 App.prototype.drawSystem =  function()
 {
-    var kgl = this.kgl;
+    var kgl = this.fgl;
 
     kgl.color1f(0.10);
     Foam.fGLUtil.drawGridCube(kgl,70,1);
@@ -327,9 +327,9 @@ AppImplPlask.prototype.init = function(appObj)
 
         init:function()
         {
-            appObj.kgl    = new kGL(this.gl,null);
+            appObj.fgl    = new kGL(this.gl,null);
             appObj.camera = new CameraBasic();
-            appObj.kgl.setCamera(appObj.camera);
+            appObj.fgl.setCamera(appObj.camera);
             appObj.camera.setPerspective(Default.CAMERA_FOV,
                                          self._ratio,
                                          Default.CAMERA_NEAR,
@@ -508,11 +508,11 @@ AppImplWeb.prototype._init = function(appObj)
         keyEventTarget   = this._keyEventTarget;
 
 
-    appObj.kgl = new kGL(this._context3d,this._context2d);
-    appObj.kgl.gl.viewport(0,0,this._width,this._height);
+    appObj.fgl = new kGL(this._context3d,this._context2d);
+    appObj.fgl.gl.viewport(0,0,this._width,this._height);
 
     appObj.camera = new CameraBasic();
-    appObj.kgl.setCamera(appObj.camera);
+    appObj.fgl.setCamera(appObj.camera);
     appObj.camera.setPerspective(Default.CAMERA_FOV,
                                  self._ratio,
                                  Default.CAMERA_NEAR,
@@ -596,7 +596,7 @@ AppImplWeb.prototype._init = function(appObj)
 
     function updateViewportGL()
     {
-        gl = appObj.kgl;
+        gl = appObj.fgl;
         gl.gl.viewport(0,0,self._width,self._height);
         gl.clearColor(gl.getClearBuffer());
     }
@@ -715,7 +715,7 @@ function Application()
                     null;
 
     this.mouse  = new Mouse();
-    this.kgl    = null;
+    this.fgl    = null;
     this.camera = null;
 
     Application.__instance = this;

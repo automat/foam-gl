@@ -65,9 +65,9 @@ AppImplPlask.prototype.init = function(appObj)
 
         init:function()
         {
-            appObj.kgl    = new fGL(this.gl,null);
+            appObj.fgl    = new fGL(this.gl,null);
             appObj.camera = new CameraBasic();
-            appObj.kgl.setCamera(appObj.camera);
+            appObj.fgl.setCamera(appObj.camera);
             appObj.camera.setPerspective(Default.CAMERA_FOV,
                                          self._ratio,
                                          Default.CAMERA_NEAR,

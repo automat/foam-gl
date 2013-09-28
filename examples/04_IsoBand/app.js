@@ -14,7 +14,7 @@ App.prototype = Object.create(Foam.Application.prototype);
 
 App.prototype.setup = function()
 {
-    var kgl = this.kgl;
+    var kgl = this.fgl;
 
     this._zoom = 6;
 
@@ -25,7 +25,7 @@ App.prototype.setup = function()
 
 App.prototype.update = function()
 {
-    var kgl       = this.kgl,
+    var kgl       = this.fgl,
         cam       = this.camera,
         time      = this.getSecondsElapsed(),
         timeDelta = this.getTimeDelta();
@@ -75,7 +75,7 @@ App.prototype.update = function()
 
 App.prototype.drawSystem =  function()
 {
-    var kgl = this.kgl;
+    var kgl = this.fgl;
 
     kgl.color1f(0.10);
     Foam.fGLUtil.drawGridCube(kgl,70,1);

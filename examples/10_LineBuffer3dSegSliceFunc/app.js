@@ -17,7 +17,7 @@ App.prototype.setup = function()
 
     this._zoom = 3;
 
-    var light0 = this._light0 = new Foam.Light(this.kgl.LIGHT_0);
+    var light0 = this._light0 = new Foam.Light(this.fgl.LIGHT_0);
     light0.setAmbient3f(0,0,0);
     light0.setDiffuse3f(0.8,0.8,0.8);
     light0.setSpecular3f(1,1,1);
@@ -60,7 +60,7 @@ App.prototype.setup = function()
 
 App.prototype.update = function()
 {
-    var gl        = this.kgl,
+    var gl        = this.fgl,
         cam       = this.camera,
         time      = this.getSecondsElapsed(),
         timeDelta = this.getTimeDelta();
@@ -146,7 +146,7 @@ App.prototype.update = function()
 
 App.prototype.drawSystem =  function()
 {
-    var kgl = this.kgl;
+    var kgl = this.fgl;
 
     kgl.color1f(0.10);
     Foam.fGLUtil.drawGridCube(kgl,70,1);

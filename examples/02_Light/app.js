@@ -14,7 +14,7 @@ App.prototype = Object.create(Foam.Application.prototype);
 
 App.prototype.setup = function()
 {
-    var kgl = this.kgl;
+    var kgl = this.fgl;
 
     var light0 = this._light0 = new Foam.Light(kgl.LIGHT_0);
         light0.setAmbient3f(0,0,0);
@@ -39,7 +39,7 @@ App.prototype.setup = function()
 
 App.prototype.update = function()
 {
-    var kgl = this.kgl;
+    var kgl = this.fgl;
     var cam = this.camera;
 
     var time = this.getSecondsElapsed(),
@@ -149,14 +149,14 @@ App.prototype.update = function()
 
 App.prototype.drawSystem =  function()
 {
-    var kgl = this.kgl;
+    var kgl = this.fgl;
 
     kgl.color1f(0.25);
     Foam.fGLUtil.drawGrid(kgl,8,1);
     Foam.fGLUtil.drawGridCube(kgl,8,1);
     Foam.fGLUtil.drawAxes(kgl,4);
 
-    //kgl.drawMode(kgl.TRIANGLES);
+    //fgl.drawMode(fgl.TRIANGLES);
     kgl.color1f(1);
     kgl.pushMatrix();
     {
