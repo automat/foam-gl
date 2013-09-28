@@ -782,7 +782,10 @@ FGL.prototype.endDrawElementArrayBatch = function()
 FGL.prototype._pushElementArrayBatch = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,texCoordsFloat32Array,indexUint16Array)
 {
 
-    var transMatrix = this._mModelView;
+    var transMatrix = Mat44.copy(this._mModelView);
+    var camModeView = this._camera.modelViewMatrix;
+    transMatrix = Mat44.mult(transMatrix,Mat44.inverted(camModeView));
+
 
     var offsetIndex = this._bBatchVertices.length / 3;
     var offset,length,index;
@@ -830,12 +833,34 @@ FGL.prototype.drawElementArrayBatch = function(batch)
 {
     if(!batch){}
 
+    /*
+    var vertexFloat32Array = new Float32Array(this._bBatchVertices),
+        normalFloat32Array = new Float32Array(this._bBatchNormals),
+        colorFloat32Array  = new Float32Array(this._bBatchColors),
+        uvFloat32Array     = new Float32Array(this._bBatchTexCoords),
+        indexArray         = new Uint16Array( this._bBatchIndices);
+
+    var gl = this.gl;
+
+    this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
+    //this.setMatricesUniform();
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexArray,gl.DYNAMIC_DRAW);
+    gl.drawElements(this._drawMode,
+        indexArray.length,
+        gl.UNSIGNED_SHORT,
+        0);
+    */
+
+
     this.drawElements(new Float32Array(this._bBatchVertices),
                       new Float32Array(this._bBatchNormals),
                       new Float32Array(this._bBatchColors),
                       new Float32Array(this._bBatchTexCoords),
                       new Uint16Array( this._bBatchIndices),
                       this.getDrawMode());
+
+
+
 };
 
 FGL.prototype._putBatch = function(batchArray,dataArray)
