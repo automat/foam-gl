@@ -120,7 +120,7 @@ App.prototype.update = function()
     fgl.drawMode(fgl.TRIANGLES);
     fgl.cube(70);
 
-    fgl.sphereDetail(15);
+    fgl.sphereDetail(10);
 
     var iN,jN,kN,
         iP,jP,kP;
@@ -134,126 +134,103 @@ App.prototype.update = function()
 
     var pi_3 = Math.PI / 3;
 
-   // fgl.beginDrawElementArrayBatch();
 
     fgl.drawMode(fgl.TRIANGLES);
+
+
+    fgl.pushMatrix();
+    fgl.translate3f(0,2,0);
+    fgl.cube(0.25);
+    fgl.popMatrix();
+
+    fgl.pushMatrix();
+    fgl.translate3f(0,-2,0);
+    fgl.cube(0.25);
+    fgl.popMatrix();
+
+    fgl.pushMatrix();
+    fgl.translate3f(2,0,0);
+    fgl.scale1f(0.25);
+    fgl.sphere();
+    fgl.popMatrix();
+
+    fgl.pushMatrix();
+    fgl.translate3f(0,0,2);
+    fgl.cube(0.25);
+    fgl.popMatrix();
+
+    fgl.pushMatrix();
+    fgl.translate3f(0,0,-2);
+    fgl.cube(0.25);
+    fgl.popMatrix();
+
+    fgl.pushMatrix();
+    fgl.translate3f(-2,0,0);
+    fgl.cube(0.25);
+    fgl.popMatrix();
+
+
 
     fgl.beginDrawElementArrayBatch();
 
 
     fgl.pushMatrix();
     fgl.translate3f(0,2,0);
-    fgl.cube();
+    fgl.cube(0.25);
     fgl.popMatrix();
 
     fgl.pushMatrix();
     fgl.translate3f(0,-2,0);
-    fgl.cube();
+    fgl.cube(0.25);
     fgl.popMatrix();
 
     fgl.pushMatrix();
     fgl.translate3f(2,0,0);
-    fgl.cube();
+    fgl.scale1f(0.25);
+    //fgl.cube();
+    //fgl.sphereDetail(8);
+    fgl.sphere();
     fgl.popMatrix();
 
     fgl.pushMatrix();
     fgl.translate3f(0,0,2);
-    fgl.cube();
+    fgl.cube(0.25);
     fgl.popMatrix();
 
     fgl.pushMatrix();
     fgl.translate3f(0,0,-2);
-    fgl.cube();
+    fgl.cube(0.25);
     fgl.popMatrix();
 
     fgl.pushMatrix();
     fgl.translate3f(-2,0,0);
-    fgl.cube();
+    fgl.cube(0.25);
     fgl.popMatrix();
 
     fgl.endDrawElementArrayBatch();
-    fgl.drawElementArrayBatch();
 
 
-    fgl.pushMatrix();
-    fgl.translate3f(0,2,0);
-    fgl.cube();
-    fgl.popMatrix();
+    material.setDiffuse3f(0.8,0.2,0.2);
+    material.setAmbient3f(0.8,0.2,0.2);
+    material.setSpecular3f(1,1,1);
+    material.shininess = 200.0;
+    fgl.material(material);
 
-    fgl.pushMatrix();
-    fgl.translate3f(0,-2,0);
-    fgl.cube();
-    fgl.popMatrix();
+    var i = -1;
+    var n;
 
-    fgl.pushMatrix();
-    fgl.translate3f(2,0,0);
-    fgl.cube();
-    fgl.popMatrix();
+    //visually nono
 
-    fgl.pushMatrix();
-    fgl.translate3f(0,0,2);
-    fgl.cube();
-    fgl.popMatrix();
-
-    fgl.pushMatrix();
-    fgl.translate3f(0,0,-2);
-    fgl.cube();
-    fgl.popMatrix();
-
-    fgl.pushMatrix();
-    fgl.translate3f(-2,0,0);
-    fgl.cube();
-    fgl.popMatrix();
-
-
-
-
-
-    /*
-    var i = -1, j,k;
-    while(++i < len)
+    while(++i < 200)
     {
-        j = -1;
-        while(++j < len)
-        {
-            k = -1;
-            while(++k < len)
-            {
-                iN = i / len;
-                jN = j / len;
-                kN = k / len;
+        n = i / 20;
+        fgl.pushMatrix();
+        fgl.translate3f(Math.cos(n*Math.PI*5),(-0.5 + n) * 5,Math.sin(n*Math.PI*5));
+        fgl.drawElementArrayBatch();
+        fgl.popMatrix();
 
-                iP = (-0.5 + iN) * 3;
-                kP = (-0.5 + kN) * 3;
-                jP = (-0.5 + jN) * 3;
-
-                scaleijk    = minScale + Math.sin((iN * pi_3 + kN * pi_3 + jN * pi_3)*2 + time * 5);
-                scaleijkpos = scaleijk * (1 + Math.abs(Math.sin(time)));
-                scaleijkobj = scaleijk * 0.075;
-
-                material.setAmbient3f(iN,kN,jN);
-                material.setDiffuse3f(iN,kN,jN);
-                //material.shininess = 20 + iN * kN * jN * 1000;
-
-                kgl.material(material);
-                kgl.pushMatrix();
-                kgl.translate3f(iP * scaleijkpos, kP * scaleijkpos, jP * scaleijkpos);
-                //fgl.scale3f(scaleijkobj,scaleijkobj,scaleijkobj);
-                //fgl.drawMode(fgl.TRIANGLES);
-                //fgl.color4f(iN,kN,jN,1);
-                //fgl.rotate3f(Math.sin(time+Math.PI*4*iN),Math.sin(time+Math.PI*4*jN),Math.sin(time+Math.PI*4*kN))
-                kgl.sphere(scaleijkobj);
-               // fgl.cube(0.5);//scaleijkobj);
-                kgl.popMatrix();
-            }
-        }
     }
-    */
 
-
-
-   // fgl.endDrawElementArrayBatch();
-   // fgl.drawElementArrayBatch();
 
     fgl.useLighting(false);
 

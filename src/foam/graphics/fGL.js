@@ -252,9 +252,13 @@ function FGL(context3d,context2d)
     this._bBatchTexCoords = [];
     this._bBatchIndices   = [];
 
+    this._batchVerticesF32Last  = null;
+    this._batchNormalsF32Last   = null;
+    this._batchColorsF32Last    = null;
+    this._batchTexCoordsF32Last = null;
+    this._batchIndicesU16Last   = null;
+
     this._bBatchVerticesNum = 0;
-
-
 
     this._bBVecRight = Vec3.make();
     this._bBVecUp    = Vec3.make();
@@ -278,7 +282,9 @@ function FGL(context3d,context2d)
     this._mModeView = Mat44.make();
     this._mNormal   = Mat33.make();
 
-    this._mTemp = Mat44.make();
+    this._mTemp0 = Mat44.make();
+    this._mTemp1 = Mat44.make();
+    this._mTemp2 = Mat44.make();
 
     this._mStack = [];
 
@@ -344,7 +350,7 @@ function FGL(context3d,context2d)
     this._bColorCube    = new Float32Array(this._bVertexCube.length / SIZE_OF_VERTEX * SIZE_OF_COLOR);
     this._bNormalCube   = new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0] );
     this._bIndexCube    = new Uint16Array([  0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9,10, 8,10,11, 12,13,14,12,14,15, 16,17,18,16,18,19, 20,21,22,20,22,23]);
-    this._bTexCoordCube = null;
+    this._bTexCoordCube = new Float32Array(this._bVertexCube.length/3*2);//TODO: add
 
     this._circleDetailLast = 10.0;
     this._sphereDetailLast = 10.0;
@@ -568,22 +574,22 @@ FGL.prototype.setMatricesUniform = function()
 // Matrix stack transformations
 /*---------------------------------------------------------------------------------------------------------*/
 
-FGL.prototype.translate     = function(v)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(v[0],v[1],v[2],Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.translate3f   = function(x,y,z)      {Mat44.multPost(this._mModelView,Mat44.makeTranslate(x,y,z,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.translateX    = function(x)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(x,0,0,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.translateY    = function(y)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(0,y,0,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.translateZ    = function(z)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(0,0,z,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.scale         = function(v)          {Mat44.multPost(this._mModelView,Mat44.makeScale(v[0],v[1],v[2],Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.scale1f       = function(n)          {Mat44.multPost(this._mModelView,Mat44.makeScale(n,n,n,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.scale3f       = function(x,y,z)      {Mat44.multPost(this._mModelView,Mat44.makeScale(x,y,z,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.scaleX        = function(x)          {Mat44.multPost(this._mModelView,Mat44.makeScale(x,1,1,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.scaleY        = function(y)          {Mat44.multPost(this._mModelView,Mat44.makeScale(1,y,1,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.scaleZ        = function(z)          {Mat44.multPost(this._mModelView,Mat44.makeScale(1,1,z,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.rotate        = function(v)          {Mat44.multPost(this._mModelView,Mat44.makeRotationXYZ(v[0],v[1],v[2],Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.rotate3f      = function(x,y,z)      {Mat44.multPost(this._mModelView,Mat44.makeRotationXYZ(x,y,z,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.rotateX       = function(x)          {Mat44.multPost(this._mModelView,Mat44.makeRotationX(x,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.rotateY       = function(y)          {Mat44.multPost(this._mModelView,Mat44.makeRotationY(y,Mat44.identity(this._mTemp)),this._mModelView);};
-FGL.prototype.rotateZ       = function(z)          {Mat44.multPost(this._mModelView,Mat44.makeRotationZ(z,Mat44.identity(this._mTemp)),this._mModelView);};
+FGL.prototype.translate     = function(v)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(v[0],v[1],v[2],Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.translate3f   = function(x,y,z)      {Mat44.multPost(this._mModelView,Mat44.makeTranslate(x,y,z,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.translateX    = function(x)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(x,0,0,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.translateY    = function(y)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(0,y,0,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.translateZ    = function(z)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(0,0,z,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.scale         = function(v)          {Mat44.multPost(this._mModelView,Mat44.makeScale(v[0],v[1],v[2],Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.scale1f       = function(n)          {Mat44.multPost(this._mModelView,Mat44.makeScale(n,n,n,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.scale3f       = function(x,y,z)      {Mat44.multPost(this._mModelView,Mat44.makeScale(x,y,z,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.scaleX        = function(x)          {Mat44.multPost(this._mModelView,Mat44.makeScale(x,1,1,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.scaleY        = function(y)          {Mat44.multPost(this._mModelView,Mat44.makeScale(1,y,1,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.scaleZ        = function(z)          {Mat44.multPost(this._mModelView,Mat44.makeScale(1,1,z,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.rotate        = function(v)          {Mat44.multPost(this._mModelView,Mat44.makeRotationXYZ(v[0],v[1],v[2],Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.rotate3f      = function(x,y,z)      {Mat44.multPost(this._mModelView,Mat44.makeRotationXYZ(x,y,z,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.rotateX       = function(x)          {Mat44.multPost(this._mModelView,Mat44.makeRotationX(x,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.rotateY       = function(y)          {Mat44.multPost(this._mModelView,Mat44.makeRotationY(y,Mat44.identity(this._mTemp0)),this._mModelView);};
+FGL.prototype.rotateZ       = function(z)          {Mat44.multPost(this._mModelView,Mat44.makeRotationZ(z,Mat44.identity(this._mTemp0)),this._mModelView);};
 FGL.prototype.rotateAxis    = function(angle,v)    {Mat44.multPost(this._mModelView,Mat44.makeRotationOnAxis(angle,v[0],v[1],v[2]),this._mModelView);};
 FGL.prototype.rotateAxis3f  = function(angle,x,y,z){Mat44.multPost(this._mModelView,Mat44.makeRotationOnAxis(angle,x,y,z),this._mModelView);};
 
@@ -768,24 +774,24 @@ FGL.prototype.beginDrawElementArrayBatch = function()
 {
     this._bUseDrawElementArrayBatch = true;
 
-    this._bBatchVertices.length = 0;
-
+    this._bBatchVertices.length  = 0;
+    this._bBatchNormals.length   = 0;
+    this._bBatchColors.length    = 0;
+    this._bBatchTexCoords.length = 0;
+    this._bBatchIndices.length   = 0;
 };
 
-FGL.prototype.endDrawElementArrayBatch = function()
-{
-    this._bUseDrawElementArrayBatch = false;
-
-
-};
+FGL.prototype.endDrawElementArrayBatch = function(){this._bUseDrawElementArrayBatch = false;};
+FGL.prototype.getElementArrayBatch     = function(){return [this._bBatchVertices,this._bBatchNormals,this._bBatchColors,this._bBatchTexCoords,this._bBatchIndices];};
 
 FGL.prototype._pushElementArrayBatch = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,texCoordsFloat32Array,indexUint16Array)
 {
+    var mTemp0 = Mat44.identity(this._mTemp0),
+        mTemp1 = Mat44.identity(this._mTemp1),
+        mTemp2 = Mat44.identity(this._mTemp2);
 
-    var transMatrix = Mat44.copy(this._mModelView);
-    var camModeView = this._camera.modelViewMatrix;
-    transMatrix = Mat44.mult(transMatrix,Mat44.inverted(camModeView));
-
+    var modelViewMat    = Mat44.set(mTemp0, this._mModelView),
+        transMatrix     = Mat44.mult(modelViewMat,Mat44.invert(this._camera.modelViewMatrix,mTemp2),mTemp1);
 
     var offsetIndex = this._bBatchVertices.length / 3;
     var offset,length,index;
@@ -800,7 +806,6 @@ FGL.prototype._pushElementArrayBatch = function(vertexFloat32Array,normalFloat32
 
     while(offset < length)
     {
-
         batchVertices[offset  ] = vertexFloat32Array[index  ];
         batchVertices[offset+1] = vertexFloat32Array[index+1];
         batchVertices[offset+2] = vertexFloat32Array[index+2];
@@ -811,11 +816,9 @@ FGL.prototype._pushElementArrayBatch = function(vertexFloat32Array,normalFloat32
         index +=3;
     }
 
-
     if(normalFloat32Array   )this._putBatch(this._bBatchNormals,normalFloat32Array);
     if(colorFloat32Array    )this._putBatch(this._bBatchColors,colorFloat32Array);
     if(texCoordsFloat32Array)this._putBatch(this._bBatchTexCoords,texCoordsFloat32Array);
-
 
     var batchIndices        = this._bBatchIndices,
         batchIndicesOffset  = batchIndices.length;
@@ -826,41 +829,55 @@ FGL.prototype._pushElementArrayBatch = function(vertexFloat32Array,normalFloat32
         index  = 0;
 
     while(offset < length){batchIndices[offset] = indexUint16Array[index] + offsetIndex;offset++;index++;}
-
 };
 
 FGL.prototype.drawElementArrayBatch = function(batch)
 {
-    if(!batch){}
+    if(batch)
+    {
+        this.drawElements(batch[0],
+                          batch[1],
+                          batch[2],
+                          batch[3],
+                          batch[4],
+                          this.getDrawMode());
 
-    /*
-    var vertexFloat32Array = new Float32Array(this._bBatchVertices),
-        normalFloat32Array = new Float32Array(this._bBatchNormals),
-        colorFloat32Array  = new Float32Array(this._bBatchColors),
-        uvFloat32Array     = new Float32Array(this._bBatchTexCoords),
-        indexArray         = new Uint16Array( this._bBatchIndices);
+        return;
+    }
 
-    var gl = this.gl;
+    var batchVertices,
+        batchNormals,
+        batchColors,
+        batchTexCoords,
+        batchIndices;
 
-    this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
-    //this.setMatricesUniform();
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexArray,gl.DYNAMIC_DRAW);
-    gl.drawElements(this._drawMode,
-        indexArray.length,
-        gl.UNSIGNED_SHORT,
-        0);
-    */
+    if(this._drawFuncLast == this.drawElementArrayBatch)
+    {
+        batchVertices  = this._batchVerticesF32Last;
+        batchNormals   = this._batchNormalsF32Last;
+        batchColors    = this._batchColorsF32Last;
+        batchTexCoords = this._batchTexCoordsF32Last;
+        batchIndices   = this._batchIndicesU16Last;
+    }
+    else
+    {
+        batchVertices  = this._batchVerticesF32Last  = new Float32Array(this._bBatchVertices);
+        batchNormals   = this._batchNormalsF32Last   = new Float32Array(this._bBatchNormals);
+        batchColors    = this._batchColorsF32Last    = new Float32Array(this._bBatchColors);
+        batchTexCoords = this._batchTexCoordsF32Last = new Float32Array(this._bBatchTexCoords);
+        batchIndices   = this._batchIndicesU16Last   = new Uint16Array( this._bBatchIndices);
+  }
 
 
-    this.drawElements(new Float32Array(this._bBatchVertices),
-                      new Float32Array(this._bBatchNormals),
-                      new Float32Array(this._bBatchColors),
-                      new Float32Array(this._bBatchTexCoords),
-                      new Uint16Array( this._bBatchIndices),
+    this.drawElements(batchVertices,
+                      batchNormals,
+                      batchColors,
+                      batchTexCoords,
+                      batchIndices,
                       this.getDrawMode());
 
 
-
+    this._drawFuncLast = this.drawElementArrayBatch;
 };
 
 FGL.prototype._putBatch = function(batchArray,dataArray)
