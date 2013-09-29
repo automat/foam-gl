@@ -121,11 +121,7 @@ function FGL(context3d,context2d)
     this.MODEL_FLAT        = 4;
 
 
-
-
     var l = this.MAX_LIGHTS;
-
-
 
     var uLightPosition             = this._uLightPosition             = new Array(l),
         uLightAmbient              = this._uLightAmbient              = new Array(l),
@@ -244,6 +240,7 @@ function FGL(context3d,context2d)
 
     this._bUseDrawArrayBatch        = false;
     this._bUseDrawElementArrayBatch = false;
+    this._bBatchIsDynamic           = false;
     this._drawFuncLast = null;
 
     this._bBatchVertices  = [];
@@ -770,15 +767,27 @@ FGL.prototype.drawArrayBatch = function()
 
 };
 
+FGL.prototype.beginDynamicDrawElementArrayBatch = function(size)
+{
+    this.beginDrawArrayBatch();
+    this._bBatchIsDynamic = true;
+};
+
+FGL.prototype.endDynamicDrawElementArrayBatch = function()
+{
+    this.endDrawElementArrayBatch();
+    this._bBatchIsDynamic = false;
+};
+
 FGL.prototype.beginDrawElementArrayBatch = function()
 {
-    this._bUseDrawElementArrayBatch = true;
-
     this._bBatchVertices.length  = 0;
     this._bBatchNormals.length   = 0;
     this._bBatchColors.length    = 0;
     this._bBatchTexCoords.length = 0;
     this._bBatchIndices.length   = 0;
+
+    this._bUseDrawElementArrayBatch = true;
 };
 
 FGL.prototype.endDrawElementArrayBatch = function(){this._bUseDrawElementArrayBatch = false;};
@@ -833,6 +842,30 @@ FGL.prototype._pushElementArrayBatch = function(vertexFloat32Array,normalFloat32
 
 FGL.prototype.drawElementArrayBatch = function(batch)
 {
+    if(this._bUseDrawElementArrayBatch)
+    {
+        if(batch)
+        {
+            this._pushElementArrayBatch(batch[0],
+                                        batch[1],
+                                        batch[2],
+                                        batch[3],
+                                        batch[4]);
+
+            return;
+        }
+
+
+        this._pushElementArrayBatch(this._bBatchVertices,
+                                    this._bBatchNormals,
+                                    this._bBatchColors,
+                                    this._bBatchTexCoords,
+                                    this._bBatchIndices);
+
+
+        return;
+    }
+
     if(batch)
     {
         this.drawElements(batch[0],
