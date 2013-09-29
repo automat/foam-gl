@@ -50,7 +50,7 @@ App.prototype.setup = function()
     material.setSpecular3f(1,1,1);
     material.shininess = 20.0;
 
-    var isoSurface = this._isoSurface = new Foam.ISOSurface(80);
+    var isoSurface = this._isoSurface = new Foam.ISOSurface(50);
 
     isoSurface.setFunction(function(x,y,z,arg0)
     {
