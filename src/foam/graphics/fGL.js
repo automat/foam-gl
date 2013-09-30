@@ -298,7 +298,7 @@ function FGL(context3d,context2d)
 
     this._bVertex   = null;
     this._bNormal   = null;
-    this._bColor    = null;
+    this._bColor    = this._bColor4f;
     this._bTexCoord = null;
     this._bIndex    = null;
 
@@ -597,6 +597,17 @@ FGL.prototype.rotateAxis3f  = function(angle,x,y,z){Mat44.multPost(this._mModelV
 
 FGL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array,indexArray,mode,count,offset,type,drawType)
 {
+    if(this._bUseDrawElementArrayBatch)
+    {
+        this._pushElementArrayBatch(vertexFloat32Array,
+                                    normalFloat32Array,
+                                    colorFloat32Array,
+                                    uvFloat32Array,
+                                    indexArray);
+
+        return;
+    }
+
     var gl = this.gl;
 
     this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
@@ -1412,27 +1423,13 @@ FGL.prototype.cube = function(size)
     var cubeScaleLast    = this._cubeScaleLast,
         cubeVerticesLast = this._bVertexCubeScaled;
 
-    if(this._bUseDrawElementArrayBatch)
-    {
-        this._pushElementArrayBatch((size == cubeScaleLast) ? cubeVerticesLast :
-                                    this._scaleVertices(this._bVertexCube,size,cubeVerticesLast),
-                                    this._bNormalCube,
-                                    this.bufferColors(this._bColor,this._bColorCube),
-                                    this._bTexCoordCube,
-                                    this._bIndexCube);
-
-    }
-    else
-    {
-        this.drawElements((size == cubeScaleLast) ? cubeVerticesLast :
-                          this._scaleVertices(this._bVertexCube,size,cubeVerticesLast),
-                          this._bNormalCube,
-                          this.bufferColors(this._bColor,this._bColorCube),
-                          this._bTexCoordCube,
-                          this._bIndexCube,
-                          this._drawMode);
-
-    }
+   this.drawElements((size == cubeScaleLast) ? cubeVerticesLast :
+                     this._scaleVertices(this._bVertexCube,size,cubeVerticesLast),
+                     this._bNormalCube,
+                     this.bufferColors(this._bColor,this._bColorCube),
+                     this._bTexCoordCube,
+                     this._bIndexCube,
+                     this._drawMode);
 
 
     this._cubeScaleLast = size;
@@ -1447,26 +1444,14 @@ FGL.prototype.sphere = function(size)
     var sphereScaleLast      = this._sphereScaleLast,
         sphereVerticesScaled = this._bVertexSphereScaled;
 
-    if(this._bUseDrawElementArrayBatch)
-    {
-        this._pushElementArrayBatch((size == sphereScaleLast) ? sphereVerticesScaled :
-                                    this._scaleVertices(this._bVertexSphere,size,sphereVerticesScaled),
-                                    this._bNormalSphere,
-                                    this.bufferColors(this._bColor,this._bColorSphere),
-                                    this._bTexCoordsSphere,
-                                    this._bIndexSphere);
-    }
-    else
-    {
-        this.drawElements((size == sphereScaleLast) ? sphereVerticesScaled :
-                          this._scaleVertices(this._bVertexSphere,size,sphereVerticesScaled),
-                          this._bNormalSphere,
-                          this.bufferColors(this._bColor,this._bColorSphere),
-                          this._bTexCoordsSphere,
-                          this._bIndexSphere,
-                          this._drawMode);
+    this.drawElements((size == sphereScaleLast) ? sphereVerticesScaled :
+                      this._scaleVertices(this._bVertexSphere,size,sphereVerticesScaled),
+                      this._bNormalSphere,
+                      this.bufferColors(this._bColor,this._bColorSphere),
+                      this._bTexCoordsSphere,
+                      this._bIndexSphere,
+                      this._drawMode);
 
-    }
 
     this._sphereScaleLast = size;
     this._drawFuncLast    = this.sphere;
