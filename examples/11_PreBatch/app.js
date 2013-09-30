@@ -7,12 +7,76 @@ function App()
     this.setFullWindowFrame(true);
 
     this.setTargetFPS(60);
-    this.setSize(800,600);
+    this.setSize(1025,768);
 }
 
 App.prototype = Object.create(Foam.Application.prototype);
 
-App.prototype.setup = function(){};
+App.prototype.setup = function()
+{
+    var fgl = this.fgl;
+
+    var light0 = this._light0 = new Foam.Light(fgl.LIGHT_0);
+    light0.setAmbient3f(0,0,0);
+    light0.setDiffuse3f(0.8,0.8,0.8);
+    light0.setSpecular3f(1,1,1);
+    light0.setPosition3f(1,1,1);
+
+    var light1 = this._light1 = new Foam.Light(fgl.LIGHT_1);
+    light1.setAmbient3f(0,0,0);
+    light1.setDiffuse3f(0.8,0.8,0.8);
+    light1.setSpecular3f(1,1,1);
+    light1.setPosition3f(1,1,1);
+
+    var light2 = this._light2 = new Foam.Light(fgl.LIGHT_2);
+    light2.setAmbient3f(0,0,0);
+    light2.setDiffuse3f(0.8,0.8,0.8);
+    light2.setSpecular3f(1,1,1);
+    light2.setPosition3f(1,1,1);
+
+    var material = this._material0 = new Foam.Material();
+    material.setDiffuse3f(0.7,0.7,0.7);
+    material.setAmbient3f(0.7,0.7,0.7);
+    material.setSpecular3f(1,1,1);
+    material.shininess = 20.0;
+
+    var size = this._cubeNumAxis = 11;
+    var i, j,k;
+    var ni,nj,nk;
+
+    fgl.sphereDetail(10);
+    fgl.beginDrawElementArrayBatch();
+
+    i=-1;
+    while(++i < size)
+    {
+        ni = i / (size-1);
+
+        j = -1;
+        while(++j < size)
+        {
+            nj =  j / (size-1);
+            k = -1;
+            while(++k < size)
+            {
+                nk = k / (size-1);
+
+                fgl.pushMatrix();
+                fgl.translate3f(ni,nj,nk);
+                fgl.scale1f(0.025,0.025,0.025);
+                fgl.color3f(ni,nj,nk);
+                fgl.cube();
+                //fgl.sphere() ;
+                fgl.popMatrix();
+
+            }
+        }
+    }
+
+
+    fgl.endDrawElementArrayBatch();
+
+};
 
 App.prototype.update = function()
 {
@@ -20,15 +84,68 @@ App.prototype.update = function()
     var cam = this.camera;
 
     var time = this.getSecondsElapsed(),
-        zoom = 1 + Math.sin(time) * 0.25;
+        timeDelta = this.getTimeDelta(),
+        zoom = 10 + Math.sin(time) * 0.25;
+
+    var light0 = this._light0,
+        light1 = this._light1,
+        light2 = this._light2;
 
     fgl.clear3f(0.1,0.1,0.1);
     fgl.loadIdentity();
 
-    cam.setPosition3f(Math.cos(time)*Math.PI*zoom,zoom,Math.sin(time)*Math.PI*zoom);
+
+    var camRotX, camRotY;
+
+    if(this.isMouseDown())
+    {
+        camRotX = (-1 + this.mouse.getX() / this.getWidth()  * 2.0) * Math.PI;
+        camRotY = (-1 + this.mouse.getY() / this.getHeight() * 2.0) * Math.PI ;
+
+        Foam.Vec3.lerp3f(cam.position,
+                         Math.cos(camRotX) * zoom,
+                         Math.sin(camRotY) * zoom,
+                         Math.sin(camRotX) * zoom,
+                         timeDelta * 0.25);
+    }
+    else
+    {
+        camRotX = time * 0.25;
+
+        cam.setPosition3f(Math.cos(camRotX) * zoom,
+            zoom,
+            Math.sin(camRotX) * zoom);
+    }
+
+    cam.setTarget3f(0,0,0);
     cam.updateMatrices();
 
+    light0.setPosition3f(6*Math.cos(time), 0, 6*Math.sin(time));
+    light1.setPosition3f(2*Math.cos(time*Math.PI), Math.sin(time), 2*Math.sin(time+Math.PI));
+    light2.setPosition3f(4*Math.cos(time*Math.PI*0.25), Math.cos(time), 4*Math.sin(time+Math.PI*0.25));
+
+    var material = this._material0;
+
     this.drawSystem();
+
+    fgl.useLighting(true);
+    fgl.light(light0);
+    fgl.light(light1);
+    fgl.light(light2);
+
+    fgl.useMaterial(true);
+
+    fgl.drawMode(fgl.TRIANGLES);
+    fgl.material(material);
+    fgl.pushMatrix();
+    fgl.translate3f(-this._cubeNumAxis*2,-this._cubeNumAxis*2,-this._cubeNumAxis*2);
+    fgl.drawElementArrayBatch();
+    fgl.popMatrix();
+
+
+
+    fgl.useLighting(false);
+    fgl.useMaterial(false);
 };
 
 App.prototype.drawSystem =  function()
@@ -36,9 +153,9 @@ App.prototype.drawSystem =  function()
     var fgl = this.fgl;
 
     fgl.color1f(0.25);
-    Foam.fGLUtil.drawGrid(fgl,8,1);
-    Foam.fGLUtil.drawGridCube(fgl,8,1);
-    Foam.fGLUtil.drawAxes(fgl,4);
+    Foam.fGLUtil.drawGrid(fgl,48,1);
+    Foam.fGLUtil.drawGridCube(fgl,48,1);
+    Foam.fGLUtil.drawAxes(fgl,12);
 };
 
 var app = new App();
