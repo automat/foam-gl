@@ -78,6 +78,8 @@ AppImplWeb.prototype._init = function(appObj)
     appObj.camera.setTarget3f(0,0,0);
     appObj.camera.updateMatrices();
 
+    appObj.fgl.loadIdentity();
+
     appObj.setup();
 
     mouseEventTarget.addEventListener('mousemove',

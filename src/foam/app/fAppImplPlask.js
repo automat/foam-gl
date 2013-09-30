@@ -76,6 +76,8 @@ AppImplPlask.prototype.init = function(appObj)
             appObj.camera.setTarget3f(0,0,0);
             appObj.camera.updateMatrices();
 
+            appObj.fgl.loadIdentity();
+
             if(self._bUpdate)this.framerate(self._targetFPS);
             appObj.setup();
 
