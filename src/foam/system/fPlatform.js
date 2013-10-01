@@ -1,26 +1,32 @@
-var Platform = {WEB:0,PLASK:1,NODE_WEBKIT:2};
-    Platform._target = null;
+var Platform = {WEB:'WEB',PLASK:'PLASK',NODE_WEBKIT:'NODE_WEBKIT'};
+    Platform.__target = null;
 
 Platform.getTarget  = function()
 {
-    //TODO fix&finish
-    if(!this._target)
+
+    if(!this.__target)
     {
-        var bWindow   = typeof window !== 'undefined',
-            bDocument = typeof document !== 'undefined',
-            bRequireF = typeof require == 'function',
-            bRequire  = !!require,
-            bProcess  = typeof process !== 'undefined';
+        var bWindow     = typeof window !== 'undefined',
+            bDocument   = typeof document !== 'undefined',
+            bRequireF   = typeof require == 'function',
+            bRequire    = !!require,
+            bNodeWebkit = false;
 
-        console.log(bWindow,bDocument,bRequireF,bRequire,bProcess);
+        //TODO fix
+        //hm this needs to be fixed -> browserify require vs node-webkit require
+        //for now this does the job
+        if(bDocument)
+            bNodeWebkit = document.createElement('IFRAME').hasOwnProperty('nwdisable');
 
-        this._target = (bWindow && bDocument) ? this.WEB :
-                       (bWindow && bDocument && bRequireF && bRequire) ? this.NODE_WEBKIT :
-                       (bRequireF && bRequire) ? this.PLASK :
-                       null;
+        this.__target = (bWindow && bDocument && !bNodeWebkit) ? this.WEB :
+                        (bWindow && bDocument &&  bNodeWebkit) ? this.NODE_WEBKIT :
+                        (!bWindow && !bDocument && bRequireF && bRequire) ? this.PLASK :
+                        null;
+
+        console.log(this.__target);
     }
 
-    return this._target;
+    return this.__target;
 };
 
 module.exports = Platform;

@@ -13,7 +13,7 @@ function Application()
     var target  = Platform.getTarget();
     if(typeof target === 'undefined' )throw new Error(fError.WRONG_PLATFORM);
 
-    this._appImpl = target == Platform.WEB   ? new AppImplWeb(arguments) :
+    this._appImpl = target == Platform.WEB  || target == Platform.NODE_WEBKIT ? new AppImplWeb(arguments) :
                     target == Platform.PLASK ? new AppImplPlask(arguments) :
                     null;
 

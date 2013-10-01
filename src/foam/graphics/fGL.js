@@ -51,7 +51,7 @@ function FGL(context3d,context2d)
     if(!gl.getShaderParameter(progVertShader,gl.COMPILE_STATUS))
         throw gl.getShaderInfoLog(progVertShader);
 
-    gl.shaderSource(progFragShader, ((platform == Platform.WEB) ? ShaderLoader.PrefixShaderWeb : '') + ProgFragShader);
+    gl.shaderSource(progFragShader, ((platform == Platform.WEB || platform == Platform.NODE_WEBKIT) ? ShaderLoader.PrefixShaderWeb : '') + ProgFragShader);
     gl.compileShader(progFragShader);
 
     if(!gl.getShaderParameter(progFragShader,gl.COMPILE_STATUS))
