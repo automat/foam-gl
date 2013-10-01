@@ -1,3 +1,4 @@
+//temp
 if(process.argv.length < 3)
 {
     console.log('arg missing. Need pathToSrcFolder pathToBuildFolder pathToNodeWebKitExec(optional)');

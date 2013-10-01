@@ -1,4 +1,5 @@
-var fs         = require('fs'),
+//temp
+var fs    = require('fs'),
     spawn = require('child_process').spawn;
 
 var dirExamples = '../examples';
