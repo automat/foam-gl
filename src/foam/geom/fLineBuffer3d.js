@@ -266,9 +266,10 @@ LineBuffer3d.prototype.setNumSegments = function(numSegments)
         }
     }
 
-
     this.setCloseCaps(this._closedCaps);
     this.applySliceSegmentFunc(this._sliceSegFunc,this._initDiameter);
+
+    if(this._numSegments == 2)this.indices = new Uint16Array(this.indices);
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
