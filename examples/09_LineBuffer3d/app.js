@@ -29,7 +29,7 @@ App.prototype.setup = function()
     material.shininess = 100.0;
 
 
-    var splineNumPoints = 16;
+    var splineNumPoints = 300;
     var splinePoints = new Array(splineNumPoints * 3);
     var i = -1,n;
     while(++i < splineNumPoints)
@@ -45,7 +45,7 @@ App.prototype.setup = function()
     spline.update();
 
     var numBufferPoints = 400;
-    var lineBuffer = this._lineBuffer0 = new Foam.LineBuffer3d(new Array(numBufferPoints * 3),10,0.075,null,true);
+    var lineBuffer = this._lineBuffer0 = new Foam.LineBuffer3d(new Array(numBufferPoints * 3),2,0.075,null,true);
 
 
 };
@@ -157,7 +157,7 @@ App.prototype.update = function()
         intrplScaled = intrplBase * (1 + scale) - scale;
         intrpl = Math.max(0, Math.min(n * scale + intrplScaled, 1));
         lineBuffer0.setPoint(i, spline.getVec3OnSpline(intrpl, vec));
-        lineBuffer0.setDiameter(i, n*0.25);
+        lineBuffer0.setDiameter(i, n*0.8);
 
 
 
