@@ -27,14 +27,13 @@ function AppImpl()
     this._targetFPS     = Default.APP_FPS;
     this._bUpdate       = true;
 
-    this._frames        = 0;
-    this._frametime     = 0;
     this._framenum      = 0;
     this._time          = 0;
     this._timeStart     = -1;
     this._timeNext      = 0;
     this._timeInterval  = this._targetFPS / 1000.0;
     this._timeDelta     = 0;
+    this._timeElapsed   = 0;
 
     this._width  = -1;
     this._height = -1;
@@ -74,12 +73,12 @@ AppImpl.prototype.hideMouseCursor = function(bool){throw new Error(fError.METHOD
 AppImpl.prototype.setWindowTitle       = function(title){this._windowTitle = title;};
 AppImpl.prototype.restrictMouseToFrame = function(bool) {this._mouseBounds = bool;};
 
-AppImpl.prototype.getFramesElapsed  = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.getSecondsElapsed = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.getTime           = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.getTimeStart      = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.getTimeNext       = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
-AppImpl.prototype.getTimeDelta      = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
+AppImpl.prototype.getFramesElapsed  = function(){return this._framenum;};
+AppImpl.prototype.getSecondsElapsed = function(){return this._timeElapsed;};
+AppImpl.prototype.getTime           = function(){return this._time};
+AppImpl.prototype.getTimeStart      = function(){return this._timeStart;};
+AppImpl.prototype.getTimeNext       = function(){return this._timeNext};
+AppImpl.prototype.getTimeDelta      = function(){return this._timeDelta;};
 
 AppImpl.prototype.isKeyDown          = function(){return this._keyDown;};
 AppImpl.prototype.isMouseDown        = function(){return this._mouseDown;};

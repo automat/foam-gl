@@ -243,9 +243,6 @@ AppImplWeb.prototype._updateCanvas3dSize = function()
         canvas.height       = height;
 };
 
-AppImplWeb.prototype.getSecondsElapsed = function(){return this._timeElapsed;};
-AppImplWeb.prototype.getTimeDelta      = function(){return this._timeDelta;};
-
 AppImplWeb.prototype.setMouseListenerTarget = function(obj){this._mouseEventTarget = obj;};
 AppImplWeb.prototype.setKeyListenerTarget   = function(obj){this._keyEventTarget = obj;};
 AppImplWeb.prototype.setFullWindowFrame     = function(bool){this._isFullWindowFrame = bool;return true;};
