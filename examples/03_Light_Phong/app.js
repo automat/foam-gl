@@ -45,7 +45,7 @@ App.prototype.setup = function()
 
 App.prototype.update = function()
 {
-    var kgl = this.fgl;
+    var fgl = this.fgl;
     var cam = this.camera;
 
     var time = this.getSecondsElapsed(),
@@ -53,8 +53,8 @@ App.prototype.update = function()
     var zoom = this._zoom = Foam.Math.lerp(this._zoom, 3 + this.getMouseWheelDelta() * 0.75, timeDelta * 0.0255);
 
 
-    kgl.clear3f(0.1,0.1,0.1);
-    kgl.loadIdentity();
+    fgl.clear3f(0.1,0.1,0.1);
+    fgl.loadIdentity();
 
     var light0 = this._light0,
         light1 = this._light1,
@@ -89,7 +89,7 @@ App.prototype.update = function()
     cam.setTarget3f(0,0,0);
     cam.updateMatrices();
 
-    kgl.drawMode(kgl.LINE_LOOP);
+    fgl.drawMode(fgl.LINE_LOOP);
     ///this.drawSystem();
 
     var glMath = Foam.Math;
@@ -108,7 +108,7 @@ App.prototype.update = function()
 
 
 
-    kgl.drawMode(kgl.LINE_LOOP);
+    fgl.drawMode(fgl.LINE_LOOP);
 
     //this.drawSystem();
 
@@ -117,22 +117,22 @@ App.prototype.update = function()
 
     var material = this._material0;
 
-    kgl.useLighting(true);
-    kgl.light(light0);
-    kgl.light(light1);
-    kgl.light(light2);
+    fgl.useLighting(true);
+    fgl.light(light0);
+    fgl.light(light1);
+    fgl.light(light2);
 
-    kgl.useMaterial(true);
+    fgl.useMaterial(true);
 
     material.setDiffuse3f(0.6,0.6,0.6);
     material.setAmbient3f(0.6,0.6,0.6);
     material.setSpecular3f(1,1,1);
     material.shininess = 200.0;
 
-    kgl.material(material);
+    fgl.material(material);
 
-    kgl.drawMode(kgl.TRIANGLES);
-    kgl.sphereDetail(20);
+    fgl.drawMode(fgl.TRIANGLES);
+    fgl.sphereDetail(20);
 
 
 
@@ -140,24 +140,25 @@ App.prototype.update = function()
     //fgl.cube();
 
 
-    kgl.material(material);
-    kgl.color3f(1,1,1);
-    kgl.drawMode(kgl.TRIANGLES);
-    kgl.cube(70);
+    fgl.material(material);
+    fgl.color3f(1,1,1);
+    fgl.drawMode(fgl.TRIANGLES);
+    fgl.cube(70);
 
-    kgl.sphereDetail(20);
+    fgl.sphereDetail(20);
 
     var iN,jN,kN,
         iP,jP,kP;
 
 
-    var len      = 20,
+    var len      = 9,
         minScale = 2,
         scaleijk,
         scaleijkpos,
         scaleijkobj;
 
     var pi_3 = Math.PI / 3;
+    fgl.drawMode(fgl.TRIANGLES);
 
     var i = -1, j,k;
     while(++i < len)
@@ -172,9 +173,9 @@ App.prototype.update = function()
                 jN = j / len;
                 kN = k / len;
 
-                iP = (-0.5 + iN) * 2;
-                kP = (-0.5 + kN) * 2;
-                jP = (-0.5 + jN) * 2;
+                iP = (-0.5 + iN) * 1.25;
+                kP = (-0.5 + kN) * 1.25;
+                jP = (-0.5 + jN) * 1.25;
 
                 scaleijk    = minScale + Math.sin((iN * pi_3 + kN * pi_3 + jN * pi_3)*2 + time * 5);
                 scaleijkpos = scaleijk * (1 + Math.abs(Math.sin(time)));
@@ -184,21 +185,20 @@ App.prototype.update = function()
                 material.setDiffuse3f(iN,kN,jN);
                 //material.shininess = 20 + iN * kN * jN * 1000;
 
-                kgl.material(material);
-                kgl.pushMatrix();
-                kgl.translate3f(iP * scaleijkpos, kP * scaleijkpos, jP * scaleijkpos);
+                fgl.material(material);
+                fgl.pushMatrix();
+                fgl.translate3f(iP * scaleijkpos, kP * scaleijkpos, jP * scaleijkpos);
                 //fgl.scale3f(scaleijkobj,scaleijkobj,scaleijkobj);
-                kgl.drawMode(kgl.TRIANGLES);
-                kgl.color4f(1,1,1,1);
-                kgl.rotate3f(Math.sin(time+Math.PI*4*iN),Math.sin(time+Math.PI*4*jN),Math.sin(time+Math.PI*4*kN))
-                kgl.sphere(scaleijkobj);//if(k%2 == 0)fgl.sphere(scaleijkobj);else fgl.cube(scaleijkobj);
-               // fgl.cube(2);
-                kgl.popMatrix();
+                //kgl.color4f(1,1,1,1);
+                //kgl.rotate3f(Math.sin(time+Math.PI*4*iN),Math.sin(time+Math.PI*4*jN),Math.sin(time+Math.PI*4*kN))
+                fgl.sphere(scaleijkobj);//if(k%2 == 0)fgl.sphere(scaleijkobj);else fgl.cube(scaleijkobj);
+                //kgl.cube(0.125);
+                fgl.popMatrix();
             }
         }
     }
 
-    kgl.useLighting(false);
+    fgl.useLighting(false);
 
 
 };
