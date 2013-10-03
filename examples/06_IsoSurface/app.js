@@ -7,7 +7,7 @@ function App()
     this.setFullWindowFrame(true);
 
     this.setTargetFPS(60);
-    this.setSize(4024,1200);
+    this.setSize(1024,768);
 }
 
 App.prototype = Object.create(Foam.Application.prototype);
@@ -50,7 +50,7 @@ App.prototype.setup = function()
     material.setSpecular3f(1,1,1);
     material.shininess = 20.0;
 
-    var isoSurface = this._isoSurface = new Foam.ISOSurface(50);
+    var isoSurface = this._isoSurface = new Foam.ISOSurface(52);
 
     isoSurface.setFunction(function(x,y,z,arg0)
     {

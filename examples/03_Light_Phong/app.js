@@ -7,7 +7,7 @@ function App()
     this.setFullWindowFrame(true);
 
     this.setTargetFPS(60);
-    this.setSize(1024,768);
+    this.setSize(800,600);
 }
 
 App.prototype = Object.create(Foam.Application.prototype);
@@ -151,7 +151,7 @@ App.prototype.update = function()
         iP,jP,kP;
 
 
-    var len      = 10,
+    var len      = 20,
         minScale = 2,
         scaleijk,
         scaleijkpos,
