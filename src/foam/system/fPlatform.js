@@ -23,7 +23,6 @@ Platform.getTarget  = function()
                         (!bWindow && !bDocument && bRequireF && bRequire) ? this.PLASK :
                         null;
 
-        console.log(this.__target);
     }
 
     return this.__target;

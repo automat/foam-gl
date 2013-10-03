@@ -1,9 +1,10 @@
-var fError       = require('../system/fError'),
-    Platform     = require('../system/fPlatform'),
-    AppImplWeb   = require('./fAppImplWeb'),
-    AppImplPlask = require('./fAppImplPlask'),
-    Mouse        = require('../util/fMouse'),
-    CameraBasic  = require('../graphics/fCameraBasic');
+var fError            = require('../system/fError'),
+    Platform          = require('../system/fPlatform'),
+    AppImplWeb        = require('./fAppImplWeb'),
+    AppImplNodeWebkit = require('./fAppImplNodeWebkit'),
+    AppImplPlask      = require('./fAppImplPlask'),
+    Mouse             = require('../util/fMouse'),
+    CameraBasic       = require('../graphics/fCameraBasic');
 
 
 function Application()
@@ -13,8 +14,9 @@ function Application()
     var target  = Platform.getTarget();
     if(typeof target === 'undefined' )throw new Error(fError.WRONG_PLATFORM);
 
-    this._appImpl = target == Platform.WEB  || target == Platform.NODE_WEBKIT ? new AppImplWeb(arguments) :
-                    target == Platform.PLASK ? new AppImplPlask(arguments) :
+    this._appImpl = target == Platform.WEB         ? new AppImplWeb(arguments) :
+                    target == Platform.NODE_WEBKIT ? new AppImplNodeWebkit(arguments) :
+                    target == Platform.PLASK       ? new AppImplPlask(arguments) :
                     null;
 
     this.mouse  = new Mouse();
@@ -43,6 +45,7 @@ Application.prototype.setUpdate = function(bool){this._appImpl.setUpdate(bool);}
 
 Application.prototype.setWindowTitle       = function(title){this._appImpl.setWindowTitle(title);};
 Application.prototype.restrictMouseToFrame = function(bool) {this._appImpl.restrictMouseToFrame(bool);};
+Application.prototype.hideMouseCursor      = function(bool) {this._appImpl.hideMouseCursor(bool);};
 
 Application.prototype.setFullWindowFrame  = function(bool){return this._appImpl.setFullWindowFrame(bool);};
 Application.prototype.setFullscreen       = function(bool){return this._appImpl.setFullscreen(true);};
