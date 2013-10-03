@@ -22,6 +22,7 @@ function AppImpl()
 
     this._mouseMove   = false;
     this._mouseBounds = true;
+    this._hideCursor  = false;
 
     this._targetFPS     = Default.APP_FPS;
     this._bUpdate       = true;
@@ -66,8 +67,9 @@ AppImpl.prototype.getWidth  = function()            {return this._width;};
 AppImpl.prototype.getHeight = function()            {return this._height;};
 AppImpl.prototype.getAspectRatioWindow = function(){return this._ratio;};
 
-AppImpl.prototype.setTargetFPS = function(fps){this._targetFPS = fps;this._timeInterval  = this._targetFPS / 1000.0;};
-AppImpl.prototype.getTargetFPS = function()   {return this._targetFPS;};
+AppImpl.prototype.setTargetFPS    = function(fps){this._targetFPS = fps;this._timeInterval  = this._targetFPS / 1000.0;};
+AppImpl.prototype.getTargetFPS    = function()   {return this._targetFPS;};
+AppImpl.prototype.hideMouseCursor = function(bool){throw new Error(fError.METHOD_NOT_IMPLEMENTED);}
 
 AppImpl.prototype.setWindowTitle       = function(title){this._windowTitle = title;};
 AppImpl.prototype.restrictMouseToFrame = function(bool) {this._mouseBounds = bool;};
