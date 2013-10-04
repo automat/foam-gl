@@ -1,0 +1,14 @@
+# !/bin/bash
+
+# V8
+V8=/Users/automat/Projects/v8
+TICK_PROCESSOR=${V8}/tools/mac-tick-processor
+PATH_D8=${V8}/out/native
+
+# PLASK
+PLASK=/Users/automat/WebstormProjects/plask/build/Release/Plask.app/Contents/MacOS/Plask
+
+# TEMP
+
+
+
