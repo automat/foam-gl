@@ -9,6 +9,7 @@ PATH_D8=${V8}/out/native
 PLASK=/Users/automat/WebstormProjects/plask/build/Release/Plask.app/Contents/MacOS/Plask
 
 # TEMP
+TEMP=/Users/automat/WebstormProjects/Foam/examples/temp
 
 
 
