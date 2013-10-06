@@ -1,5 +1,5 @@
-var Vec2   = require('../math/fVec2'),
-    fError = require('../system/fError');
+var fError = require('../system/common/fError');
+    Vec2   = require('../math/fVec2');
 
 function Mouse()
 {
@@ -19,6 +19,6 @@ Mouse.prototype.getXLast        = function(){return this._positionLast[0];};
 Mouse.prototype.getYLast        = function(){return this._positionLast[1];};
 
 Mouse.__instance = null;
-Mouse.getInstance = function(){return Mouse._instance;};
+Mouse.getInstance = function(){return Mouse.__instance;};
 
 module.exports = Mouse;
