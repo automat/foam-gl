@@ -30,7 +30,7 @@ ParametricSurface.prototype.setSize = function(size,unit)
 
     this.vertices  = new Float32Array(length * Vec3.SIZE);
     this.normals   = new Float32Array(length * Vec3.SIZE);
-    this.colors    = new Float32Array(length * Color.SIZE);
+    this.colors    = Color.makeColorArray(1,1,1,1,length);
     this.texCoords = new Float32Array(length * Vec2.SIZE);
 
     var indices = [];
