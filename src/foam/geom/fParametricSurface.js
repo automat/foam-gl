@@ -61,11 +61,11 @@ ParametricSurface.prototype.setSize = function(size,unit)
 
 ParametricSurface.prototype.setFunctions = function(funcX,funcY,funcZ,vr,ur)
 {
-    this.funcX = funcX;
-    this.funcY = funcY;
-    this.funcZ = funcZ;
-    this.vr   = vr;
-    this.ur   = ur;
+    this.funcX = funcX || this.funcX;
+    this.funcY = funcY || this.funcY;
+    this.funcZ = funcZ || this.funcZ;
+    this.vr   = vr || this.vr;
+    this.ur   = ur || this.ur;
 };
 
 ParametricSurface.prototype.applyFunctions = function()
