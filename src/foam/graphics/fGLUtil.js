@@ -1,5 +1,5 @@
-var Vec3  = require('../../math/fVec3'),
-    Color = require('../../util/fColor');
+var Vec3  = require('../math/fVec3'),
+    Color = require('../util/fColor');
 
 var fGLUtil = {};
 
@@ -130,6 +130,7 @@ fGLUtil.drawGridCube = function(fgl,size,unit)
         color              = Color.equals(colorfGL,colorLast) ?
                              bColorGrid32 :
                              fgl.bufferColors(colorfGL,bColorGrid32);
+
 
     var sh  = size * 0.5 * unit,
         pih = Math.PI * 0.5;

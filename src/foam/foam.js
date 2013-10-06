@@ -58,7 +58,7 @@ module.exports =
     Material    : require('./graphics/gl/fMaterial'),
     Texture     : require('./graphics/gl/fTexture'),
 
-    fGLUtil     : require('./graphics/util/fGLUtil'),
+    fGLUtil     : require('./graphics/fGLUtil'),
     fGL         : require('./graphics/fGL'),
 
     Mouse       : require('./util/fMouse'),
