@@ -40,10 +40,11 @@ AppImplPlask.prototype.init = function(appObj)
                                                            });
 
 
+    var screenHeight = plaskWindow.screenSize().height;
 
     //TOOD add window position
     plaskWindow.setFrameTopLeftPoint(plaskWindow.screenSize().width  * 0.5 - self._width  * 0.5,
-                                     plaskWindow.screenSize().height * 0.5 - self._height * 0.5);
+                                     screenHeight * 0.5 + self._height * 0.5 );
 
 
     plaskWindow.setTitle(appObj._windowTitle || Default.APP_PLASK_WINDOW_TITLE);
