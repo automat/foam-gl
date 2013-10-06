@@ -276,12 +276,13 @@ function FGL(context3d,context2d)
 
     this._camera    = null;
 
-    this._mModeView = Mat44.make();
-    this._mNormal   = Mat33.make();
+    this._mModelView = Mat44.make();
+    this._mNormal    = Mat33.make();
 
     this._mTemp0 = Mat44.make();
     this._mTemp1 = Mat44.make();
     this._mTemp2 = Mat44.make();
+    this._mTemp3 = Mat44.make();
 
     this._mStack = [];
 
@@ -571,24 +572,25 @@ FGL.prototype.setMatricesUniform = function()
 // Matrix stack transformations
 /*---------------------------------------------------------------------------------------------------------*/
 
-FGL.prototype.translate     = function(v)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(v[0],v[1],v[2],Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.translate3f   = function(x,y,z)      {Mat44.multPost(this._mModelView,Mat44.makeTranslate(x,y,z,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.translateX    = function(x)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(x,0,0,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.translateY    = function(y)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(0,y,0,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.translateZ    = function(z)          {Mat44.multPost(this._mModelView,Mat44.makeTranslate(0,0,z,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.scale         = function(v)          {Mat44.multPost(this._mModelView,Mat44.makeScale(v[0],v[1],v[2],Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.scale1f       = function(n)          {Mat44.multPost(this._mModelView,Mat44.makeScale(n,n,n,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.scale3f       = function(x,y,z)      {Mat44.multPost(this._mModelView,Mat44.makeScale(x,y,z,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.scaleX        = function(x)          {Mat44.multPost(this._mModelView,Mat44.makeScale(x,1,1,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.scaleY        = function(y)          {Mat44.multPost(this._mModelView,Mat44.makeScale(1,y,1,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.scaleZ        = function(z)          {Mat44.multPost(this._mModelView,Mat44.makeScale(1,1,z,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.rotate        = function(v)          {Mat44.multPost(this._mModelView,Mat44.makeRotationXYZ(v[0],v[1],v[2],Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.rotate3f      = function(x,y,z)      {Mat44.multPost(this._mModelView,Mat44.makeRotationXYZ(x,y,z,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.rotateX       = function(x)          {Mat44.multPost(this._mModelView,Mat44.makeRotationX(x,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.rotateY       = function(y)          {Mat44.multPost(this._mModelView,Mat44.makeRotationY(y,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.rotateZ       = function(z)          {Mat44.multPost(this._mModelView,Mat44.makeRotationZ(z,Mat44.identity(this._mTemp0)),this._mModelView);};
-FGL.prototype.rotateAxis    = function(angle,v)    {Mat44.multPost(this._mModelView,Mat44.makeRotationOnAxis(angle,v[0],v[1],v[2]),this._mModelView);};
-FGL.prototype.rotateAxis3f  = function(angle,x,y,z){Mat44.multPost(this._mModelView,Mat44.makeRotationOnAxis(angle,x,y,z),this._mModelView);};
+//TODO: fix set/ref
+FGL.prototype.translate     = function(v)          {this._mModelView = Mat44.multPost(this._mModelView, Mat44.makeTranslate(v[0],v[1],v[2],Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.translate3f   = function(x,y,z)      {this._mModelView = Mat44.multPost(this._mModelView, Mat44.makeTranslate(x,y,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.translateX    = function(x)          {this._mModelView = Mat44.multPost(this._mModelView, Mat44.makeTranslate(x,0,0,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.translateY    = function(y)          {this._mModelView = Mat44.multPost(this._mModelView, Mat44.makeTranslate(0,y,0,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.translateZ    = function(z)          {this._mModelView = Mat44.multPost(this._mModelView, Mat44.makeTranslate(0,0,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.scale         = function(v)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeScale(v[0],v[1],v[2],Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));;};
+FGL.prototype.scale1f       = function(n)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeScale(n,n,n,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.scale3f       = function(x,y,z)      {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeScale(x,y,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.scaleX        = function(x)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeScale(x,1,1,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.scaleY        = function(y)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeScale(1,y,1,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.scaleZ        = function(z)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeScale(1,1,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.rotate        = function(v)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeRotationXYZ(v[0],v[1],v[2],Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.rotate3f      = function(x,y,z)      {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeRotationXYZ(x,y,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.rotateX       = function(x)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeRotationX(x,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.rotateY       = function(y)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeRotationY(y,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.rotateZ       = function(z)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeRotationZ(z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.rotateAxis    = function(angle,v)    {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeRotationOnAxis(angle,v[0],v[1],v[2],Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.rotateAxis3f  = function(angle,x,y,z){this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeRotationOnAxis(angle,x,y,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
 
 /*---------------------------------------------------------------------------------------------------------*/
 // convenience draw
