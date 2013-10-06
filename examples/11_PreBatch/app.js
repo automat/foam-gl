@@ -18,34 +18,34 @@ App.prototype.setup = function()
 
     var light0 = this._light0 = new Foam.Light(fgl.LIGHT_0);
     light0.setAmbient3f(0,0,0);
-    light0.setDiffuse3f(0.8,0.8,0.8);
+    light0.setDiffuse3f(0.25,0.8,0.25);
     light0.setSpecular3f(1,1,1);
     light0.setPosition3f(1,1,1);
 
     var light1 = this._light1 = new Foam.Light(fgl.LIGHT_1);
     light1.setAmbient3f(0,0,0);
-    light1.setDiffuse3f(0.8,0.8,0.8);
+    light1.setDiffuse3f(0.25,0.25,0.8);
     light1.setSpecular3f(1,1,1);
     light1.setPosition3f(1,1,1);
 
     var light2 = this._light2 = new Foam.Light(fgl.LIGHT_2);
     light2.setAmbient3f(0,0,0);
-    light2.setDiffuse3f(0.8,0.8,0.8);
+    light2.setDiffuse3f(0.8,0.25,0.25);
     light2.setSpecular3f(1,1,1);
     light2.setPosition3f(1,1,1);
 
     var material = this._material0 = new Foam.Material();
-    material.setDiffuse3f(0.7,0.7,0.7);
-    material.setAmbient3f(0.7,0.7,0.7);
+    material.setDiffuse3f(0.25,0.25,0.25);
+    material.setAmbient3f(0.8,0.8,0.8);
     material.setSpecular3f(1,1,1);
-    material.shininess = 20.0;
+    material.shininess = 200.0;
 
-    var size = this._cubeNumAxis = 12;
+    var size = this._cubeNumAxis = 14;
     var i, j,k;
     var ni,nj,nk;
-    var s = 20;
+    var s = 40;
 
-    fgl.sphereDetail(10);
+    fgl.sphereDetail(13);
     fgl.beginDrawElementArrayBatch();
 
     i=-1;
@@ -66,8 +66,8 @@ App.prototype.setup = function()
                 fgl.translate3f(ni,nj,nk);
                 fgl.scale1f(0.5);
                 fgl.color3f(ni,nj,nk);
-                fgl.cube();
-                //fgl.sphere() ;
+                //fgl.cube();
+                fgl.sphere() ;
                 fgl.popMatrix();
 
             }
@@ -123,7 +123,7 @@ App.prototype.update = function()
 
     light0.setPosition3f(6*Math.cos(time), 0, 6*Math.sin(time));
     light1.setPosition3f(2*Math.cos(time*Math.PI), Math.sin(time), 2*Math.sin(time+Math.PI));
-    light2.setPosition3f(4*Math.cos(time*Math.PI*0.25), Math.cos(time), 4*Math.sin(time+Math.PI*0.25));
+    light2.setPosition3f(12*Math.cos(time*Math.PI*0.25), Math.cos(time), 12*Math.sin(time+Math.PI*0.25));
 
     var material = this._material0;
 
@@ -153,6 +153,7 @@ App.prototype.drawSystem =  function()
 
     fgl.color1f(0.25);
     Foam.fGLUtil.drawGrid(fgl,48,1);
+    fgl.color1f(0.15);
     Foam.fGLUtil.drawGridCube(fgl,48,1);
     Foam.fGLUtil.drawAxes(fgl,12);
 };
