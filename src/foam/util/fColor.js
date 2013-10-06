@@ -85,7 +85,17 @@ module.exports =
                fMath.isFloatEqual(c0[1],c1[1]) &&
                fMath.isFloatEqual(c0[2],c1[2]) &&
                fMath.isFloatEqual(c0[3],c1[3]);
-    }
+    },
+
+    makeColorArrayf : function(r,g,b,a,length)
+    {
+        var arr = new Float32Array(length * 4), i = 0;
+        while(i < arr.length){arr[i+0] = r;arr[i+1] = g;arr[i+2] = b;arr[i+3] = a;i+=4;}
+        return arr;
+    },
+
+    makeColorArray : function(color,length){return this.makeColorArrayf(color[0],color[1],color[2],color[3],length);}
+
 
 
 
