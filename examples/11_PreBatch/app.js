@@ -5,9 +5,10 @@ function App()
     Foam.Application.apply(this,arguments);
 
     this.setFullWindowFrame(true);
+    this.setFullscreen(true);
 
     this.setTargetFPS(60);
-    this.setSize(1025,768);
+    this.setSize(1600,900);
 }
 
 App.prototype = Object.create(Foam.Application.prototype);
@@ -40,12 +41,14 @@ App.prototype.setup = function()
     material.setSpecular3f(1,1,1);
     material.shininess = 200.0;
 
-    var size = this._cubeNumAxis = 14;
+    this._zoom = 8;
+
+    var size = this._cubeNumAxis = 16;
     var i, j,k;
     var ni,nj,nk;
     var s = 40;
 
-    fgl.sphereDetail(13);
+    fgl.sphereDetail(11);
     fgl.beginDrawElementArrayBatch();
 
     i=-1;
@@ -85,8 +88,10 @@ App.prototype.update = function()
     var cam = this.camera;
 
     var time = this.getSecondsElapsed(),
-        timeDelta = this.getTimeDelta(),
-        zoom = 10 + Math.sin(time) * 0.25;
+        timeDelta = this.getTimeDelta();
+    var zoom = this._zoom = Foam.Math.lerp(this._zoom, 8 + this.getMouseWheelDelta() * 0.25, timeDelta * 0.0025);
+
+
 
     var light0 = this._light0,
         light1 = this._light1,
