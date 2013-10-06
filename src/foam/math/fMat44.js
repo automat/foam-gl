@@ -241,7 +241,7 @@ var Mat44 =
 
     mult : function(m0,m1,m)
     {
-        return this.multPre(m0,m1);
+        return this.multPre(m0,m1,m);
     },
 
     multPost : function(m0,m1,m)
