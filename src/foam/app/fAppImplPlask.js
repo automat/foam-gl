@@ -1,5 +1,5 @@
-var Default     = require('../system/fDefault'),
-    fError      = require('../system/fError'),
+var Default     = require('../system/common/fDefault'),
+    fError      = require('../system/common/fError'),
     fGL         = require('../graphics/fGL'),
     AppImpl     = require('./fAppImpl'),
     CameraBasic = require('../graphics/fCameraBasic'),
@@ -181,6 +181,7 @@ AppImplPlask.prototype.init = function(appObj)
     this._isInitialized = true;
 };
 
+AppImplPlask.prototype.getWindow = function(){return this._plaskWindow;};
 
 AppImplPlask.prototype.setWindowPosition  = function(x,y) {this._plaskWindow.setFrameTopLeftPoint(x,y);};
 AppImplPlask.prototype.setFullWindowFrame = function(bool){this._isFullWindowFrame = bool;return true;};

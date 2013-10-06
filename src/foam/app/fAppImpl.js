@@ -1,5 +1,5 @@
-var Default = require('../system/fDefault'),
-    fError  = require('../system/fError');
+var Default = require('../system/common/fDefault'),
+    fError  = require('../system/common/fError');
 
 function AppImpl()
 {
@@ -87,10 +87,10 @@ AppImpl.prototype.getKeyCode         = function(){return this._keyCode;};
 AppImpl.prototype.getKeyStr          = function(){return this._keyStr;};
 AppImpl.prototype.getMouseWheelDelta = function(){return this._mouseWheelDelta;};
 
+AppImpl.prototype.getWindow = function(){throw new Error(fError.METHOD_NOT_IMPLEMENTED);};
 
 AppImpl.prototype.setMouseListenerTarget = function(obj){return false;};
 AppImpl.prototype.setKeyListenerTarget   = function(obj){return false;};
-AppImpl.prototype.getParent              = function()   {return false;};
-AppImpl.prototype.setParent              = function(obj){return false;};
+
 
 module.exports = AppImpl;

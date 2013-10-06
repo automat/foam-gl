@@ -1,5 +1,5 @@
-var fError            = require('../system/fError'),
-    Platform          = require('../system/fPlatform'),
+var fError            = require('../system/common/fError'),
+    Platform          = require('../system/common/fPlatform'),
     AppImplWeb        = require('./fAppImplWeb'),
     AppImplNodeWebkit = require('./fAppImplNodeWebkit'),
     AppImplPlask      = require('./fAppImplPlask'),
@@ -81,6 +81,8 @@ Application.prototype.getTime           = function(){return this._appImpl.getTim
 Application.prototype.getTimeStart      = function(){return this._appImpl.getTimeStart();};
 Application.prototype.getTimeNext       = function(){return this._appImpl.getTimeNext();};
 Application.prototype.getTimeDelta      = function(){return this._appImpl.getTimeDelta();};
+
+Application.prototype.getWindow = function(){return this._appImpl.getWindow();};
 
 Application.prototype.getAspectRatioWindow = function(){return this._appImpl.getAspectRatio();};
 

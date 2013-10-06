@@ -65,7 +65,8 @@ module.exports =
     Color       : require('./util/fColor'),
     Util        : require('./util/fUtil'),
 
-    Platform    : require('./system/fPlatform'),
+    Platform    : require('./system/common/fPlatform'),
+    System      : require('./system/fSystem'),
 
     Geom3d            : require('./geom/fGeom3d'),
     ParametricSurface : require('./geom/fParametricSurface'),

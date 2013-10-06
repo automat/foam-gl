@@ -1,4 +1,4 @@
-var Default     = require('../system/fDefault'),
+var Default     = require('../system/common/fDefault'),
     AppImpl     = require('./fAppImpl'),
     fGL         = require('../graphics/fGL'),
     CameraBasic = require('../graphics/fCameraBasic');
@@ -31,9 +31,7 @@ function AppImplWeb()
 
 AppImplWeb.prototype = Object.create(AppImpl.prototype);
 
-AppImplWeb.prototype.getParent = function()   {return this._context3d.parentNode;};
-AppImplWeb.prototype.setParent = function(obj){this._parent = obj;};
-
+AppImplWeb.prototype.getWindow = function(){return this._context3d.parentNode;};
 
 AppImplWeb.prototype.setSize = function(width,height)
 {
