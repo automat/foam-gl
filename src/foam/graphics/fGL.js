@@ -340,23 +340,27 @@ function FGL(context3d,context2d)
     this._bColorCircle    = new Float32Array(SIZE_OF_COLOR * ELLIPSE_DETAIL_MAX);
     this._bTexCoordCircle = new Float32Array(SIZE_OF_TEX_COORD * ELLIPSE_DETAIL_MAX);
 
-    this._bVertexCube       = new Float32Array([-0.5,-0.5, 0.5,
-                                                0.5,-0.5, 0.5,
-                                                0.5, 0.5, 0.5,
-                                                -0.5, 0.5, 0.5,
-                                                -0.5,-0.5,-0.5,
-                                                -0.5, 0.5,-0.5,
-                                                  0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5,-0.5, 0.5,-0.5,-0.5, 0.5,0.5,-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5]);
+    this._bVertexCube       = new Float32Array([-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5,-0.5,-0.5, -0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5,-0.5, 0.5,-0.5,-0.5, 0.5,0.5,-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5]);
     this._bVertexCubeScaled = new Float32Array(new Array(this._bVertexCube.length));
-    this._bColorCube    = new Float32Array(this._bVertexCube.length / SIZE_OF_VERTEX * SIZE_OF_COLOR);
-    this._bNormalCube   = new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0] );
-    this._bIndexCube    = new Uint16Array([  0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9,10, 8,10,11, 12,13,14,12,14,15, 16,17,18,16,18,19, 20,21,22,20,22,23]);
-    this._bTexCoordCube = new Float32Array(this._bVertexCube.length/3*2);//TODO: add
+    this._bColorCube        = new Float32Array(this._bVertexCube.length / SIZE_OF_VERTEX * SIZE_OF_COLOR);
+    this._bNormalCube       = new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0] );
+    this._bIndexCube        = new Uint16Array([  0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9,10, 8,10,11, 12,13,14,12,14,15, 16,17,18,16,18,19, 20,21,22,20,22,23]);
+    this._bTexCoordCube     = new Float32Array(this._bVertexCube.length/3*2);//TODO: add
+
+
+    //TODO: merge with cube
+    this._bVertexBox       = new Float32Array([-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5,-0.5,-0.5, -0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5,-0.5, 0.5,-0.5,-0.5, 0.5,0.5,-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5]);
+    this._bVertexBoxScaled = new Float32Array(new Array(this._bVertexBox.length));
+    this._bColorBox        = new Float32Array(this._bVertexBox.length / SIZE_OF_VERTEX * SIZE_OF_COLOR);
+    this._bNormalBox       = new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0] );
+    this._bIndexBox        = new Uint16Array([  0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9,10, 8,10,11, 12,13,14,12,14,15, 16,17,18,16,18,19, 20,21,22,20,22,23]);
+    this._bTexCoordBox     = new Float32Array(this._bVertexBox.length/3*2);//TODO: add
 
     this._circleDetailLast = 10.0;
     this._sphereDetailLast = 10.0;
     this._sphereScaleLast  = -1;
     this._cubeScaleLast    = -1;
+    this._boxScaleLast     = -1;
 
     this._bVertexSphere       = null;
     this._bVertexSphereScaled = null;
@@ -751,10 +755,26 @@ FGL.prototype.bufferVertices = function(vertices,buffer)
 /*---------------------------------------------------------------------------------------------------------*/
 
 
-FGL.prototype._scaleVertices = function(vert0,scale,vert1)
+FGL.prototype._scaleVertices1f = function(vert0,scale,vert1)
 {
     if(!scale)return vert0;
     var i = -1, l = vert0.length;while(++i < l)vert1[i] = vert0[i] * scale;return vert1;
+};
+
+FGL.prototype._scaleVertices3f = function(vert0,scaleX,scaleY,scaleZ,vert1)
+{
+    if(!scale)return vert0;
+    var i = 0, l = vert0.length;
+    while(i < l)
+    {
+        vert1[i  ] = vert0[i  ] * scaleX;
+        vert1[i+1] = vert0[i+1] * scaleY;
+        vert1[i+2] = vert0[i+2] * scaleZ;
+
+        i+=3;
+    }
+
+    return vert1;
 };
 
 
@@ -960,6 +980,15 @@ FGL.prototype.color3f = function(r,g,b)  {this._bColor = Color.set3f(this._bColo
 FGL.prototype.color2f = function(k,a)    {this._bColor = Color.set2f(this._bColor4f,k,a);};
 FGL.prototype.color1f = function(k)      {this._bColor = Color.set1f(this._bColor4f,k);};
 FGL.prototype.colorfv = function(array)  {this._bColor = array;};
+
+FGL.prototype.alpha = function(alpha)
+{
+    var bColor = this._bColor;
+    if(bColor.length == 4){bColor[3] = alpha;return;}
+
+    var i = 0, l = bColor.length;
+    while(i < l){bColor[i] = alpha;i+=4;}
+};
 
 FGL.prototype.clearColor = function(color){this.clear4f(color[0],color[1],color[2],color[3]);};
 FGL.prototype.clear      = function()     {this.clear4f(0,0,0,1);};
@@ -1412,13 +1441,17 @@ FGL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVer
 // convenience draw
 /*---------------------------------------------------------------------------------------------------------*/
 
-//TODO:remove
-
+// TODO : finish
 FGL.prototype.box = function(width,height,depth)
 {
+    width  = (typeof width  == 'undefined') ? 1.0 : width;
+    height = (typeof height == 'undefined') ? 1.0 : height;
+    depth  = (typeof depth  == 'undefined') ? 1.0 : depth;
+
     this.pushMatrix();
     this.scale3f(width,height,depth);
-    this.drawElements(this._bVertexCube,this._bNormalCube,this.bufferColors(this._bColor,this._bColorCube),this._bTexCoordCube,this._bIndexCube,this._drawMode);
+    this.drawElements(this._bVertexCube,
+                      this._bNormalCube,this.bufferColors(this._bColor,this._bColorCube),this._bTexCoordCube,this._bIndexCube,this._drawMode);
     this.popMatrix();
 
     this._drawFuncLast = this.box;
@@ -1426,23 +1459,25 @@ FGL.prototype.box = function(width,height,depth)
 
 FGL.prototype.cube = function(size)
 {
-    size = size || 1;
+    size = (typeof size == 'undefined') ? 1.0 : size;
 
     var cubeScaleLast    = this._cubeScaleLast,
         cubeVerticesLast = this._bVertexCubeScaled;
 
    this.drawElements((size == cubeScaleLast) ? cubeVerticesLast :
-                     this._scaleVertices(this._bVertexCube,size,cubeVerticesLast),
+                     this._scaleVertices1f(this._bVertexCube,size,cubeVerticesLast),
                      this._bNormalCube,
                      this.bufferColors(this._bColor,this._bColorCube),
                      this._bTexCoordCube,
                      this._bIndexCube,
-                     this._drawMode);
+                     this._drawMode,
+                     this._bIndexCube.length,
+                     0,
+                     this.UNSIGNED_SHORT);
 
 
     this._cubeScaleLast = size;
     this._drawFuncLast  = this.cube;
-
 };
 
 FGL.prototype.sphere = function(size)
@@ -1453,12 +1488,15 @@ FGL.prototype.sphere = function(size)
         sphereVerticesScaled = this._bVertexSphereScaled;
 
     this.drawElements((size == sphereScaleLast) ? sphereVerticesScaled :
-                      this._scaleVertices(this._bVertexSphere,size,sphereVerticesScaled),
+                      this._scaleVertices1f(this._bVertexSphere,size,sphereVerticesScaled),
                       this._bNormalSphere,
                       this.bufferColors(this._bColor,this._bColorSphere),
                       this._bTexCoordsSphere,
                       this._bIndexSphere,
-                      this._drawMode);
+                      this._drawMode,
+                      this._bIndexSphere.length,
+                      0,
+                      this.UNSIGNED_SHORT);
 
 
     this._sphereScaleLast = size;
