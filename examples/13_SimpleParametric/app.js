@@ -29,7 +29,7 @@ App.prototype.setup = function()
     material.shininess = 200.0;
 
     this._surface = new Foam.ParametricSurface(250);
-    this._surface.setFunctions(null,function(u,v,t){return Math.sin(u*40+t*3)*Math.sin(v*40+t*3)*0.25;},null);
+    this._surface.setFunctions(null,function(u,v,t){return Math.sin(u*50+t*3)*Math.sin(v*50+t*3)*0.45},null);
 
 
 };
@@ -41,7 +41,7 @@ App.prototype.update = function()
 
     var time = this.getSecondsElapsed(),
         timeDelta = this.getTimeDelta(),
-        zoom = 6 + Math.sin(time) * 0.25;
+        zoom = 6 + Math.sin(time) * 2 ;
 
     var light0 = this._light0;
 
@@ -76,10 +76,11 @@ App.prototype.update = function()
 
 
 
-    var material = this._material0;
+    var material = this._material0,
+        surface  = this._surface;
 
-    this._surface.applyFunctionsWithArg(time);
-    this._surface.updateVertexNormals();
+    surface.applyFunctionsWithArg(time);
+    surface.updateVertexNormals();
 
     fgl.drawMode(fgl.LINES);
     this.drawSystem();
@@ -92,13 +93,16 @@ App.prototype.update = function()
 
     fgl.material(material);
 
+
+
+
     fgl.drawMode(fgl.TRIANGLES);
     fgl.pushMatrix();
-    fgl.scale3f(20,1,20);
-    fgl.drawGeometry(this._surface);
+    fgl.scale3f(25,1,25);
+    fgl.drawGeometry(surface);
     fgl.translate3f(0,0.01,0);
     fgl.drawMode(fgl.LINES);
-    fgl.drawGeometry(this._surface);
+    //fgl.drawGeometry(surface);
     fgl.popMatrix();
 
     fgl.useMaterial(false);
@@ -108,13 +112,17 @@ App.prototype.update = function()
 
 App.prototype.drawSystem =  function()
 {
-    return;
-    var fgl = this.fgl;
+
+    var fgl  = this.fgl,
+        fglu = Foam.fGLUtil;
 
     fgl.color1f(0.25);
-    Foam.fGLUtil.drawGrid(fgl,48,1);
-    Foam.fGLUtil.drawGridCube(fgl,48,1);
-    Foam.fGLUtil.drawAxes(fgl,12);
+    fglu.drawGrid(fgl,48,1);
+    fgl.color1f(0.15);
+    fglu.drawGridCube(fgl,48,1);
+    fglu.drawAxes(fgl,12);
+
+
 };
 
 var app = new App();
