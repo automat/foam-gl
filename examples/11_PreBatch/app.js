@@ -40,9 +40,10 @@ App.prototype.setup = function()
     material.setSpecular3f(1,1,1);
     material.shininess = 20.0;
 
-    var size = this._cubeNumAxis = 11;
+    var size = this._cubeNumAxis = 12;
     var i, j,k;
     var ni,nj,nk;
+    var s = 20;
 
     fgl.sphereDetail(10);
     fgl.beginDrawElementArrayBatch();
@@ -50,20 +51,20 @@ App.prototype.setup = function()
     i=-1;
     while(++i < size)
     {
-        ni = i / (size-1);
+        ni = (-0.5 + i / (size-1)) * s;
 
         j = -1;
         while(++j < size)
         {
-            nj =  j / (size-1);
+            nj =  (-0.5 + j / (size-1)) * s;
             k = -1;
             while(++k < size)
             {
-                nk = k / (size-1);
+                nk = (-0.5 + k / (size-1)) * s;
 
                 fgl.pushMatrix();
                 fgl.translate3f(ni,nj,nk);
-                fgl.scale1f(0.025,0.025,0.025);
+                fgl.scale1f(0.5);
                 fgl.color3f(ni,nj,nk);
                 fgl.cube();
                 //fgl.sphere() ;
@@ -138,11 +139,9 @@ App.prototype.update = function()
     fgl.drawMode(fgl.TRIANGLES);
     fgl.material(material);
     fgl.pushMatrix();
-    fgl.translate3f(-this._cubeNumAxis*2,-this._cubeNumAxis*2,-this._cubeNumAxis*2);
+   // fgl.rotate3f(time,time,time)
     fgl.drawElementArrayBatch();
     fgl.popMatrix();
-
-
 
     fgl.useLighting(false);
     fgl.useMaterial(false);
