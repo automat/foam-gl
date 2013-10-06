@@ -1,4 +1,5 @@
-var Geom3d = require('./fGeom3d');
+var Geom3d = require('./fGeom3d'),
+    Flags  = require('../system/fFlags');
 
 function ISOBand(sizeX,sizeZ,unitScaleX,unitScaleZ)
 {
@@ -515,7 +516,8 @@ ISOBand.prototype.march = function()
     }
 
     //temp
-    this._indices = this.__appUintTypeEnabled ?  new Uint32Array(indices) :  new Uint16Array(indices);
+    this._indices = Flags.__uintTypeAvailable ? new Uint32Array(indices) :
+                                                new Uint16Array(indices);
 };
 
 //visual debug need isoline/isoband switch
@@ -525,7 +527,7 @@ ISOBand.prototype._draw = function(gl)
         colors  = gl.bufferColors(gl.getColorBuffer(),new Float32Array(edges.length/3*4)),
         indices =  this._indices;
 
-     gl.drawElements(edges,null,colors,null,indices,gl.getDrawMode(),indices.length,0,gl.UNSIGNED_SHORT);
+     gl.drawElements(edges,null,colors,null,indices,gl.getDrawMode(),indices.length,0);
 };
 
 

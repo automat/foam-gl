@@ -1,5 +1,6 @@
 var fError           = require('../system/common/fError'),
     Platform         = require('../system/common/fPlatform'),
+    Flags            = require('../system/fFlags'),
     ProgVertexShader = require('./gl/shader/fProgVertexShader'),
     ProgFragShader   = require('./gl/shader/fProgFragShader'),
     ProgLoader       = require('./gl/shader/fProgLoader'),
@@ -68,7 +69,9 @@ function FGL(context3d,context2d)
 
     gl.useProgram(programScene);
 
-
+    //
+    Flags.__uintTypeAvailable = platform == Platform.PLASK;
+    //...
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Bind & enable shader attributes & uniforms
@@ -531,6 +534,8 @@ FGL.prototype.material = function(material)
     gl.uniform1f( this._uMaterialShininess, material.shininess);
 };
 
+
+
 /*---------------------------------------------------------------------------------------------------------*/
 // Camera
 /*---------------------------------------------------------------------------------------------------------*/
@@ -573,11 +578,11 @@ FGL.prototype.setMatricesUniform = function()
 /*---------------------------------------------------------------------------------------------------------*/
 
 //TODO: fix set/ref
-FGL.prototype.translate     = function(v)          {this._mModelView = Mat44.multPost(this._mModelView, Mat44.makeTranslate(v[0],v[1],v[2],Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
-FGL.prototype.translate3f   = function(x,y,z)      {this._mModelView = Mat44.multPost(this._mModelView, Mat44.makeTranslate(x,y,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
-FGL.prototype.translateX    = function(x)          {this._mModelView = Mat44.multPost(this._mModelView, Mat44.makeTranslate(x,0,0,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
-FGL.prototype.translateY    = function(y)          {this._mModelView = Mat44.multPost(this._mModelView, Mat44.makeTranslate(0,y,0,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
-FGL.prototype.translateZ    = function(z)          {this._mModelView = Mat44.multPost(this._mModelView, Mat44.makeTranslate(0,0,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.translate     = function(v)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeTranslate(v[0],v[1],v[2],Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.translate3f   = function(x,y,z)      {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeTranslate(x,y,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.translateX    = function(x)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeTranslate(x,0,0,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.translateY    = function(y)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeTranslate(0,y,0,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
+FGL.prototype.translateZ    = function(z)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeTranslate(0,0,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
 FGL.prototype.scale         = function(v)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeScale(v[0],v[1],v[2],Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));;};
 FGL.prototype.scale1f       = function(n)          {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeScale(n,n,n,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
 FGL.prototype.scale3f       = function(x,y,z)      {this._mModelView = Mat44.multPost(this._mModelView,Mat44.makeScale(x,y,z,Mat44.identity(this._mTemp0),Mat44.identity(this._mTemp1)));};
@@ -617,7 +622,7 @@ FGL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colo
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexArray,drawType || gl.DYNAMIC_DRAW);
     gl.drawElements(mode  || this.TRIANGLES,
                     count || indexArray.length,
-                    type  || gl.UNSIGNED_SHORT,
+                    type  || (Flags.__uintTypeAvailable  ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT),
                     offset || 0);
 };
 
@@ -911,7 +916,8 @@ FGL.prototype.drawElementArrayBatch = function(batch)
         batchNormals   = this._batchNormalsF32Last   = new Float32Array(this._bBatchNormals);
         batchColors    = this._batchColorsF32Last    = new Float32Array(this._bBatchColors);
         batchTexCoords = this._batchTexCoordsF32Last = new Float32Array(this._bBatchTexCoords);
-        batchIndices   = this._batchIndicesU16Last   = new Uint16Array( this._bBatchIndices);
+        batchIndices   = this._batchIndicesU16Last   = Flags.__uintTypeAvailable  ? new Uint32Array(this._bBatchIndices) :
+                                                                                    new Uint16Array(this._bBatchIndices);
   }
 
 

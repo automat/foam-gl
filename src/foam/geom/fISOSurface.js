@@ -1,5 +1,6 @@
 var Vec3   = require('../math/fVec3'),
     Vec4   = require('../math/fVec4'),
+    Flags  = require('../system/fFlags'),
     Geom3d = require('./fGeom3d');
 
 

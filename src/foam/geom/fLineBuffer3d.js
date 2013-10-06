@@ -1,4 +1,5 @@
 var Geom3d = require('./fGeom3d'),
+    Flags  = require('../system/fFlags'),
     Mat44  = require('../math/fMat44'),
     Vec3   = require('../math/fVec3');
 
@@ -269,7 +270,8 @@ LineBuffer3d.prototype.setNumSegments = function(numSegments)
     this.setCloseCaps(this._closedCaps);
     this.applySliceSegmentFunc(this._sliceSegFunc,this._initDiameter);
 
-    if(this._numSegments == 2)this.indices = new Uint16Array(this.indices);
+    if(this._numSegments == 2)this.indices = Flags.__uintTypeAvailable ? new Uint32Array(this.indices) :
+                                                                         new Uint16Array(this.indices);
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -514,7 +516,8 @@ LineBuffer3d.prototype.setCloseCaps = function(bool)
         temp = temp.slice(0,indices.length - (numSegments - 2) * 2 * 3);
     }
 
-    this.indices = new Uint16Array(temp);
+    this.indices = Flags.__uintTypeAvailable ? new Uint32Array(temp) :
+                                               new Uint16Array(temp);
     this.updateVertexNormals();
     this._closedCaps = bool;
 };

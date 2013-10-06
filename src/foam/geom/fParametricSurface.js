@@ -1,7 +1,8 @@
 var Vec2   = require('../math/fVec2'),
     Vec3   = require('../math/fVec3'),
     Color  = require('../util/fColor'),
-    Geom3d = require('./fGeom3d');
+    Geom3d = require('./fGeom3d'),
+    Flags  = require('../system/fFlags');
 
 ParametricSurface = function(size)
 {
@@ -54,7 +55,8 @@ ParametricSurface.prototype.setSize = function(size,unit)
         }
     }
 
-    this.indices = new Uint16Array(indices);
+    this.indices = Flags.__uintTypeAvailable ? new Uint32Array(indices) :
+                                               new Uint16Array(indices);
 
     this.updateVertexNormals();
 };

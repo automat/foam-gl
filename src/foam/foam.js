@@ -45,6 +45,7 @@ module.exports =
     Quaternion  : require('./math/fQuaternion'),
 
 
+
     MatGL        : require('./graphics/gl/fMatGL'),
     ProgLoader   : require('./graphics/gl/shader/fProgLoader'),
     ShaderLoader : require('./graphics/gl/shader/fShaderLoader'),
@@ -78,6 +79,7 @@ module.exports =
     Line2dUtil        : require('./geom/fLine2dUtil'),
     Polygon2dUtil     : require('./geom/fPolygon2dUtil'),
 
+    Flags : require('./system/fFlags'),
 
     Application : require('./app/fApplication')
 
