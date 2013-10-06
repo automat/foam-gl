@@ -28,8 +28,8 @@ App.prototype.setup = function()
     material.setSpecular3f(1,1,1);
     material.shininess = 200.0;
 
-    this._surface = new Foam.ParametricSurface(220);
-    this._surface.setFunctions(null,function(u,v,t){return Math.sin(u*10+t*4)*Math.sin(v*10+t*4);},null);
+    this._surface = new Foam.ParametricSurface(250);
+    this._surface.setFunctions(null,function(u,v,t){return Math.sin(u*40+t*3)*Math.sin(v*40+t*3)*0.25;},null);
 
 
 };
@@ -41,7 +41,7 @@ App.prototype.update = function()
 
     var time = this.getSecondsElapsed(),
         timeDelta = this.getTimeDelta(),
-        zoom = 10 + Math.sin(time) * 0.25;
+        zoom = 6 + Math.sin(time) * 0.25;
 
     var light0 = this._light0;
 
@@ -94,7 +94,10 @@ App.prototype.update = function()
 
     fgl.drawMode(fgl.TRIANGLES);
     fgl.pushMatrix();
-    fgl.scale3f(4,1,4);
+    fgl.scale3f(20,1,20);
+    fgl.drawGeometry(this._surface);
+    fgl.translate3f(0,0.01,0);
+    fgl.drawMode(fgl.LINES);
     fgl.drawGeometry(this._surface);
     fgl.popMatrix();
 
@@ -105,6 +108,7 @@ App.prototype.update = function()
 
 App.prototype.drawSystem =  function()
 {
+    return;
     var fgl = this.fgl;
 
     fgl.color1f(0.25);
