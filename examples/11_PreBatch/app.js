@@ -4,11 +4,9 @@ function App()
 {
     Foam.Application.apply(this,arguments);
 
-    this.setFullWindowFrame(true);
-    this.setFullscreen(true);
 
     this.setTargetFPS(60);
-    this.setSize(1600,900);
+    this.setSize(1024,768);
 }
 
 App.prototype = Object.create(Foam.Application.prototype);
@@ -19,19 +17,19 @@ App.prototype.setup = function()
 
     var light0 = this._light0 = new Foam.Light(fgl.LIGHT_0);
     light0.setAmbient3f(0,0,0);
-    light0.setDiffuse3f(0.25,0.8,0.25);
+    light0.setDiffuse3f(0.8,0.8,0.8);
     light0.setSpecular3f(1,1,1);
     light0.setPosition3f(1,1,1);
 
     var light1 = this._light1 = new Foam.Light(fgl.LIGHT_1);
     light1.setAmbient3f(0,0,0);
-    light1.setDiffuse3f(0.25,0.25,0.8);
+    light1.setDiffuse3f(0.8,0.8,0.8);
     light1.setSpecular3f(1,1,1);
     light1.setPosition3f(1,1,1);
 
     var light2 = this._light2 = new Foam.Light(fgl.LIGHT_2);
     light2.setAmbient3f(0,0,0);
-    light2.setDiffuse3f(0.8,0.25,0.25);
+    light2.setDiffuse3f(0.8,0.8,0.8);
     light2.setSpecular3f(1,1,1);
     light2.setPosition3f(1,1,1);
 
@@ -43,12 +41,12 @@ App.prototype.setup = function()
 
     this._zoom = 8;
 
-    var size = this._cubeNumAxis = 16;
+    var size = this._cubeNumAxis = 12;
     var i, j,k;
     var ni,nj,nk;
     var s = 40;
 
-    fgl.sphereDetail(11);
+    fgl.sphereDetail(16);
     fgl.beginDrawElementArrayBatch();
 
     i=-1;
@@ -67,7 +65,7 @@ App.prototype.setup = function()
 
                 fgl.pushMatrix();
                 fgl.translate3f(ni,nj,nk);
-                fgl.scale1f(0.5);
+                fgl.scale1f(0.85);
                 fgl.color3f(ni,nj,nk);
                 //fgl.cube();
                 fgl.sphere() ;
@@ -116,7 +114,7 @@ App.prototype.update = function()
     }
     else
     {
-        camRotX = time * 0.25;
+        camRotX = 0;
 
         cam.setPosition3f(Math.cos(camRotX) * zoom,
             zoom,
@@ -127,12 +125,15 @@ App.prototype.update = function()
     cam.updateMatrices();
 
     light0.setPosition3f(6*Math.cos(time), 0, 6*Math.sin(time));
-    light1.setPosition3f(2*Math.cos(time*Math.PI), Math.sin(time), 2*Math.sin(time+Math.PI));
+    light1.setPosition3f(30*Math.cos(time*Math.PI), 30*Math.sin(time), 30*Math.sin(time+Math.PI));
     light2.setPosition3f(12*Math.cos(time*Math.PI*0.25), Math.cos(time), 12*Math.sin(time+Math.PI*0.25));
 
     var material = this._material0;
+    light0.constantAttentuation = Math.abs(Math.sin(time*50));
+    light1.constantAttentuation = Math.abs(Math.sin(time*50+Math.PI*0.5));
+    light2.constantAttentuation = Math.abs(Math.sin(time*50+Math.PI*0.75));
 
-    this.drawSystem();
+    //this.drawSystem();
 
     fgl.useLighting(true);
     fgl.light(light0);
@@ -144,6 +145,7 @@ App.prototype.update = function()
     fgl.drawMode(fgl.TRIANGLES);
     fgl.material(material);
     fgl.pushMatrix();
+    fgl.cube(70);
    // fgl.rotate3f(time,time,time)
     fgl.drawElementArrayBatch();
     fgl.popMatrix();
