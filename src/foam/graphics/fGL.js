@@ -160,6 +160,8 @@ function FGL(context3d,context2d)
         gl.uniform1f(uLightAttenuationQuadratic[i],0.0);
     }
 
+    //Material
+
     this._uMaterialEmission  = gl.getUniformLocation(programScene,'uMaterial.emission');
     this._uMaterialAmbient   = gl.getUniformLocation(programScene,'uMaterial.ambient');
     this._uMaterialDiffuse   = gl.getUniformLocation(programScene,'uMaterial.diffuse');
@@ -241,16 +243,13 @@ function FGL(context3d,context2d)
 
     this._bUseBillboarding     = false;
 
-    this._bUseDrawArrayBatch        = false;
-    this._bUseDrawElementArrayBatch = false;
-    this._bBatchIsDynamic           = false;
-
-
+    this._bUseDrawArrayBatch            = false;
     this._bDrawArrayBatchIsDirty        = true;
+
+    //static
+
+    this._bUseDrawElementArrayBatch     = false;
     this._bDrawElementArrayBatchIsDirty = true;
-
-
-    this._drawFuncLast = null;
 
     this._bBatchVertices  = [];
     this._bBatchNormals   = [];
@@ -262,18 +261,26 @@ function FGL(context3d,context2d)
     this._batchNormalsF32Last   = null;
     this._batchColorsF32Last    = null;
     this._batchTexCoordsF32Last = null;
-    this._batchIndicesU16Last   = null;
+    this._batchIndicesULast     = null;
 
+    //dynamic
 
+    this._bUseDrawElementDynamicArrayBatch     = false;
+    this._bDrawElementDynamicArrayBatchIsDirty = true;
 
-    this._bBVecRight = Vec3.make();
-    this._bBVecUp    = Vec3.make();
-    this._bBVertices = new Float32Array(4 * 3);
+    this._bBatchDynamicVerticesF32  = null;
+    this._bBatchDynamicNormalsF32   = null;
+    this._bBatchDynamicColorsF32    = null;
+    this._bBatchDynamicTexCoordsF32 = null;
+    this._bBatchDynamicIndicesU     = null;
 
-    this._bBVec0 = Vec3.make();
-    this._bBVec1 = Vec3.make();
-    this._bBVec2 = Vec3.make();
-    this._bBVec3 = Vec3.make();
+    this._bBatchDynamicVerticesNum = 0;
+    this._bBatchDynamicIndexOffset = 0;
+    this._bBatchDynamicSizeLast = -1;
+
+    //
+
+    this._drawFuncLast = null;
 
     this._rectWidthLast    = 0;
     this._rectHeightLast   = 0;
@@ -301,22 +308,34 @@ function FGL(context3d,context2d)
     // Init Buffers
     /*---------------------------------------------------------------------------------------------------------*/
 
+
+    this._bScreenCoords = [0,0];
+    this._bPoint0       = [0,0,0];
+    this._bPoint1       = [0,0,0];
+
+    // misc
+
     this._bEmpty3f = new Float32Array([0,0,0]);
 
     this._bColor4f   = Color.WHITE();
     this._bColorBg4f = Color.BLACK();
+    this._bColor     = this._bColor4f;
 
-    this._bVertex   = null;
-    this._bNormal   = null;
-    this._bColor    = this._bColor4f;
-    this._bTexCoord = null;
-    this._bIndex    = null;
+    this._axisX = Vec3.AXIS_X();
+    this._axisY = Vec3.AXIS_Y();
+    this._axisZ = Vec3.AXIS_Z();
+
+    //Point
 
     this._bVertexPoint = new Float32Array(SIZE_OF_POINT);
     this._bColorPoint  = new Float32Array(SIZE_OF_COLOR);
 
+    //Line
+
     this._bVertexLine  = new Float32Array(SIZE_OF_LINE);
     this._bColorLine   = new Float32Array(2 * SIZE_OF_COLOR);
+
+    //Triangle
 
     this._bVertexTriangle          = new Float32Array(SIZE_OF_TRIANGLE);
     this._bNormalTriangle          = new Float32Array(SIZE_OF_TRIANGLE);
@@ -325,6 +344,8 @@ function FGL(context3d,context2d)
     this._bTexCoordTriangleDefault = new Float32Array([0.0,0.0,1.0,0.0,1.0,1.0]);
     this._bTexCoordTriangle        = new Float32Array(this._bTexCoordTriangleDefault.length);
 
+    //Quad
+
     this._bVertexQuad          = new Float32Array(SIZE_OF_QUAD);
     this._bNormalQuad          = new Float32Array(SIZE_OF_QUAD);
     this._bColorQuad           = new Float32Array(4 * SIZE_OF_COLOR);
@@ -332,19 +353,27 @@ function FGL(context3d,context2d)
     this._bTexCoordQuadDefault = new Float32Array([0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0]);
     this._bTexCoordQuad        = new Float32Array(this._bTexCoordQuadDefault.length);
 
+    //Rect
+
     this._bVertexRect = new Float32Array(SIZE_OF_QUAD);
     this._bNormalRect = new Float32Array([0,1,0,0,1,0,0,1,0,0,1,0]);
     this._bColorRect  = new Float32Array(4 * SIZE_OF_COLOR);
+
+    //Ellipse
 
     this._bVertexEllipse   = new Float32Array(SIZE_OF_VERTEX * ELLIPSE_DETAIL_MAX);
     this._bNormalEllipse   = new Float32Array(this._bVertexEllipse.length);
     this._bColorEllipse    = new Float32Array(SIZE_OF_COLOR  * ELLIPSE_DETAIL_MAX);
     this._bTexCoordEllipse = new Float32Array(SIZE_OF_TEX_COORD * ELLIPSE_DETAIL_MAX);
 
+    //Cirlce
+
     this._bVertexCircle   = new Float32Array(SIZE_OF_VERTEX * ELLIPSE_DETAIL_MAX);
     this._bNormalCircle   = new Float32Array(this._bVertexCircle.length);
     this._bColorCircle    = new Float32Array(SIZE_OF_COLOR * ELLIPSE_DETAIL_MAX);
     this._bTexCoordCircle = new Float32Array(SIZE_OF_TEX_COORD * ELLIPSE_DETAIL_MAX);
+
+    //Cube
 
     this._bVertexCube       = new Float32Array([-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5,-0.5,-0.5, -0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5,-0.5, 0.5,-0.5,-0.5, 0.5,0.5,-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5]);
     this._bVertexCubeScaled = new Float32Array(new Array(this._bVertexCube.length));
@@ -353,20 +382,20 @@ function FGL(context3d,context2d)
     this._bIndexCube        = new Uint16Array([  0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9,10, 8,10,11, 12,13,14,12,14,15, 16,17,18,16,18,19, 20,21,22,20,22,23]);
     this._bTexCoordCube     = new Float32Array(this._bVertexCube.length/3*2);//TODO: add
 
+    //Box
 
-    //TODO: merge with cube
-    this._bVertexBox       = new Float32Array([-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5,-0.5,-0.5, -0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5,-0.5, 0.5,-0.5, 0.5,-0.5,-0.5, 0.5,0.5,-0.5,-0.5, 0.5, 0.5,-0.5, 0.5, 0.5, 0.5, 0.5,-0.5, 0.5,-0.5,-0.5,-0.5,-0.5,-0.5, 0.5,-0.5, 0.5, 0.5,-0.5, 0.5,-0.5]);
-    this._bVertexBoxScaled = new Float32Array(new Array(this._bVertexBox.length));
-    this._bColorBox        = new Float32Array(this._bVertexBox.length / SIZE_OF_VERTEX * SIZE_OF_COLOR);
-    this._bNormalBox       = new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0] );
-    this._bIndexBox        = new Uint16Array([  0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9,10, 8,10,11, 12,13,14,12,14,15, 16,17,18,16,18,19, 20,21,22,20,22,23]);
-    this._bTexCoordBox     = new Float32Array(this._bVertexBox.length/3*2);//TODO: add
+    this._bVertexBox       = new Float32Array(this._bVertexCube);
+    this._bVertexBoxScaled = new Float32Array(this._bVertexCubeScaled);
+    this._bColorBox        = new Float32Array(this._bColorCube);
+    this._bNormalBox       = new Float32Array(this._bNormalCube);
+    this._bIndexBox        = new Uint16Array( this._bIndexCube);
+    this._bTexCoordBox     = new Float32Array(this._bTexCoordCube);
 
-    this._circleDetailLast = 10.0;
-    this._sphereDetailLast = 10.0;
-    this._sphereScaleLast  = -1;
-    this._cubeScaleLast    = -1;
-    this._boxScaleLast     = -1;
+    this._boxWidthLast  = -1;
+    this._boxHeightLast = -1;
+    this._boxDepthLast  = -1;
+
+    //Sphere
 
     this._bVertexSphere       = null;
     this._bVertexSphereScaled = null;
@@ -375,17 +404,15 @@ function FGL(context3d,context2d)
     this._bIndexSphere        = null;
     this._bTexCoordsSphere    = null;
 
-    this._bScreenCoords = [0,0];
-    this._bPoint0       = [0,0,0];
-    this._bPoint1       = [0,0,0];
+    //cache
 
-    this._axisX = Vec3.AXIS_X();
-    this._axisY = Vec3.AXIS_Y();
-    this._axisZ = Vec3.AXIS_Z();
+    this._circleDetailLast = 10.0;
+    this._sphereDetailLast = 10.0;
+    this._sphereScaleLast  = -1;
+    this._cubeScaleLast    = -1;
 
-    this._lineBoxWidth  = 1;
-    this._lineBoxHeight = 1;
-    this._lineCylinderRadius = 0.5;
+
+    // gen gem
 
     this._genSphere();
     this._genCircle();
@@ -769,7 +796,7 @@ FGL.prototype._scaleVertices1f = function(vert0,scale,vert1)
 
 FGL.prototype._scaleVertices3f = function(vert0,scaleX,scaleY,scaleZ,vert1)
 {
-    if(!scale)return vert0;
+    if(!scaleX && !scaleY && !scaleZ)return vert0;
     var i = 0, l = vert0.length;
     while(i < l)
     {
@@ -811,17 +838,63 @@ FGL.prototype.drawArrayBatch = function()
 
 };
 
+//dynamic
+
 FGL.prototype.beginDynamicDrawElementArrayBatch = function(size)
 {
-    this.beginDrawArrayBatch();
-    this._bBatchIsDynamic = true;
+    if(size != this._bBatchDynamicSizeLast)
+    {
+        var n = size / this.SIZE_OF_VERTEX;
+
+        this._bBatchDynamicVerticesF32  = new Float32Array(size);
+        this._bBatchDynamicNormalsF32   = new Float32Array(size);
+        this._bBatchDynamicColorsF32    = new Float32Array(n * this.SIZE_OF_COLOR);
+        this._bBatchDynamicTexCoordsF32 = new Float32Array(n * this.SIZE_OF_TEX_COORD);
+        //TODO: check size
+        this._bBatchDynamicIndicesU     = Flags.__uintTypeAvailable ? new Uint32Array(size) :
+                                                                      new Uint16Array(size);
+    }
+
+    this._bBatchDynamicVerticesNum = 0;
+    this._bBatchDynamicIndexOffset = 0;
+
+    this._bUseDrawElementDynamicArrayBatch     = true;
+    this._bDrawElementDynamicArrayBatchIsDirty = true;
+
+    this._bBatchDynamicSizeLast = size;
 };
 
-FGL.prototype.endDynamicDrawElementArrayBatch = function()
+FGL.prototype.endDynamicDrawElementArrayBatch = function(){this._bUseDrawElementDynamicArrayBatch = false;};
+
+FGL.prototype.getElementArrayDynamicBatch = function()
 {
-    this.endDrawElementArrayBatch();
-    this._bBatchIsDynamic = false;
+    return [this._bBatchDynamicVerticesF32,
+            this._bBatchDynamicNormalsF32,
+            this._bBatchDynamicColorsF32,
+            this._bBatchDynamicTexCoordsF32,
+            this._bBatchDynamicIndicesU];
 };
+
+FGL.prototype._pushElementArrayBatchDynamic = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,texCoordsFloat32Array,indexUint16Array)
+{
+    var mTemp0 = Mat44.identity(this._mTemp0),
+        mTemp1 = Mat44.identity(this._mTemp1),
+        mTemp2 = Mat44.identity(this._mTemp2);
+
+    var modelViewMat    = Mat44.set(mTemp0, this._mModelView),
+        transMatrix     = Mat44.mult(modelViewMat,Mat44.invert(this._camera.modelViewMatrix,mTemp2),mTemp1);
+
+    var offsetIndex = this._bBatchDynamicVerticesNum / 3;
+    var offset,length,index;
+
+    var batchVertices = this._bBatchDynamicVerticesF32;
+
+
+
+    this._bBatchDynamicVerticesNum += vertexFloat32Array.length;
+};
+
+//static
 
 FGL.prototype.beginDrawElementArrayBatch = function()
 {
@@ -836,7 +909,15 @@ FGL.prototype.beginDrawElementArrayBatch = function()
 };
 
 FGL.prototype.endDrawElementArrayBatch = function(){this._bUseDrawElementArrayBatch = false;};
-FGL.prototype.getElementArrayBatch     = function(){return [this._bBatchVertices,this._bBatchNormals,this._bBatchColors,this._bBatchTexCoords,this._bBatchIndices];};
+
+FGL.prototype.getElementArrayBatch = function()
+{
+    return [this._bBatchVertices,
+            this._bBatchNormals,
+            this._bBatchColors,
+            this._bBatchTexCoords,
+            this._bBatchIndices];
+};
 
 FGL.prototype._pushElementArrayBatch = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,texCoordsFloat32Array,indexUint16Array)
 {
@@ -936,7 +1017,7 @@ FGL.prototype.drawElementArrayBatch = function(batch)
         batchNormals   = this._batchNormalsF32Last;
         batchColors    = this._batchColorsF32Last;
         batchTexCoords = this._batchTexCoordsF32Last;
-        batchIndices   = this._batchIndicesU16Last;
+        batchIndices   = this._batchIndicesULast;
     }
     else
     {
@@ -944,7 +1025,7 @@ FGL.prototype.drawElementArrayBatch = function(batch)
         batchNormals   = this._batchNormalsF32Last   = new Float32Array(this._bBatchNormals);
         batchColors    = this._batchColorsF32Last    = new Float32Array(this._bBatchColors);
         batchTexCoords = this._batchTexCoordsF32Last = new Float32Array(this._bBatchTexCoords);
-        batchIndices   = this._batchIndicesU16Last   = Flags.__uintTypeAvailable  ? new Uint32Array(this._bBatchIndices) :
+        batchIndices   = this._batchIndicesULast   = Flags.__uintTypeAvailable  ? new Uint32Array(this._bBatchIndices) :
                                                                                     new Uint16Array(this._bBatchIndices);
   }
 
@@ -1193,7 +1274,6 @@ FGL.prototype.quad = function(vertices,normals,texCoords)
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-//TODO:cleanup
 FGL.prototype.rect = function(width,height)
 {
     height = height || width;
@@ -1450,18 +1530,36 @@ FGL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVer
 // convenience draw
 /*---------------------------------------------------------------------------------------------------------*/
 
-// TODO : finish
 FGL.prototype.box = function(width,height,depth)
 {
     width  = (typeof width  == 'undefined') ? 1.0 : width;
     height = (typeof height == 'undefined') ? 1.0 : height;
     depth  = (typeof depth  == 'undefined') ? 1.0 : depth;
 
-    this.pushMatrix();
-    this.scale3f(width,height,depth);
-    this.drawElements(this._bVertexCube,
-                      this._bNormalCube,this.bufferColors(this._bColor,this._bColorCube),this._bTexCoordCube,this._bIndexCube,this._drawMode);
-    this.popMatrix();
+    var boxWidthLast  = this._boxWidthLast,
+        boxHeightLast = this._boxHeightLast,
+        boxDepthLast  = this._boxDepthLast;
+
+    var boxVerticesLast = this._bVertexBoxScaled;
+
+    this.drawElements((width  == boxWidthLast  &&
+                       height == boxHeightLast &&
+                       depth  == boxDepthLast) ? boxVerticesLast :
+                       this._scaleVertices3f(this._bVertexBox,
+                                             width,height,depth,
+                                             boxVerticesLast),
+                       this._bNormalBox,
+                       this.bufferColors(this._bColor,this._bColorBox),
+                       this._bTexCoordBox,
+                       this._bIndexBox,
+                       this._drawMode,
+                       this._bIndexBox.length,
+                       0,
+                       this.UNSIGNED_SHORT);
+
+    this._boxWidthLast  = width;
+    this._boxHeightLast = height;
+    this._boxDepthLast  = depth;
 
     this._drawFuncLast = this.box;
 };
@@ -1474,7 +1572,9 @@ FGL.prototype.cube = function(size)
         cubeVerticesLast = this._bVertexCubeScaled;
 
    this.drawElements((size == cubeScaleLast) ? cubeVerticesLast :
-                     this._scaleVertices1f(this._bVertexCube,size,cubeVerticesLast),
+                     this._scaleVertices1f(this._bVertexCube,
+                                           size,
+                                           cubeVerticesLast),
                      this._bNormalCube,
                      this.bufferColors(this._bColor,this._bColorCube),
                      this._bTexCoordCube,
@@ -1497,7 +1597,9 @@ FGL.prototype.sphere = function(size)
         sphereVerticesScaled = this._bVertexSphereScaled;
 
     this.drawElements((size == sphereScaleLast) ? sphereVerticesScaled :
-                      this._scaleVertices1f(this._bVertexSphere,size,sphereVerticesScaled),
+                      this._scaleVertices1f(this._bVertexSphere,
+                                            size,
+                                            sphereVerticesScaled),
                       this._bNormalSphere,
                       this.bufferColors(this._bColor,this._bColorSphere),
                       this._bTexCoordsSphere,
@@ -1510,36 +1612,6 @@ FGL.prototype.sphere = function(size)
 
     this._sphereScaleLast = size;
     this._drawFuncLast    = this.sphere;
-};
-
-//TODO: remove !!!!!!!!!!!!!!!
-
-FGL.prototype.lineBox = function(v0,v1){this.lineBoxf(v0[0],v0[1],v0[2],v1[0],v1[1],v1[2]);};
-
-FGL.prototype.lineBoxf = function(x0,y0,z0,x1,y1,z1)
-{
-
-
-    var p0 = this._bPoint0,
-        p1 = this._bPoint1,
-        up = this._axisY;
-
-    Vec3.set3f(p0,x0,y0,z0);
-    Vec3.set3f(p1,x1,y1,z1);
-
-    var len = Vec3.distance(p0,p1),
-        mid = Vec3.scale(Vec3.added(p0,p1),0.5),
-        dir = Vec3.normalize(Vec3.subbed(p1,p0)),
-        c   = Vec3.dot(dir,up);
-
-    var angle = Math.acos(c),
-        axis  = Vec3.normalize(Vec3.cross(up,dir));
-
-    this.pushMatrix();
-    this.translate(mid);
-    this.rotateAxis(angle,axis);
-    this.box(this._lineBoxWidth,len,this._lineBoxHeight);
-    this.popMatrix();
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
