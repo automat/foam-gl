@@ -275,8 +275,8 @@ function FGL(context3d,context2d)
     this._bBatchDynamicIndicesU     = null;
 
     this._bBatchDynamicVerticesNum = 0;
-    this._bBatchDynamicIndexOffset = 0;
-    this._bBatchDynamicSizeLast = -1;
+    this._bBatchDynamicIndicesNum  = 0;
+    this._bBatchDynamicSizeLast    = -1;
 
     //
 
@@ -368,10 +368,10 @@ function FGL(context3d,context2d)
 
     //Cirlce
 
-    this._bVertexCircle   = new Float32Array(SIZE_OF_VERTEX * ELLIPSE_DETAIL_MAX);
-    this._bNormalCircle   = new Float32Array(this._bVertexCircle.length);
-    this._bColorCircle    = new Float32Array(SIZE_OF_COLOR * ELLIPSE_DETAIL_MAX);
-    this._bTexCoordCircle = new Float32Array(SIZE_OF_TEX_COORD * ELLIPSE_DETAIL_MAX);
+    this._bVertexCircle   = new Float32Array(this._bVertexEllipse);
+    this._bNormalCircle   = new Float32Array(this._bNormalEllipse);
+    this._bColorCircle    = new Float32Array(this._bColorEllipse);
+    this._bTexCoordCircle = new Float32Array(this._bTexCoordEllipse);
 
     //Cube
 
@@ -651,6 +651,15 @@ FGL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colo
 
         return;
     }
+    else if(this._bUseDrawElementDynamicArrayBatch)
+    {
+        this._pushElementArrayBatchDynamic(vertexFloat32Array,
+                                           normalFloat32Array,
+                                           colorFloat32Array,
+                                           uvFloat32Array,
+                                           indexArray);
+        return;
+    }
 
     var gl = this.gl;
 
@@ -851,11 +860,12 @@ FGL.prototype.beginDynamicDrawElementArrayBatch = function(size)
         this._bBatchDynamicColorsF32    = new Float32Array(n * this.SIZE_OF_COLOR);
         this._bBatchDynamicTexCoordsF32 = new Float32Array(n * this.SIZE_OF_TEX_COORD);
         //TODO: check size
-        this._bBatchDynamicIndicesU     = Flags.__uintTypeAvailable ? new Uint32Array(size) :
-                                                                      new Uint16Array(size);
+        this._bBatchDynamicIndicesU     = Flags.__uintTypeAvailable ? new Uint32Array(size * 3) :
+                                                                      new Uint16Array(size * 3);
     }
 
     this._bBatchDynamicVerticesNum = 0;
+    this._bBatchDynamicIndicesNum  = 0;
     this._bBatchDynamicIndexOffset = 0;
 
     this._bUseDrawElementDynamicArrayBatch     = true;
@@ -887,11 +897,124 @@ FGL.prototype._pushElementArrayBatchDynamic = function(vertexFloat32Array,normal
     var offsetIndex = this._bBatchDynamicVerticesNum / 3;
     var offset,length,index;
 
-    var batchVertices = this._bBatchDynamicVerticesF32;
+    var batchVertices       = this._bBatchDynamicVerticesF32,
+        batchVerticesOffset = this._bBatchDynamicVerticesNum,
+        batchVerticesLength = batchVerticesOffset + vertexFloat32Array.length;
 
+        offset = batchVerticesOffset;
+        length = batchVerticesLength;
+        index  = 0;
 
+    while(offset < length)
+    {
+        batchVertices[offset  ] = vertexFloat32Array[index  ];
+        batchVertices[offset+1] = vertexFloat32Array[index+1];
+        batchVertices[offset+2] = vertexFloat32Array[index+2];
 
+        Mat44.multVec3AI(transMatrix,batchVertices,offset);
+
+        offset+=3;
+        index +=3;
+    }
+
+    if(normalFloat32Array   )this._putBatchDynamic(this._bBatchDynamicNormalsF32,normalFloat32Array,batchVerticesOffset);
+    if(colorFloat32Array    )this._putBatchDynamic(this._bBatchDynamicColorsF32,colorFloat32Array,batchVerticesOffset / 3 * 4);
+    if(texCoordsFloat32Array)this._putBatchDynamic(this._bBatchDynamicTexCoordsF32,texCoordsFloat32Array,batchVerticesOffset / 3 * 2);
+
+    var batchIndices       = this._bBatchDynamicIndicesU,
+        batchIndicesOffset = this._bBatchDynamicIndicesNum,
+        batchIndicesLength = batchIndicesOffset + indexUint16Array.length;
+
+        offset = batchIndicesOffset;
+        length = batchIndicesLength;
+        index  = 0;
+
+    while(offset < length){batchIndices[offset] = indexUint16Array[index] + offsetIndex;offset++;index++;}
+
+    this._bBatchDynamicIndicesNum  += indexUint16Array.length;
     this._bBatchDynamicVerticesNum += vertexFloat32Array.length;
+};
+
+FGL.prototype.drawElementArrayBatchDynamic = function(batch)
+{
+    if(this._bUseDrawElementDynamicArrayBatch)
+    {
+        if(batch)
+        {
+            this._pushElementArrayBatch(batch[0],
+                batch[1],
+                batch[2],
+                batch[3],
+                batch[4]);
+
+            return;
+        }
+
+
+        /*
+        this._pushElementArrayBatchDynamic(this._bBatchVertices,
+            this._bBatchNormals,
+            this._bBatchColors,
+            this._bBatchTexCoords,
+            this._bBatchIndices);
+        */
+
+        return;
+    }
+    /*
+    if(batch)
+    {
+        this.drawElements(batch[0],
+            batch[1],
+            batch[2],
+            batch[3],
+            batch[4],
+            this.getDrawMode());
+
+        return;
+    }
+
+    var batchVertices,
+        batchNormals,
+        batchColors,
+        batchTexCoords,
+        batchIndices;
+
+    if(this._drawFuncLast == this.drawElementArrayBatch ||
+        !this._bDrawElementDynamicArrayBatchIsDirty)
+    {
+        batchVertices  = this._batchVerticesF32Last;
+        batchNormals   = this._batchNormalsF32Last;
+        batchColors    = this._batchColorsF32Last;
+        batchTexCoords = this._batchTexCoordsF32Last;
+        batchIndices   = this._batchIndicesULast;
+    }
+    else
+    {
+        batchVertices  = this._batchVerticesF32Last  = new Float32Array(this._bBatchVertices);
+        batchNormals   = this._batchNormalsF32Last   = new Float32Array(this._bBatchNormals);
+        batchColors    = this._batchColorsF32Last    = new Float32Array(this._bBatchColors);
+        batchTexCoords = this._batchTexCoordsF32Last = new Float32Array(this._bBatchTexCoords);
+        batchIndices   = this._batchIndicesULast   = Flags.__uintTypeAvailable  ? new Uint32Array(this._bBatchIndices) :
+            new Uint16Array(this._bBatchIndices);
+    }
+    */
+
+    //console.log(this._bBatchDynamicIndicesNum);
+
+
+    this.drawElements(this._bBatchDynamicVerticesF32,
+                      this._bBatchDynamicNormalsF32,
+                      this._bBatchDynamicColorsF32,
+                      this._bBatchDynamicTexCoordsF32,
+                      this._bBatchDynamicIndicesU,
+                      this.getDrawMode(),
+                      this._bBatchDynamicIndicesNum,
+                      0);
+
+
+    this._drawFuncLast = this.drawElementArrayBatchDynamic;
+    this._bDrawElementDynamicArrayBatchIsDirty = false;
 };
 
 //static
@@ -1052,6 +1175,15 @@ FGL.prototype._putBatch = function(batchArray,dataArray)
 
     while(batchOffset < len){batchArray[batchOffset++] = dataArray[index++];}
 };
+
+FGL.prototype._putBatchDynamic = function(batchArray,dataArray,offset)
+{
+    var len = offset + dataArray.length;
+    var index = 0;
+
+    while(offset < len){batchArray[offset++] = dataArray[index++];}
+};
+
 
 
 
