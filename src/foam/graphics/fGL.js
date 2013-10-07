@@ -244,6 +244,12 @@ function FGL(context3d,context2d)
     this._bUseDrawArrayBatch        = false;
     this._bUseDrawElementArrayBatch = false;
     this._bBatchIsDynamic           = false;
+
+
+    this._bDrawArrayBatchIsDirty        = true;
+    this._bDrawElementArrayBatchIsDirty = true;
+
+
     this._drawFuncLast = null;
 
     this._bBatchVertices  = [];
@@ -258,7 +264,7 @@ function FGL(context3d,context2d)
     this._batchTexCoordsF32Last = null;
     this._batchIndicesU16Last   = null;
 
-    this._bBatchVerticesNum = 0;
+
 
     this._bBVecRight = Vec3.make();
     this._bBVecUp    = Vec3.make();
@@ -825,7 +831,8 @@ FGL.prototype.beginDrawElementArrayBatch = function()
     this._bBatchTexCoords.length = 0;
     this._bBatchIndices.length   = 0;
 
-    this._bUseDrawElementArrayBatch = true;
+    this._bUseDrawElementArrayBatch     = true;
+    this._bDrawElementArrayBatchIsDirty = true;
 };
 
 FGL.prototype.endDrawElementArrayBatch = function(){this._bUseDrawElementArrayBatch = false;};
@@ -922,7 +929,8 @@ FGL.prototype.drawElementArrayBatch = function(batch)
         batchTexCoords,
         batchIndices;
 
-    if(this._drawFuncLast == this.drawElementArrayBatch)
+    if(this._drawFuncLast == this.drawElementArrayBatch ||
+       !this._bDrawElementArrayBatchIsDirty)
     {
         batchVertices  = this._batchVerticesF32Last;
         batchNormals   = this._batchNormalsF32Last;
@@ -950,6 +958,7 @@ FGL.prototype.drawElementArrayBatch = function(batch)
 
 
     this._drawFuncLast = this.drawElementArrayBatch;
+    this._bDrawElementArrayBatchIsDirty = false;
 };
 
 FGL.prototype._putBatch = function(batchArray,dataArray)
