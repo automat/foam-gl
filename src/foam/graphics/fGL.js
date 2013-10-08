@@ -265,18 +265,22 @@ function FGL(context3d,context2d)
 
     //dynamic
 
-    this._bUseDrawElementDynamicArrayBatch     = false;
-    this._bDrawElementDynamicArrayBatchIsDirty = true;
+    this._bUseDrawElementDynArrayBatch     = false;
+    this._bDrawElementDynArrayBatchIsDirty = true;
 
-    this._bBatchDynamicVerticesF32  = null;
-    this._bBatchDynamicNormalsF32   = null;
-    this._bBatchDynamicColorsF32    = null;
-    this._bBatchDynamicTexCoordsF32 = null;
-    this._bBatchDynamicIndicesU     = null;
+    this._bBatchDynVerticesF32  = null;
+    this._bBatchDynNormalsF32   = null;
+    this._bBatchDynColorsF32    = null;
+    this._bBatchDynTexCoordsF32 = null;
+    this._bBatchDynIndicesU     = null;
 
-    this._bBatchDynamicVerticesNum = 0;
-    this._bBatchDynamicIndicesNum  = 0;
-    this._bBatchDynamicSizeLast    = -1;
+    this._bBatchDynVerticesNum  = 0;
+    this._bBatchDynNormalsNum   = 0;
+    this._bBatchDynColorsNum    = 0;
+    this._bBatchDynTexCoordsNum = 0;
+    this._bBatchDynIndicesNum   = 0;
+
+    this._bBatchDynamicSizeLast     = -1;
 
     //
 
@@ -410,7 +414,6 @@ function FGL(context3d,context2d)
     this._sphereDetailLast = 10.0;
     this._sphereScaleLast  = -1;
     this._cubeScaleLast    = -1;
-
 
     // gen gem
 
@@ -651,13 +654,13 @@ FGL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colo
 
         return;
     }
-    else if(this._bUseDrawElementDynamicArrayBatch)
+    else if(this._bUseDrawElementDynArrayBatch)
     {
-        this._pushElementArrayBatchDynamic(vertexFloat32Array,
-                                           normalFloat32Array,
-                                           colorFloat32Array,
-                                           uvFloat32Array,
-                                           indexArray);
+        this._pushElementArrayBatchDyn(vertexFloat32Array,
+                                       normalFloat32Array,
+                                       colorFloat32Array,
+                                       uvFloat32Array,
+                                       indexArray);
         return;
     }
 
@@ -855,36 +858,109 @@ FGL.prototype.beginDynamicDrawElementArrayBatch = function(size)
     {
         var n = size / this.SIZE_OF_VERTEX;
 
-        this._bBatchDynamicVerticesF32  = new Float32Array(size);
-        this._bBatchDynamicNormalsF32   = new Float32Array(size);
-        this._bBatchDynamicColorsF32    = new Float32Array(n * this.SIZE_OF_COLOR);
-        this._bBatchDynamicTexCoordsF32 = new Float32Array(n * this.SIZE_OF_TEX_COORD);
         //TODO: check size
-        this._bBatchDynamicIndicesU     = Flags.__uintTypeAvailable ? new Uint32Array(size * 3) :
+        this._bBatchDynVerticesF32  = new Float32Array(size);
+        this._bBatchDynNormalsF32   = new Float32Array(size * 10);
+        this._bBatchDynColorsF32    = new Float32Array(n * this.SIZE_OF_COLOR);
+        this._bBatchDynTexCoordsF32 = new Float32Array(n * this.SIZE_OF_TEX_COORD);
+
+        this._bBatchDynIndicesU     = Flags.__uintTypeAvailable ? new Uint32Array(size * 3) :
                                                                       new Uint16Array(size * 3);
     }
 
-    this._bBatchDynamicVerticesNum = 0;
-    this._bBatchDynamicIndicesNum  = 0;
-    this._bBatchDynamicIndexOffset = 0;
+    this._bBatchDynVerticesNum  = 0;
+    this._bBatchDynNormalsNum   = 0;
+    this._bBatchDynColorsNum    = 0;
+    this._bBatchDynTexCoordsNum = 0;
+    this._bBatchDynIndicesNum   = 0;
 
-    this._bUseDrawElementDynamicArrayBatch     = true;
-    this._bDrawElementDynamicArrayBatchIsDirty = true;
+    this._bUseDrawElementDynArrayBatch     = true;
+    this._bDrawElementDynArrayBatchIsDirty = true;
 
     this._bBatchDynamicSizeLast = size;
 };
 
-FGL.prototype.endDynamicDrawElementArrayBatch = function(){this._bUseDrawElementDynamicArrayBatch = false;};
+FGL.prototype.endDynamicDrawElementArrayBatch = function(){this._bUseDrawElementDynArrayBatch = false;};
 
 FGL.prototype.getElementArrayDynamicBatch = function()
 {
-    return [this._bBatchDynamicVerticesF32,
-            this._bBatchDynamicNormalsF32,
-            this._bBatchDynamicColorsF32,
-            this._bBatchDynamicTexCoordsF32,
-            this._bBatchDynamicIndicesU];
+    return [this._bBatchDynVerticesF32,
+            this._bBatchDynNormalsF32,
+            this._bBatchDynColorsF32,
+            this._bBatchDynTexCoordsF32,
+            this._bBatchDynIndicesU];
 };
 
+FGL.prototype._pushElementArrayBatchDyn = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,texCoordsFloat32Array,indexUint16Array)
+{
+    var mTemp0 = Mat44.identity(this._mTemp0),
+        mTemp1 = Mat44.identity(this._mTemp1),
+        mTemp2 = Mat44.identity(this._mTemp2);
+
+    var modelViewMat    = Mat44.set(mTemp0, this._mModelView),
+        transMatrix     = Mat44.mult(modelViewMat,Mat44.invert(this._camera.modelViewMatrix,mTemp2),mTemp1);
+
+    var batch,offset,length,index;
+
+        batch  = this._bBatchDynVerticesF32;
+        offset = this._bBatchDynVerticesNum;
+        length = offset + vertexFloat32Array.length;
+        index  = 0;
+
+    while(offset < length)
+    {
+        batch[offset  ] = vertexFloat32Array[index  ];
+        batch[offset+1] = vertexFloat32Array[index+1];
+        batch[offset+2] = vertexFloat32Array[index+2];
+
+        Mat44.multVec3AI(transMatrix,batch,offset);
+
+        offset+=3;
+        index +=3;
+    }
+
+    if(normalFloat32Array)
+    {
+        batch  = this._bBatchDynNormalsF32;
+        offset = this._bBatchDynNormalsNum;
+        length = offset + normalFloat32Array.length;
+        index  = 0;
+
+        while(offset < length)
+        {
+            batch[offset  ] = normalFloat32Array[index  ];
+            batch[offset+1] = normalFloat32Array[index+1];
+            batch[offset+2] = normalFloat32Array[index+2];
+
+            offset+=3;
+            index +=3;
+        }
+
+        //this._putBatchDyn(this._bBatchDynNormalsF32,  normalFloat32Array,   this._bBatchDynNormalsNum);
+    }
+
+    if(colorFloat32Array    )this._putBatchDyn(this._bBatchDynColorsF32,   colorFloat32Array,    this._bBatchDynColorsNum);
+    if(texCoordsFloat32Array)this._putBatchDyn(this._bBatchDynTexCoordsF32,texCoordsFloat32Array,this._bBatchDynTexCoordsNum);
+
+    var offsetIndex        = this._bBatchDynVerticesNum / 3;
+
+        batch  = this._bBatchDynIndicesU;
+        offset = this._bBatchDynIndicesNum;
+        length = offset + indexUint16Array.length;
+        index  = 0;
+
+    while(offset < length){batch[offset] = indexUint16Array[index] + offsetIndex;offset++;index++;}
+
+    this._bBatchDynVerticesNum  += vertexFloat32Array.length;
+    this._bBatchDynNormalsNum   += normalFloat32Array.length;
+    this._bBatchDynColorsNum    += colorFloat32Array.length;
+    this._bBatchDynTexCoordsNum += texCoordsFloat32Array.length;
+    this._bBatchDynIndicesNum   += indexUint16Array.length;
+
+};
+
+
+/*
 FGL.prototype._pushElementArrayBatchDynamic = function(vertexFloat32Array,normalFloat32Array,colorFloat32Array,texCoordsFloat32Array,indexUint16Array)
 {
     var mTemp0 = Mat44.identity(this._mTemp0),
@@ -894,11 +970,11 @@ FGL.prototype._pushElementArrayBatchDynamic = function(vertexFloat32Array,normal
     var modelViewMat    = Mat44.set(mTemp0, this._mModelView),
         transMatrix     = Mat44.mult(modelViewMat,Mat44.invert(this._camera.modelViewMatrix,mTemp2),mTemp1);
 
-    var offsetIndex = this._bBatchDynamicVerticesNum / 3;
+    var offsetIndex = this._bBatchDynVerticesNum / 3;
     var offset,length,index;
 
-    var batchVertices       = this._bBatchDynamicVerticesF32,
-        batchVerticesOffset = this._bBatchDynamicVerticesNum,
+    var batchVertices       = this._bBatchDynVerticesF32,
+        batchVerticesOffset = this._bBatchDynVerticesNum,
         batchVerticesLength = batchVerticesOffset + vertexFloat32Array.length;
 
         offset = batchVerticesOffset;
@@ -917,12 +993,12 @@ FGL.prototype._pushElementArrayBatchDynamic = function(vertexFloat32Array,normal
         index +=3;
     }
 
-    if(normalFloat32Array   )this._putBatchDynamic(this._bBatchDynamicNormalsF32,normalFloat32Array,batchVerticesOffset);
-    if(colorFloat32Array    )this._putBatchDynamic(this._bBatchDynamicColorsF32,colorFloat32Array,batchVerticesOffset / 3 * 4);
-    if(texCoordsFloat32Array)this._putBatchDynamic(this._bBatchDynamicTexCoordsF32,texCoordsFloat32Array,batchVerticesOffset / 3 * 2);
+    if(normalFloat32Array   )this._putBatchDyn(this._bBatchDynNormalsF32,normalFloat32Array,batchVerticesOffset);
+    if(colorFloat32Array    )this._putBatchDyn(this._bBatchDynColorsF32,colorFloat32Array,batchVerticesOffset / 3 * 4);
+    if(texCoordsFloat32Array)this._putBatchDyn(this._bBatchDynTexCoordsF32,texCoordsFloat32Array,batchVerticesOffset / 3 * 2);
 
-    var batchIndices       = this._bBatchDynamicIndicesU,
-        batchIndicesOffset = this._bBatchDynamicIndicesNum,
+    var batchIndices       = this._bBatchDynIndicesU,
+        batchIndicesOffset = this._bBatchDynIndicesNum,
         batchIndicesLength = batchIndicesOffset + indexUint16Array.length;
 
         offset = batchIndicesOffset;
@@ -931,17 +1007,18 @@ FGL.prototype._pushElementArrayBatchDynamic = function(vertexFloat32Array,normal
 
     while(offset < length){batchIndices[offset] = indexUint16Array[index] + offsetIndex;offset++;index++;}
 
-    this._bBatchDynamicIndicesNum  += indexUint16Array.length;
-    this._bBatchDynamicVerticesNum += vertexFloat32Array.length;
+    this._bBatchDynIndicesNum  += indexUint16Array.length;
+    this._bBatchDynVerticesNum += vertexFloat32Array.length;
 };
+*/
 
 FGL.prototype.drawElementArrayBatchDynamic = function(batch)
 {
-    if(this._bUseDrawElementDynamicArrayBatch)
+    if(this._bUseDrawElementDynArrayBatch)
     {
         if(batch)
         {
-            this._pushElementArrayBatch(batch[0],
+            this._pushElementArrayBatchDyn(batch[0],
                 batch[1],
                 batch[2],
                 batch[3],
@@ -981,7 +1058,7 @@ FGL.prototype.drawElementArrayBatchDynamic = function(batch)
         batchIndices;
 
     if(this._drawFuncLast == this.drawElementArrayBatch ||
-        !this._bDrawElementDynamicArrayBatchIsDirty)
+        !this._bDrawElementDynArrayBatchIsDirty)
     {
         batchVertices  = this._batchVerticesF32Last;
         batchNormals   = this._batchNormalsF32Last;
@@ -1000,21 +1077,21 @@ FGL.prototype.drawElementArrayBatchDynamic = function(batch)
     }
     */
 
-    //console.log(this._bBatchDynamicIndicesNum);
+    //console.log(this._bBatchDynIndicesNum);
 
 
-    this.drawElements(this._bBatchDynamicVerticesF32,
-                      this._bBatchDynamicNormalsF32,
-                      this._bBatchDynamicColorsF32,
-                      this._bBatchDynamicTexCoordsF32,
-                      this._bBatchDynamicIndicesU,
+    this.drawElements(this._bBatchDynVerticesF32,
+                      this._bBatchDynNormalsF32,
+                      this._bBatchDynColorsF32,
+                      this._bBatchDynTexCoordsF32,
+                      this._bBatchDynIndicesU,
                       this.getDrawMode(),
-                      this._bBatchDynamicIndicesNum,
+                      this._bBatchDynIndicesNum,
                       0);
 
 
     this._drawFuncLast = this.drawElementArrayBatchDynamic;
-    this._bDrawElementDynamicArrayBatchIsDirty = false;
+    this._bDrawElementDynArrayBatchIsDirty = false;
 };
 
 //static
@@ -1176,11 +1253,9 @@ FGL.prototype._putBatch = function(batchArray,dataArray)
     while(batchOffset < len){batchArray[batchOffset++] = dataArray[index++];}
 };
 
-FGL.prototype._putBatchDynamic = function(batchArray,dataArray,offset)
+FGL.prototype._putBatchDyn = function(batchArray,dataArray,offset)
 {
-    var len = offset + dataArray.length;
-    var index = 0;
-
+    var len = offset + dataArray.length,index = 0;
     while(offset < len){batchArray[offset++] = dataArray[index++];}
 };
 
