@@ -325,6 +325,9 @@ function FGL(context3d,context2d)
     this._bColorBg4f = Color.BLACK();
     this._bColor     = this._bColor4f;
 
+    this._bColor4fLast = null;
+    this._bColorLast   = null;
+
     this._axisX = Vec3.AXIS_X();
     this._axisY = Vec3.AXIS_Y();
     this._axisZ = Vec3.AXIS_Z();
