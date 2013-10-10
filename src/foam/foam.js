@@ -49,6 +49,7 @@ module.exports =
     MatGL        : require('./graphics/gl/fMatGL'),
     ProgLoader   : require('./graphics/gl/shader/fProgLoader'),
     ShaderLoader : require('./graphics/gl/shader/fShaderLoader'),
+    Program      : require('./graphics/gl/fProgram'),
     CameraBasic  : require('./graphics/fCameraBasic'),
 
     Light            : require('./graphics/gl/fLight'),

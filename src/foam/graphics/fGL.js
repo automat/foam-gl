@@ -1,6 +1,7 @@
 var fError           = require('../system/common/fError'),
     Platform         = require('../system/common/fPlatform'),
     Flags            = require('../system/fFlags'),
+    Program          = require('./gl/fProgram'),
     ProgVertexShader = require('./gl/shader/fProgVertexShader'),
     ProgFragShader   = require('./gl/shader/fProgFragShader'),
     ProgLoader       = require('./gl/shader/fProgLoader'),
@@ -1735,6 +1736,34 @@ FGL.prototype.disableDefaultVertexAttribArray    = function(){this.gl.disableVer
 FGL.prototype.disableDefaultNormalAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexNormal);};
 FGL.prototype.disableDefaultColorAttribArray     = function(){this.gl.disableVertexAttribArray(this._aVertexColor);};
 FGL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVertexAttribArray(this._aVertexTexCoord);};
+
+
+FGL.prototype.useDefaultProgram = function()
+{
+    var gl = this.gl;
+    gl.useProgram(this._programScene);
+
+    gl.enableVertexAttribArray(this._aVertexPosition);
+    gl.enableVertexAttribArray(this._aVertexNormal);
+    gl.enableVertexAttribArray(this._aVertexColor);
+    gl.enableVertexAttribArray(this._aVertexTexCoord);
+};
+
+FGL.prototype.useProgram = function(program)
+{
+    this.gl.useProgram(program.program);
+    program.enableVertexAttribArrays();
+};
+
+FGL.prototype.deleteProgram = function(program)
+{
+    var gl = this.gl;
+        gl.deleteShader(program.vertShader);
+        gl.deleteShader(program.fragShader);
+        gl.deleteProgram(program.program);
+};
+
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 // convenience draw
