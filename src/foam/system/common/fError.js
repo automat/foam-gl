@@ -7,5 +7,6 @@ module.exports =
     PLASK_WINDOW_SIZE_SET:  'Plask window size can only be set on startup.',
     WRONG_PLATFORM:         'Wrong Platform.',
     VERTICES_IN_WRONG_SIZE: 'Vertices array has wrong length. Should be ',
-    COLORS_IN_WRONG_SIZE:   'Color array length not equal to number of vertices.'
+    COLORS_IN_WRONG_SIZE:   'Color array length not equal to number of vertices.',
+    DIRECTORY_DOESNT_EXIST: 'File target directory does not exist.'
 };
