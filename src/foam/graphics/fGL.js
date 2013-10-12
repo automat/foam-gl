@@ -1854,7 +1854,7 @@ FGL.prototype.sphere = function(size)
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
-// convenience bindings gl
+// expose gl stuff
 /*---------------------------------------------------------------------------------------------------------*/
 
 FGL.prototype.enable                = function(id){this.gl.enable(id);};
@@ -1871,6 +1871,56 @@ FGL.prototype.stencilFunc           = function(func,ref,mask){this.gl.stencilFun
 FGL.prototype.stencilFuncSeparate   = function(face,func,ref,mask){this.gl.stencilFuncSeparate(face,func,ref,mask);};
 FGL.prototype.stencilOp             = function(fail,zfail,zpass){this.gl.stencilOp(fail,zfail,zpass);};
 FGL.prototype.stencilOpSeparate     = function(face,fail,zfail,zpass){this.gl.stencilOpSeparate(face,fail,zfail,zpass);};
+
+//convient bindings, for now every function in conflict is prefixed with gl, odd
+
+
+FGL.prototype.glUniform1i  = function(location,x)      {this.gl.uniform1i(location,x);};
+FGL.prototype.glUniform2i  = function(location,x,y)    {this.gl.uniform2i(location,x,y);};
+FGL.prototype.glUniform3i  = function(location,x,y,z)  {this.gl.uniform3i(location,x,y,z);};
+FGL.prototype.glUniform4i  = function(location,x,y,z,w){this.gl.uniform4i(location,x,y,z,w);};
+
+FGL.prototype.glUniform1iv = function(location,v)      {this.gl.uniform1iv(location,v);};
+FGL.prototype.glUniform2iv = function(location,v)      {this.gl.uniform2iv(location,v);};
+FGL.prototype.glUniform3iv = function(location,v)      {this.gl.uniform3iv(location,v);};
+FGL.prototype.glUniform4iv = function(location,v)      {this.gl.uniform4iv(location,v);};
+
+FGL.prototype.glUniform1f = function(location,x)      {this.gl.uniform1f(location,x);};
+FGL.prototype.glUniform2f = function(location,x,y)    {this.gl.uniform2f(location,x,y);};
+FGL.prototype.glUniform3f = function(location,x,y,z)  {this.gl.uniform3f(location,x,y,z);};
+FGL.prototype.glUniform4f = function(location,x,y,z,w){this.gl.uniform4f(location,x,y,z,w);};
+
+FGL.prototype.glUniform1fv = function(location,v)      {this.gl.uniform1fv(location,v);};
+FGL.prototype.glUniform2fv = function(location,v)      {this.gl.uniform2fv(location,v);};
+FGL.prototype.glUniform3fv = function(location,v)      {this.gl.uniform3fv(location,v);};
+FGL.prototype.glUniform4fv = function(location,v)      {this.gl.uniform4fv(location,v);};
+
+FGL.prototype.glUniformMatrix2fv = function(location,transpose,value){this.gl.uniformMatrix2fv(location,transpose,value);}
+FGL.prototype.glUniformMatrix3fv = function(location,transpose,value){this.gl.uniformMatrix3fv(location,transpose,value);}
+FGL.prototype.glUniformMatrix4fv = function(location,transpose,value){this.gl.uniformMatrix4fv(location,transpose,value);}
+
+FGL.prototype.glVertexAttrib1f = function(index,x)      {this.gl.vertexAttrib1f(index,x)};
+FGL.prototype.glVertexAttrib2f = function(index,x,y)    {this.gl.vertexAttrib2f(index,x,y);};
+FGL.prototype.glVertexAttrib3f = function(index,x,y,z)  {this.gl.vertexAttrib3f(index,x,y,z);};
+FGL.prototype.glVertexAttrib4f = function(index,x,y,z,w){this.gl.vertexAttrib4f(index,x,y,z,w);};
+
+FGL.prototype.glVertexAttrib1fv = function(index,values){this.gl.vertexAttrib1fv(index,values);};
+FGL.prototype.glVertexAttrib2fv = function(index,values){this.gl.vertexAttrib2fv(index,values);};
+FGL.prototype.glVertexAttrib3fv = function(index,values){this.gl.vertexAttrib3fv(index,values);};
+FGL.prototype.glVertexAttrib4fv = function(index,values){this.gl.vertexAttrib4fv(index,values);};
+
+FGL.prototype.glDisableVertexAttribArray = function(index){this.gl.disableVertexAttribArray(index);};
+FGL.prototype.glEnableVertexAttribArray  = function(index){this.gl.enableVertexAttribArray(index);};
+FGL.prototype.glVertexAttribPointer      = function(index,size,type,normalized,stride,offset){this.gl.vertexAttribPointer(index,size,type,normalized,stride,offset);}
+
+FGL.prototype.glDrawArrays   = function(mode,first,count){this.gl.drawArrays(mode,first,count);};
+FGL.prototype.glDrawElements = function(mode,count,type,offset){type.gl.drawElements(mode,count,type,offset);};
+
+
+
+
+
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 // World -> Screen
