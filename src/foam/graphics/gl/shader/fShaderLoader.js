@@ -1,6 +1,12 @@
 module.exports =
 {
-    PrefixShaderWeb : 'precision mediump float;',
+    PrefixShaderWeb : "#ifdef GL_ES\n" +
+                      "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
+                      "  precision highp float;\n" +
+                      "#else\n" +
+                      "  precision mediump float;\n" +
+                      "#endif\n" +
+                      "#endif\n",
 
     loadShaderFromString : function(gl,sourceString,type)
     {
