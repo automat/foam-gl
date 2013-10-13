@@ -4,9 +4,9 @@ var fs     = require('fs'),
 
 var SystemImplPlask =
 {
-    readFile : function(file,callback)
+    readFile : function(filepath,callback)
     {
-        fs.readFile(file,'utf8',function(err,data)
+        fs.readFile(filepath,'utf8',function(err,data)
         {
             if(err)throw err;
             callback(data);
@@ -15,7 +15,7 @@ var SystemImplPlask =
         return true;
     },
 
-    readFileSync : function(file){return fs.readFileSync(file,'utf8');},
+    readFileSync : function(filepath){return fs.readFileSync(filepath,'utf8');},
 
     writeFile : function(filepath,data,callback)
     {

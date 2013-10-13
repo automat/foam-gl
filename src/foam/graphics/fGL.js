@@ -1,18 +1,20 @@
-var fError           = require('../system/common/fError'),
-    Platform         = require('../system/common/fPlatform'),
-    Flags            = require('../system/fFlags'),
-    Program          = require('./gl/fProgram'),
-    ProgVertexShader = require('./gl/shader/fProgVertexShader'),
-    ProgFragShader   = require('./gl/shader/fProgFragShader'),
-    ProgLoader       = require('./gl/shader/fProgLoader'),
-    ShaderLoader     = require('./gl/shader/fShaderLoader'),
-    Vec2             = require('../math/fVec2'),
-    Vec3             = require('../math/fVec3'),
-    Vec4             = require('../math/fVec4'),
-    Mat33            = require('../math/fMat33'),
-    Mat44            = require('../math/fMat44'),
-    Color            = require('../util/fColor'),
-    Texture          = require('./gl/fTexture');
+var fError         = require('../system/common/fError'),
+    Platform       = require('../system/common/fPlatform'),
+    Flags          = require('../system/fFlags'),
+    Program        = require('./gl/fProgram'),
+    ProgVertShader = require('./gl/shader/fProgVertShader'),
+    ProgFragShader = require('./gl/shader/fProgFragShader'),
+    RenderVertShader = require('./gl/shader/fRenderVertShader'),
+    RenderFragShader = require('./gl/shader/fRenderFragShader'),
+    ProgLoader     = require('./gl/shader/fProgLoader'),
+    ShaderLoader   = require('./gl/shader/fShaderLoader'),
+    Vec2           = require('../math/fVec2'),
+    Vec3           = require('../math/fVec3'),
+    Vec4           = require('../math/fVec4'),
+    Mat33          = require('../math/fMat33'),
+    Mat44          = require('../math/fMat44'),
+    Color          = require('../util/fColor'),
+    Texture        = require('./gl/fTexture');
 
 
 function FGL(context3d,context2d)
@@ -27,27 +29,42 @@ function FGL(context3d,context2d)
     // create shaders/program + bind
     /*---------------------------------------------------------------------------------------------------------*/
 
-    /*
-    var progVertexShader = ShaderLoader.loadShaderFromString(gl, ProgVertexShader, gl.VERTEX_SHADER),
-        progFragShader   = ShaderLoader.loadShaderFromString(gl, ((Platform.getTarget() == Platform.WEB) ?
-                                                                  ShaderLoader.PrefixShaderWeb : '') +
-                                                                  ProgFragShader, gl.FRAGMENT_SHADER);
-
-
-
-    var programScene =  ProgLoader.loadProgram(gl,progVertexShader,progFragShader);
-    */
-
-
-
     var platform = Platform.getTarget();
+    var shaderPrefix = ((platform == Platform.WEB || platform == Platform.NODE_WEBKIT)) ? ShaderLoader.PrefixShaderWeb : '';
+
+
+    var programRender = this._programRender = gl.createProgram();
+
+    var renderVertShader = gl.createShader(gl.VERTEX_SHADER),
+        renderFragShader = gl.createShader(gl.FRAGMENT_SHADER);
+
+    gl.shaderSource(renderVertShader,RenderVertShader);
+    gl.compileShader(renderVertShader);
+
+    if(!gl.getShaderParameter(renderVertShader,gl.COMPILE_STATUS))
+        throw gl.getShaderInfoLog(renderVertShader);
+
+    gl.shaderSource(renderFragShader, shaderPrefix + RenderFragShader);
+    gl.compileShader(renderFragShader);
+
+    if(!gl.getShaderParameter(renderFragShader,gl.COMPILE_STATUS))
+        throw gl.getShaderInfoLog(renderFragShader);
+
+    gl.attachShader(programRender, renderVertShader);
+    gl.attachShader(programRender, renderFragShader);
+    gl.linkProgram( programRender);
+
+    if(!gl.getProgramParameter(programRender,gl.LINK_STATUS))
+        throw gl.getProgramInfoLog(programRender);
+
+    //
 
     var programScene = this._programScene = gl.createProgram();
 
     var progVertShader = gl.createShader(gl.VERTEX_SHADER),
         progFragShader = gl.createShader(gl.FRAGMENT_SHADER);
 
-    gl.shaderSource(progVertShader, ProgVertexShader);
+    gl.shaderSource(progVertShader, ProgVertShader);
     gl.compileShader(progVertShader);
 
     if(!gl.getShaderParameter(progVertShader,gl.COMPILE_STATUS))
@@ -233,6 +250,11 @@ function FGL(context3d,context2d)
 
     gl.bindBuffer(gl.ARRAY_BUFFER,         this._defaultVBO);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._defaultIBO);
+
+
+    /*---------------------------------------------------------------------------------------------------------*/
+    // FrameBuffer RenderBuffer
+    /*---------------------------------------------------------------------------------------------------------*/
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init flags and caches
@@ -1918,7 +1940,19 @@ FGL.prototype.glDrawElements = function(mode,count,type,offset){type.gl.drawElem
 
 
 
+/*---------------------------------------------------------------------------------------------------------*/
+// Framebuffer
+/*---------------------------------------------------------------------------------------------------------*/
 
+FGL.prototype._prepareFramebuffer = function()
+{
+
+};
+
+FGL.prototype._renderFramebuffer = function()
+{
+
+};
 
 
 

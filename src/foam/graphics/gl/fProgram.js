@@ -1,5 +1,6 @@
 var Platform     = require('../../system/common/fPlatform'),
-    ShaderLoader = require('./shader/fShaderLoader');
+    ShaderLoader = require('./shader/fShaderLoader'),
+    System       = require('../../System/fSystem');
 
 function Program(fgl,vertexShader,fragmentShader)
 {
@@ -52,6 +53,7 @@ Program.prototype.enableVertexAttribArrays = function()
 {
 
 };
+
 
 
 module.exports = Program;

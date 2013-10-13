@@ -202,7 +202,11 @@ AppImplWeb.prototype._init = function(appObj)
             {
                 timeNext = self._timeNext = time - (timeDelta % timeInterval);
 
+                appObj.fgl._prepareFramebuffer();
+
                 appObj.update();
+
+                appObj.fgl._renderFramebuffer();
 
                 self._timeElapsed = (timeNext - self._timeStart) / 1000.0;
                 self._framenum++;

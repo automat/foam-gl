@@ -167,11 +167,15 @@ AppImplPlask.prototype.init = function(appObj)
             {
                 timeNext = self._timeNext = time - (timeDelta % timeInterval);
 
+                appObj.fgl._prepareFramebuffer();
+
                 try{appObj.update();}catch (ex)
                 {
                     sys.error('Exception caught in AppImplPlask draw: \n' +
                         ex + '\n' + ex.stack);
                 }
+
+                appObj.fgl._renderFramebuffer();
 
                 self._timeElapsed = (timeNext - self._timeStart) / 1000.0;
                 self._framenum++;
