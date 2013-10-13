@@ -6,6 +6,9 @@ var fError               = require('../system/common/fError'),
     ProgFragShaderGLSL   = require('./gl/shader/fProgFragShader'),
     RenderVertShaderGLSL = require('./gl/shader/fRenderVertShader'),
     RenderFragShaderGLSL = require('./gl/shader/fRenderFragShader'),
+    ColorVertShaderGLSL  = require('./gl/shader/fColorVertShader'),
+    ColorFragShaderGLSL  = require('./gl/shader/fColorFragShader'),
+
     ProgLoader           = require('./gl/shader/fProgLoader'),
     ShaderLoader         = require('./gl/shader/fShaderLoader'),
     Vec2                 = require('../math/fVec2'),
@@ -32,6 +35,9 @@ function FGL(context3d,context2d)
     var platform = Platform.getTarget();
 
     this._programRender   = new Program(this,RenderVertShaderGLSL,RenderFragShaderGLSL);
+
+    this._programMaterialColor = new Program(this,ColorVertShaderGLSL,ColorFragShaderGLSL);
+
     this._programDefault  = new Program(this,ProgVertShaderGLSL,ProgFragShaderGLSL);
 
     this._program     = null;
@@ -48,6 +54,17 @@ function FGL(context3d,context2d)
     // Set Shader initial values
     /*---------------------------------------------------------------------------------------------------------*/
 
+    this.MATERIAL_MODE_COLOR        = 0;
+    this.MATERIAL_MODE_PHONG        = 1;
+    this.MATERIAL_MODEL_ANTISOPTRIC = 2;
+    this.MATERIAL_MODEL_FRESNEL     = 3;
+    this.MATERIAL_MODEL_BLINN       = 4;
+    this.MATERIAL_MODEL_FLAT        = 5;
+
+    this._materialMode     = 1;
+    this._materialModeLast = -1;
+
+
 
     this.LIGHT_0    = 0;
     this.LIGHT_1    = 1;
@@ -58,12 +75,6 @@ function FGL(context3d,context2d)
     this.LIGHT_6    = 6;
     this.LIGHT_7    = 7;
     this.MAX_LIGHTS = 8;
-
-    this.MODEL_PHONG       = 0;
-    this.MODEL_ANTISOPTRIC = 1;
-    this.MODEL_FRESNEL     = 2;
-    this.MODEL_BLINN       = 3;
-    this.MODEL_FLAT        = 4;
 
     var program = this._program;
     var light;
@@ -359,11 +370,24 @@ function FGL(context3d,context2d)
 // Light
 /*---------------------------------------------------------------------------------------------------------*/
 
-FGL.prototype.useLighting  = function(bool){this.gl.uniform1f(this._program.uUseLighting,bool ? 1.0 : 0.0);this._bUseLighting = bool;};
+FGL.prototype.useLighting  = function(bool)
+{
+    var materialMode = this._materialMode;
+    if(materialMode != this.MATERIAL_MODE_COLOR)
+    {
+        this.gl.uniform1f(this._program.uUseLighting,bool ? 1.0 : 0.0);
+    }
+
+    this._bUseLighting = bool;
+};
 FGL.prototype.getLighting  = function()    {return this._bUseLighting;};
 
 FGL.prototype.light = function(light)
 {
+    var materialMode = this._materialMode;
+
+    if(materialMode == this.MATERIAL_MODE_COLOR)return;
+
     var id = light.getId(),
         gl = this.gl;
 
@@ -493,10 +517,47 @@ FGL.prototype.disableTextures = function()
 // Material
 /*---------------------------------------------------------------------------------------------------------*/
 
-FGL.prototype.useMaterial = function(bool){this.gl.uniform1f(this._program.uUseMaterial,bool ? 1.0 : 0.0);this._bUseMaterial = bool;};
+FGL.prototype.useMaterial = function(bool)
+{
+    var materialMode = this._materialMode;
+    if(materialMode != this.MATERIAL_MODE_COLOR)
+    {
+        this.gl.uniform1f(this._program.uUseMaterial,bool ? 1.0 : 0.0);
+    }
+
+    this._bUseMaterial = bool;
+};
+
+FGL.prototype.materialMode = function(mode)
+{
+    if(this._materialModeLast == mode)return;
+
+    var gl = this.gl;
+
+    switch(mode)
+    {
+        case this.MATERIAL_MODE_COLOR:
+            this.useProgram(this._programMaterialColor);
+            gl.uniform1f(this._program.uPointSize, 1.0);
+
+            break;
+        case this.MATERIAL_MODE_PHONG:
+            this.useProgram(this._programDefault);
+            gl.uniform1f(this._program.uPointSize, 1.0);
+            break;
+    }
+
+    this.bindDefaultVBO();
+    this.bindDefaultIBO();
+
+    this._materialMode = mode;
+};
 
 FGL.prototype.material = function(material)
 {
+    var materialMode = this._materialMode;
+    if(materialMode == this.MATERIAL_MODE_COLOR)return;
+
     var gl = this.gl;
 
     var program = this._program;
@@ -540,7 +601,10 @@ FGL.prototype.setMatricesUniform = function()
     gl.uniformMatrix4fv(program.uModelViewMatrix,false,this._mModelView);
     gl.uniformMatrix4fv(program.uProjectionMatrix,false,this._camera.projectionMatrix);
 
-    if(!this._bUseLighting)return;
+    var materialMode = this._materialMode;
+
+    if(!this._bUseLighting ||
+        materialMode == this.MATERIAL_MODE_COLOR)return;
 
     Mat44.toMat33Inversed(this._mModelView,this._mNormal);
     Mat33.transpose(this._mNormal,this._mNormal);
@@ -640,6 +704,8 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
         aVertexColor    = program.aVertexColor,
         aVertexTexCoord = program.aVertexTexCoord;
 
+    var materialMode = this._materialMode;
+
     var gl            = this.gl,
         glArrayBuffer = gl.ARRAY_BUFFER,
         glFloat       = gl.FLOAT;
@@ -661,7 +727,11 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
     gl.bufferSubData(glArrayBuffer, offsetV, vertexFloat32Array);
     gl.vertexAttribPointer(aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
 
-    if(!na){ gl.disableVertexAttribArray(aVertexNormal);}
+    if(!na ||
+       materialMode == this.MATERIAL_MODE_COLOR)
+    {
+        gl.disableVertexAttribArray(aVertexNormal);
+    }
     else
     {
         gl.enableVertexAttribArray(aVertexNormal);
@@ -1686,7 +1756,6 @@ FGL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVer
 
 FGL.prototype.useDefaultProgram = function()
 {
-    var gl = this.gl;
     this.useProgram(this._programDefault);
 };
 

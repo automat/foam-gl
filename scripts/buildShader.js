@@ -17,6 +17,8 @@ function shader2String(shaderSource,dist)
 
 shader2String(inPath + 'fProgFragShader.glsl',outPath + 'fProgFragShader.js');
 shader2String(inPath + 'fProgVertShader.glsl',outPath + 'fProgVertShader.js');
+shader2String(inPath + 'fColorFragShader.glsl',outPath + 'fColorFragShader.js');
+shader2String(inPath + 'fColorVertShader.glsl',outPath + 'fColorVertShader.js');
 shader2String(inPath + 'fRenderVertShader.glsl',outPath + 'fRenderVertShader.js');
 shader2String(inPath + 'fRenderFragShader.glsl',outPath + 'fRenderFragShader.js');
 
