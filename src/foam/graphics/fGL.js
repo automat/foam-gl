@@ -1,20 +1,20 @@
-var fError         = require('../system/common/fError'),
-    Platform       = require('../system/common/fPlatform'),
-    Flags          = require('../system/fFlags'),
-    Program        = require('./gl/fProgram'),
-    ProgVertShader = require('./gl/shader/fProgVertShader'),
-    ProgFragShader = require('./gl/shader/fProgFragShader'),
-    RenderVertShader = require('./gl/shader/fRenderVertShader'),
-    RenderFragShader = require('./gl/shader/fRenderFragShader'),
-    ProgLoader     = require('./gl/shader/fProgLoader'),
-    ShaderLoader   = require('./gl/shader/fShaderLoader'),
-    Vec2           = require('../math/fVec2'),
-    Vec3           = require('../math/fVec3'),
-    Vec4           = require('../math/fVec4'),
-    Mat33          = require('../math/fMat33'),
-    Mat44          = require('../math/fMat44'),
-    Color          = require('../util/fColor'),
-    Texture        = require('./gl/fTexture');
+var fError               = require('../system/common/fError'),
+    Platform             = require('../system/common/fPlatform'),
+    Flags                = require('../system/fFlags'),
+    Program              = require('./gl/fProgram'),
+    ProgVertShaderGLSL   = require('./gl/shader/fProgVertShader'),
+    ProgFragShaderGLSL   = require('./gl/shader/fProgFragShader'),
+    RenderVertShaderGLSL = require('./gl/shader/fRenderVertShader'),
+    RenderFragShaderGLSL = require('./gl/shader/fRenderFragShader'),
+    ProgLoader           = require('./gl/shader/fProgLoader'),
+    ShaderLoader         = require('./gl/shader/fShaderLoader'),
+    Vec2                 = require('../math/fVec2'),
+    Vec3                 = require('../math/fVec3'),
+    Vec4                 = require('../math/fVec4'),
+    Mat33                = require('../math/fMat33'),
+    Mat44                = require('../math/fMat44'),
+    Color                = require('../util/fColor'),
+    Texture              = require('./gl/fTexture');
 
 
 function FGL(context3d,context2d)
@@ -30,95 +30,19 @@ function FGL(context3d,context2d)
     /*---------------------------------------------------------------------------------------------------------*/
 
     var platform = Platform.getTarget();
-    var shaderPrefix = ((platform == Platform.WEB || platform == Platform.NODE_WEBKIT)) ? ShaderLoader.PrefixShaderWeb : '';
 
+    this._programRender   = new Program(this,RenderVertShaderGLSL,RenderFragShaderGLSL);
+    this._programDefault  = new Program(this,ProgVertShaderGLSL,ProgFragShaderGLSL);
 
-    var programRender = this._programRender = gl.createProgram();
+    this._program     = null;
+    this._programLast = null;
 
-    var renderVertShader = gl.createShader(gl.VERTEX_SHADER),
-        renderFragShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-    gl.shaderSource(renderVertShader,RenderVertShader);
-    gl.compileShader(renderVertShader);
-
-    if(!gl.getShaderParameter(renderVertShader,gl.COMPILE_STATUS))
-        throw gl.getShaderInfoLog(renderVertShader);
-
-    gl.shaderSource(renderFragShader, shaderPrefix + RenderFragShader);
-    gl.compileShader(renderFragShader);
-
-    if(!gl.getShaderParameter(renderFragShader,gl.COMPILE_STATUS))
-        throw gl.getShaderInfoLog(renderFragShader);
-
-    gl.attachShader(programRender, renderVertShader);
-    gl.attachShader(programRender, renderFragShader);
-    gl.linkProgram( programRender);
-
-    if(!gl.getProgramParameter(programRender,gl.LINK_STATUS))
-        throw gl.getProgramInfoLog(programRender);
-
-    //
-
-    var programScene = this._programScene = gl.createProgram();
-
-    var progVertShader = gl.createShader(gl.VERTEX_SHADER),
-        progFragShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-    gl.shaderSource(progVertShader, ProgVertShader);
-    gl.compileShader(progVertShader);
-
-    if(!gl.getShaderParameter(progVertShader,gl.COMPILE_STATUS))
-        throw gl.getShaderInfoLog(progVertShader);
-
-    gl.shaderSource(progFragShader, ((platform == Platform.WEB || platform == Platform.NODE_WEBKIT) ? ShaderLoader.PrefixShaderWeb : '') + ProgFragShader);
-    gl.compileShader(progFragShader);
-
-    if(!gl.getShaderParameter(progFragShader,gl.COMPILE_STATUS))
-        throw gl.getShaderInfoLog(progFragShader);
-
-    gl.bindAttribLocation(programScene,0,'aVertexPosition');
-
-    gl.attachShader(programScene, progVertShader);
-    gl.attachShader(programScene, progFragShader);
-    gl.linkProgram( programScene);
-
-    if(!gl.getProgramParameter(programScene,gl.LINK_STATUS))
-        throw gl.getProgramInfoLog(programScene);
-
-    gl.useProgram(programScene);
+    this.useProgram(this._programDefault);
 
     //
     Flags.__uintTypeAvailable = platform == Platform.PLASK;
     //...
 
-    /*---------------------------------------------------------------------------------------------------------*/
-    // Bind & enable shader attributes & uniforms
-    /*---------------------------------------------------------------------------------------------------------*/
-
-
-    this._aVertexPosition   = gl.getAttribLocation(programScene,'aVertexPosition');
-    this._aVertexNormal     = gl.getAttribLocation(programScene,'aVertexNormal');
-    this._aVertexColor      = gl.getAttribLocation(programScene,'aVertexColor');
-    this._aVertexTexCoord   = gl.getAttribLocation(programScene,'aVertexTexCoord');
-
-    this._uModelViewMatrix  = gl.getUniformLocation(programScene,'uModelViewMatrix');
-    this._uProjectionMatrix = gl.getUniformLocation(programScene,'uProjectionMatrix');
-    this._uNormalMatrix     = gl.getUniformLocation(programScene,'uNormalMatrix');
-    this._uTexImage         = gl.getUniformLocation(programScene,'uTexImage');
-
-    this._uPointSize        = gl.getUniformLocation(programScene,'uPointSize');
-
-    this._uUseLighting      = gl.getUniformLocation(programScene,'uUseLighting');
-    this._uUseMaterial      = gl.getUniformLocation(programScene,'uUseMaterial');
-    this._uUseTexture       = gl.getUniformLocation(programScene,'uUseTexture');
-
-    this._uAmbient          = gl.getUniformLocation(programScene,'uAmbient');
-
-
-    gl.enableVertexAttribArray(this._aVertexPosition);
-    gl.enableVertexAttribArray(this._aVertexNormal);
-    gl.enableVertexAttribArray(this._aVertexColor);
-    gl.enableVertexAttribArray(this._aVertexTexCoord);
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Set Shader initial values
@@ -141,64 +65,38 @@ function FGL(context3d,context2d)
     this.MODEL_BLINN       = 3;
     this.MODEL_FLAT        = 4;
 
-
-    var l = this.MAX_LIGHTS;
-
-    var uLightPosition             = this._uLightPosition             = new Array(l),
-        uLightAmbient              = this._uLightAmbient              = new Array(l),
-        uLightDiffuse              = this._uLightDiffuse              = new Array(l),
-        uLightSpecular             = this._uLightSpecular             = new Array(l),
-        uLightAttenuationConstant  = this._uLightAttenuationConstant  = new Array(l),
-        uLightAttenuationLinear    = this._uLightAttenuationLinear    = new Array(l),
-        uLightAttenuationQuadratic = this._uLightAttenuationQuadratic = new Array(l);
-
+    var program = this._program;
     var light;
+    var l = this.MAX_LIGHTS;
 
     var i = -1;
     while(++i < l)
     {
         light = 'uLights['+i+'].';
 
+        gl.uniform4fv(program[light + 'position'], new Float32Array([0,0,0,0]));
+        gl.uniform3fv(program[light + 'ambient'],  new Float32Array([0,0,0]));
+        gl.uniform3fv(program[light + 'diffuse'],  new Float32Array([0,0,0]));
 
-        uLightPosition[i]             = gl.getUniformLocation(programScene,light + 'position');
-        uLightAmbient[i]              = gl.getUniformLocation(programScene,light + 'ambient');
-        uLightDiffuse[i]              = gl.getUniformLocation(programScene,light + 'diffuse');
-        uLightSpecular[i]             = gl.getUniformLocation(programScene,light + 'specular');
-
-        uLightAttenuationConstant[i]  = gl.getUniformLocation(programScene,light + 'constantAttenuation');
-        uLightAttenuationLinear[i]    = gl.getUniformLocation(programScene,light + 'linearAttenuation');
-        uLightAttenuationQuadratic[i] = gl.getUniformLocation(programScene,light + 'quadraticAttenuation');
-
-        gl.uniform4fv(uLightPosition[i], new Float32Array([0,0,0,0]));
-        gl.uniform3fv(uLightAmbient[i],  new Float32Array([0,0,0]));
-        gl.uniform3fv(uLightDiffuse[i],  new Float32Array([0,0,0]));
-
-        gl.uniform1f(uLightAttenuationConstant[i], 1.0);
-        gl.uniform1f(uLightAttenuationLinear[i],   0.0);
-        gl.uniform1f(uLightAttenuationQuadratic[i],0.0);
+        gl.uniform1f(program[light + 'constantAttenuation'], 1.0);
+        gl.uniform1f(program[light + 'linearAttenuation'],   0.0);
+        gl.uniform1f(program[light + 'quadraticAttenuation'],0.0);
     }
 
     //Material
 
-    this._uMaterialEmission  = gl.getUniformLocation(programScene,'uMaterial.emission');
-    this._uMaterialAmbient   = gl.getUniformLocation(programScene,'uMaterial.ambient');
-    this._uMaterialDiffuse   = gl.getUniformLocation(programScene,'uMaterial.diffuse');
-    this._uMaterialSpecular  = gl.getUniformLocation(programScene,'uMaterial.specular');
-    this._uMaterialShininess = gl.getUniformLocation(programScene,'uMaterial.shininess');
-
-    gl.uniform4f(this._uMaterialEmission, 0.0,0.0,0.0,1.0);
-    gl.uniform4f(this._uMaterialAmbient,  1.0,0.5,0.5,1.0);
-    gl.uniform4f(this._uMaterialDiffuse,  0.0,0.0,0.0,1.0);
-    gl.uniform4f(this._uMaterialSpecular, 0.0,0.0,0.0,1.0);
-    gl.uniform1f(this._uMaterialShininess,10.0);
+    gl.uniform4f(program['uMaterial.emission'],  0.0,0.0,0.0,1.0);
+    gl.uniform4f(program['uMaterial.ambient'],   1.0,0.5,0.5,1.0);
+    gl.uniform4f(program['uMaterial.diffuse'],   0.0,0.0,0.0,1.0);
+    gl.uniform4f(program['uMaterial.specular'],  0.0,0.0,0.0,1.0);
+    gl.uniform1f(program['uMaterial.shininess'], 10.0);
 
 
     this._tempLightPos = Vec4.make();
 
-    gl.uniform1f(this._uUseMaterial, 0.0);
-    gl.uniform1f(this._uUseLighting, 0.0);
-    gl.uniform1f(this._uUseMaterial, 0.0);
-    gl.uniform1f(this._uPointSize,   1.0);
+    gl.uniform1f(program.uUseMaterial, 0.0);
+    gl.uniform1f(program.uUseLighting, 0.0);
+    gl.uniform1f(program.uPointSize,   1.0);
 
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -241,7 +139,7 @@ function FGL(context3d,context2d)
     this._texEmpty = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D,this._texEmpty);
     gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([1,1,1,1]));
-    gl.uniform1f(this._uUseTexture,0.0);
+    gl.uniform1f(program.uUseTexture,0.0);
 
     this._tex      = null;
 
@@ -461,7 +359,7 @@ function FGL(context3d,context2d)
 // Light
 /*---------------------------------------------------------------------------------------------------------*/
 
-FGL.prototype.useLighting  = function(bool){this.gl.uniform1f(this._uUseLighting,bool ? 1.0 : 0.0);this._bUseLighting = bool;};
+FGL.prototype.useLighting  = function(bool){this.gl.uniform1f(this._program.uUseLighting,bool ? 1.0 : 0.0);this._bUseLighting = bool;};
 FGL.prototype.getLighting  = function()    {return this._bUseLighting;};
 
 FGL.prototype.light = function(light)
@@ -475,18 +373,19 @@ FGL.prototype.light = function(light)
         tempVec4[2] = light.position[2];
         tempVec4[3] = light.position[3];
 
-
-
     var lightPosEyeSpace = Mat44.multVec4(this._mModelView,tempVec4);
 
-    gl.uniform4fv(this._uLightPosition[id], lightPosEyeSpace);
-    gl.uniform3fv(this._uLightAmbient[id],  light.ambient);
-    gl.uniform3fv(this._uLightDiffuse[id],  light.diffuse);
-    gl.uniform3fv(this._uLightSpecular[id], light.specular);
+    var program = this._program,
+        lightIndex   = 'uLights[' + id + '].';
 
-    gl.uniform1f(this._uLightAttenuationConstant[id],   light.constantAttentuation);
-    gl.uniform1f(this._uLightAttenuationLinear[id],     light.linearAttentuation);
-    gl.uniform1f(this._uLightAttenuationQuadratic[id],  light.quadricAttentuation);
+    gl.uniform4fv(program[lightIndex + 'position'], lightPosEyeSpace);
+    gl.uniform3fv(program[lightIndex + 'ambient'],  light.ambient);
+    gl.uniform3fv(program[lightIndex + 'diffuse'],  light.diffuse);
+    gl.uniform3fv(program[lightIndex + 'specular'], light.specular);
+
+    gl.uniform1f(program[lightIndex + 'constantAttenuation'],   light.constantAttentuation);
+    gl.uniform1f(program[lightIndex + 'linearAttenuation'],     light.linearAttentuation);
+    gl.uniform1f(program[lightIndex + 'quadraticAttenuation'],  light.quadricAttentuation);
 };
 
 //FIX ME
@@ -497,13 +396,16 @@ FGL.prototype.disableLight = function(light)
 
     var bEmpty = this._bEmpty3f;
 
-    gl.uniform3fv(this._uLightAmbient[id],  bEmpty);
-    gl.uniform3fv(this._uLightDiffuse[id],  bEmpty);
-    gl.uniform3fv(this._uLightSpecular[id], bEmpty);
+    var program    = this._program,
+        lightIndex = 'uLights[' + id + '].';
 
-    gl.uniform1f(this._uLightAttenuationConstant[id], 1.0);
-    gl.uniform1f(this._uLightAttenuationLinear[id],   0.0);
-    gl.uniform1f(this._uLightAttenuationQuadratic[id],0.0);
+    gl.uniform3fv(program[lightIndex + 'ambient'],  bEmpty);
+    gl.uniform3fv(program[lightIndex + 'diffuse'],  bEmpty);
+    gl.uniform3fv(program[lightIndex + 'specular'], bEmpty);
+
+    gl.uniform1f(program[lightIndex + 'constantAttenuation'],   1.0);
+    gl.uniform1f(program[lightIndex + 'linearAttenuation'],     0.0);
+    gl.uniform1f(program[lightIndex + 'quadraticAttenuation'],  0.0);
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -512,7 +414,7 @@ FGL.prototype.disableLight = function(light)
 
 //TODO: do it the plask way
 
-FGL.prototype.useTexture  = function(bool){this.gl.uniform1f(this._uUseTexture, bool ? 1.0 : 0.0);this._bUseTexture = bool;};
+FGL.prototype.useTexture  = function(bool){this.gl.uniform1f(this._program.uUseTexture, bool ? 1.0 : 0.0);this._bUseTexture = bool;};
 
 FGL.prototype.loadTextureWithImage = function(img)
 {
@@ -574,32 +476,35 @@ FGL.prototype.texture = function(texture)
     gl.bindTexture(gl.TEXTURE_2D,this._tex);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this._texMode );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this._texMode );
-    gl.uniform1i(this._uTexImage,0);
+    gl.uniform1i(this._program.uTexImage,0);
 };
 
 FGL.prototype.disableTextures = function()
 {
-    var gl = this.gl;
+    var gl      = this.gl,
+        program = this._program;
+
     gl.bindTexture(gl.TEXTURE_2D,this._texEmpty);
-    gl.vertexAttribPointer(this._aVertexTexCoord,Vec2.SIZE,gl.FLOAT,false,0,0);
-    gl.uniform1f(this._uUseTexture,0.0);
+    gl.vertexAttribPointer(program.aVertexTexCoord,Vec2.SIZE,gl.FLOAT,false,0,0);
+    gl.uniform1f(program.uUseTexture,0.0);
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
 // Material
 /*---------------------------------------------------------------------------------------------------------*/
 
-FGL.prototype.useMaterial = function(bool){this.gl.uniform1f(this._uUseMaterial,bool ? 1.0 : 0.0);this._bUseMaterial = bool;};
+FGL.prototype.useMaterial = function(bool){this.gl.uniform1f(this._program.uUseMaterial,bool ? 1.0 : 0.0);this._bUseMaterial = bool;};
 
 FGL.prototype.material = function(material)
 {
     var gl = this.gl;
 
+    var program = this._program;
     //gl.uniform4fv(this._uMaterialEmission,  material.emission);
-    gl.uniform4fv(this._uMaterialAmbient,   material.ambient);
-    gl.uniform4fv(this._uMaterialDiffuse,   material.diffuse);
-    gl.uniform4fv(this._uMaterialSpecular,  material.specular);
-    gl.uniform1f( this._uMaterialShininess, material.shininess);
+    gl.uniform4fv(program['uMaterial.ambient'],   material.ambient);
+    gl.uniform4fv(program['uMaterial.diffuse'],   material.diffuse);
+    gl.uniform4fv(program['uMaterial.specular'],  material.specular);
+    gl.uniform1f( program['uMaterial.shininess'], material.shininess);
 };
 
 
@@ -630,15 +535,17 @@ FGL.prototype.setMatricesUniform = function()
 {
     var gl = this.gl;
 
-    gl.uniformMatrix4fv(this._uModelViewMatrix,false,this._mModelView);
-    gl.uniformMatrix4fv(this._uProjectionMatrix,false,this._camera.projectionMatrix);
+    var program = this._program;
+
+    gl.uniformMatrix4fv(program.uModelViewMatrix,false,this._mModelView);
+    gl.uniformMatrix4fv(program.uProjectionMatrix,false,this._camera.projectionMatrix);
 
     if(!this._bUseLighting)return;
 
     Mat44.toMat33Inversed(this._mModelView,this._mNormal);
     Mat33.transpose(this._mNormal,this._mNormal);
 
-    gl.uniformMatrix3fv(this._uNormalMatrix,false,this._mNormal);
+    gl.uniformMatrix3fv(program.uNormalMatrix,false,this._mNormal);
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -726,15 +633,18 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
         ca = colorFloat32Array    ? true : false,
         ta = texCoordFloat32Array ? true : false;
 
-    var aVertexNormal   = this._aVertexNormal,
-        aVertexColor    = this._aVertexColor,
-        aVertexTexCoord = this._aVertexTexCoord;
+    var program = this._program;
+
+    var aVertexPosition = program.aVertexPosition,
+        aVertexNormal   = program.aVertexNormal,
+        aVertexColor    = program.aVertexColor,
+        aVertexTexCoord = program.aVertexTexCoord;
 
     var gl            = this.gl,
         glArrayBuffer = gl.ARRAY_BUFFER,
         glFloat       = gl.FLOAT;
 
-    glDrawMode = glDrawMode || gl.DYNAMIC_DRAW;
+    glDrawMode = glDrawMode || gl.STATIC_DRAW;
 
     var vblen =      vertexFloat32Array.byteLength,
         nblen = na ? normalFloat32Array.byteLength : 0,
@@ -749,7 +659,7 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
     gl.bufferData(glArrayBuffer, vblen + nblen + cblen + tblen, glDrawMode);
 
     gl.bufferSubData(glArrayBuffer, offsetV, vertexFloat32Array);
-    gl.vertexAttribPointer(this._aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
+    gl.vertexAttribPointer(aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
 
     if(!na){ gl.disableVertexAttribArray(aVertexNormal);}
     else
@@ -1295,9 +1205,9 @@ FGL.prototype._putBatchDyn = function(batchArray,dataArray,offset)
 // Convenience Methods color
 /*---------------------------------------------------------------------------------------------------------*/
 
-FGL.prototype.ambient   = function(color){this.gl.uniform3f(this._uAmbient,color[0],color[1],color[2]);};
-FGL.prototype.ambient3f = function(r,g,b){this.gl.uniform3f(this._uAmbient,r,g,b);};
-FGL.prototype.ambient1f = function(k)    {this.gl.uniform1f(this._uAmbient,k);};
+FGL.prototype.ambient   = function(color){this.gl.uniform3f(this._program.uAmbient,color[0],color[1],color[2]);};
+FGL.prototype.ambient3f = function(r,g,b){this.gl.uniform3f(this._program.uAmbient,r,g,b);};
+FGL.prototype.ambient1f = function(k)    {this.gl.uniform1f(this._program.uAmbient,k);};
 
 FGL.prototype.color   = function(color)  {this._bColor = Color.set(this._bColor4f,color);};
 FGL.prototype.color4f = function(r,g,b,a){this._bColor = Color.set4f(this._bColor4f,r,g,b,a);};
@@ -1357,7 +1267,7 @@ FGL.prototype.circleDetail = function(detail)
 FGL.prototype.lineWidth = function(size){this.gl.lineWidth(size);};
 
 FGL.prototype.useBillboard = function(bool){this._bUseBillboarding = bool;};
-FGL.prototype.pointSize = function(value){this.gl.uniform1f(this._uPointSize,value);};
+FGL.prototype.pointSize = function(value){this.gl.uniform1f(this._program.uPointSize,value);};
 
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -1386,22 +1296,28 @@ FGL.prototype.point = function(vector)
     var offsetV = 0,
         offsetC = vblen;
 
+    var program    = this._program,
+        aVertexPosition = program.aVertexPosition,
+        aVertexNormal   = program.aVertexNormal,
+        aVertexColor    = program.aVertexColor,
+        aVertexTexCoord = program.aVertexTexCoord;
+
     gl.bufferData(glArrayBuffer,vblen + cblen,gl.STATIC_DRAW);
 
     gl.bufferSubData(glArrayBuffer, offsetV, vector);
     gl.bufferSubData(glArrayBuffer, offsetC, bColor);
 
-    gl.disableVertexAttribArray(this._aVertexNormal);
-    gl.disableVertexAttribArray(this._aVertexTexCoord);
+    gl.disableVertexAttribArray(aVertexNormal);
+    gl.disableVertexAttribArray(aVertexTexCoord);
 
-    gl.vertexAttribPointer(this._aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
-    gl.vertexAttribPointer(this._aVertexColor,    this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
+    gl.vertexAttribPointer(aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
+    gl.vertexAttribPointer(aVertexColor,    this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
 
     this.setMatricesUniform();
     gl.drawArrays(this._drawMode,0,1);
 
-    gl.enableVertexAttribArray(this._aVertexNormal);
-    gl.enableVertexAttribArray(this._aVertexTexCoord);
+    gl.enableVertexAttribArray(aVertexNormal);
+    gl.enableVertexAttribArray(aVertexTexCoord);
 
     this._drawFuncLast = this.point;
 };
@@ -1422,22 +1338,28 @@ FGL.prototype.points = function(vertices,colors)
     var offsetV = 0,
         offsetC = vblen;
 
+    var program    = this._program,
+        aVertexPosition = program.aVertexPosition,
+        aVertexNormal   = program.aVertexNormal,
+        aVertexColor    = program.aVertexColor,
+        aVertexTexCoord = program.aVertexTexCoord;
+
     gl.bufferData(glArrayBuffer,vblen + cblen,gl.STATIC_DRAW);
 
     gl.bufferSubData(glArrayBuffer, offsetV, vertices);
     gl.bufferSubData(glArrayBuffer, offsetC, colors);
 
-    gl.disableVertexAttribArray(this._aVertexNormal);
-    gl.disableVertexAttribArray(this._aVertexTexCoord);
+    gl.disableVertexAttribArray(aVertexNormal);
+    gl.disableVertexAttribArray(aVertexTexCoord);
 
-    gl.vertexAttribPointer(this._aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
-    gl.vertexAttribPointer(this._aVertexColor,    this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
+    gl.vertexAttribPointer(aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
+    gl.vertexAttribPointer(aVertexColor,    this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
 
     this.setMatricesUniform();
     gl.drawArrays(this._drawMode,0,vertices.length/3);
 
-    gl.enableVertexAttribArray(this._aVertexNormal);
-    gl.enableVertexAttribArray(this._aVertexTexCoord);
+    gl.enableVertexAttribArray(aVertexNormal);
+    gl.enableVertexAttribArray(aVertexTexCoord);
 
     this._drawFuncLast = this.points;
 };
@@ -1746,37 +1668,34 @@ FGL.prototype.getDefaultIBO  = function(){return this._defaultIBO;};
 FGL.prototype.bindDefaultVBO = function(){this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this._defaultVBO);};
 FGL.prototype.bindDefaultIBO = function(){this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER,this._defaultIBO);};
 
-FGL.prototype.getDefaultVertexAttrib   = function(){return this._aVertexPosition;};
-FGL.prototype.getDefaultNormalAttrib   = function(){return this._aVertexNormal;};
-FGL.prototype.getDefaultColorAttrib    = function(){return this._aVertexColor;};
-FGL.prototype.getDefaultTexCoordAttrib = function(){return this._aVertexTexCoord;};
+FGL.prototype.getDefaultVertexAttrib   = function(){return this._program.aVertexPosition;};
+FGL.prototype.getDefaultNormalAttrib   = function(){return this._program.aVertexNormal;};
+FGL.prototype.getDefaultColorAttrib    = function(){return this._program.aVertexColor;};
+FGL.prototype.getDefaultTexCoordAttrib = function(){return this._program.aVertexTexCoord;};
 
-FGL.prototype.enableDefaultVertexAttribArray     = function(){this.gl.enableVertexAttribArray(this._aVertexPosition);};
-FGL.prototype.enableDefaultNormalAttribArray     = function(){this.gl.enableVertexAttribArray(this._aVertexNormal);};
-FGL.prototype.enableDefaultColorAttribArray      = function(){this.gl.enableVertexAttribArray(this._aVertexColor);};
-FGL.prototype.enableDefaultTexCoordsAttribArray  = function(){this.gl.enableVertexAttribArray(this._aVertexTexCoord);};
+FGL.prototype.enableDefaultVertexAttribArray     = function(){this.gl.enableVertexAttribArray(this._program.aVertexPosition);};
+FGL.prototype.enableDefaultNormalAttribArray     = function(){this.gl.enableVertexAttribArray(this._program.aVertexNormal);};
+FGL.prototype.enableDefaultColorAttribArray      = function(){this.gl.enableVertexAttribArray(this._program.aVertexColor);};
+FGL.prototype.enableDefaultTexCoordsAttribArray  = function(){this.gl.enableVertexAttribArray(this._program.aVertexTexCoord);};
 
-FGL.prototype.disableDefaultVertexAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexPosition);};
-FGL.prototype.disableDefaultNormalAttribArray    = function(){this.gl.disableVertexAttribArray(this._aVertexNormal);};
-FGL.prototype.disableDefaultColorAttribArray     = function(){this.gl.disableVertexAttribArray(this._aVertexColor);};
-FGL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVertexAttribArray(this._aVertexTexCoord);};
+FGL.prototype.disableDefaultVertexAttribArray    = function(){this.gl.disableVertexAttribArray(this._program.aVertexPosition);};
+FGL.prototype.disableDefaultNormalAttribArray    = function(){this.gl.disableVertexAttribArray(this._program.aVertexNormal);};
+FGL.prototype.disableDefaultColorAttribArray     = function(){this.gl.disableVertexAttribArray(this._program.aVertexColor);};
+FGL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVertexAttribArray(this._program.aVertexTexCoord);};
 
 
 FGL.prototype.useDefaultProgram = function()
 {
     var gl = this.gl;
-    gl.useProgram(this._programScene);
-
-    gl.enableVertexAttribArray(this._aVertexPosition);
-    gl.enableVertexAttribArray(this._aVertexNormal);
-    gl.enableVertexAttribArray(this._aVertexColor);
-    gl.enableVertexAttribArray(this._aVertexTexCoord);
+    this.useProgram(this._programDefault);
 };
 
 FGL.prototype.useProgram = function(program)
 {
+    this._programLast = this._program;
     this.gl.useProgram(program.program);
     program.enableVertexAttribArrays(this);
+    this._program = program;
 };
 
 FGL.prototype.deleteProgram = function(program)
