@@ -2,6 +2,8 @@ var Platform     = require('../../system/common/fPlatform'),
     ShaderLoader = require('./shader/fShaderLoader'),
     System       = require('../../System/fSystem');
 
+var __i = false;
+
 function Program(fgl,vertexShader,fragmentShader)
 {
     var platform = Platform.getTarget();
@@ -13,6 +15,8 @@ function Program(fgl,vertexShader,fragmentShader)
 
     gl.shaderSource(vertShader,vertexShader);
     gl.compileShader(vertShader);
+
+    if(!__i)gl.bindAttribLocation(program,0,'aVertexPosition');
 
     if(!gl.getShaderParameter(vertShader,gl.COMPILE_STATUS))
         throw gl.getShaderInfoLog(vertShader);
