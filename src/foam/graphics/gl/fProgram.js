@@ -39,19 +39,21 @@ function Program(fgl,vertexShader,fragmentShader)
     }
 
     var attributesNum = this._attributesNum = gl.getProgramParameter(program,gl.ACTIVE_ATTRIBUTES);
+    var attributes    = this._attributes    = new Array(attributesNum);
     i = -1;while(++i < attributesNum)
     {
         paramName = gl.getActiveAttrib(program,i).name;
-        this[paramName] = gl.getAttribLocation(program,paramName);
+        attributes[i] = this[paramName] = gl.getAttribLocation(program,paramName);
     }
 }
 
 Program.prototype.getUniformsNum   = function(){return this._uniformsNum;};
 Program.prototype.getAttributesNum = function(){return this._attributesNum;};
 
-Program.prototype.enableVertexAttribArrays = function()
+Program.prototype.enableVertexAttribArrays = function(fgl)
 {
-
+    var i = -1,a = this._attributes,n = this._attributesNum, gl = fgl.gl;
+    while(++i < n){gl.enableVertexAttribArray(a[i]);}
 };
 
 

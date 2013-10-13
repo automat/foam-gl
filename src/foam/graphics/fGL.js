@@ -475,7 +475,9 @@ FGL.prototype.light = function(light)
         tempVec4[2] = light.position[2];
         tempVec4[3] = light.position[3];
 
-    var lightPosEyeSpace = Mat44.multVec4(this._camera.modelViewMatrix,tempVec4);
+
+
+    var lightPosEyeSpace = Mat44.multVec4(this._mModelView,tempVec4);
 
     gl.uniform4fv(this._uLightPosition[id], lightPosEyeSpace);
     gl.uniform3fv(this._uLightAmbient[id],  light.ambient);
@@ -1774,7 +1776,7 @@ FGL.prototype.useDefaultProgram = function()
 FGL.prototype.useProgram = function(program)
 {
     this.gl.useProgram(program.program);
-    program.enableVertexAttribArrays();
+    program.enableVertexAttribArrays(this);
 };
 
 FGL.prototype.deleteProgram = function(program)
