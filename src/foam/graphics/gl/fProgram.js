@@ -16,13 +16,20 @@ function Program(fgl,vertexShader,fragmentShader)
     gl.shaderSource(vertShader,vertexShader);
     gl.compileShader(vertShader);
 
-    if(!__i)gl.bindAttribLocation(program,0,'aVertexPosition');
+    //temp fix for some f****up setup
+    if(platform == Platform.PLASK && !__i)gl.bindAttribLocation(program,0,'aVertexColor');
 
     if(!gl.getShaderParameter(vertShader,gl.COMPILE_STATUS))
         throw gl.getShaderInfoLog(vertShader);
 
-    gl.shaderSource(fragShader, ((platform == Platform.WEB || platform == Platform.NODE_WEBKIT) ?
-                                  ShaderLoader.PrefixShaderWeb : '') + fragmentShader);
+    //thanks plask
+    gl.shaderSource(fragShader, "#ifdef GL_ES\n" +
+                                "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
+                                "  precision highp float;\n" +
+                                "#else\n" +
+                                "  precision mediump float;\n" +
+                                "#endif\n" +
+                                "#endif\n" + fragmentShader);
     gl.compileShader(fragShader);
 
     if(!gl.getShaderParameter(fragShader,gl.COMPILE_STATUS))
@@ -58,6 +65,12 @@ Program.prototype.enableVertexAttribArrays = function(fgl)
 {
     var i = -1,a = this._attributes,n = this._attributesNum, gl = fgl.gl;
     while(++i < n){gl.enableVertexAttribArray(a[i]);}
+};
+
+Program.prototype.disableVertexAttribArrays = function(fgl)
+{
+    var i = -1,a = this._attributes,n = this._attributesNum, gl = fgl.gl;
+    while(++i < n){gl.disableVertexAttribArray(a[i]);}
 };
 
 
