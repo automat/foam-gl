@@ -243,6 +243,19 @@ var Vec3 =
         return this.normalize(this.copy(v));
     },
 
+    random : function(unitX,unitY,unitZ)
+    {
+        unitX = typeof unitX == 'undefined' ? 1 : unitX;
+        unitY = typeof unitY == 'undefined' ? 1 : unitY;
+        unitZ = typeof unitZ == 'undefined' ? 1 : unitZ;
+
+        return this.make((-0.5 + Math.random()) * 2 * unitX,
+                         (-0.5 + Math.random()) * 2 * unitY,
+                         (-0.5 + Math.random()) * 2 * unitZ);
+    },
+
+
+
     toString : function(v)
     {
         return '[' + v[0] + ',' + v[1] + ',' + v[2] + ']';
