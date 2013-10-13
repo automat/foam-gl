@@ -16,7 +16,9 @@ function shader2String(shaderSource,dist)
 
 
 shader2String(inPath + 'fProgFragShader.glsl',outPath + 'fProgFragShader.js');
-shader2String(inPath + 'fProgVertexShader.glsl',outPath + 'fProgVertexShader.js');
+shader2String(inPath + 'fProgVertShader.glsl',outPath + 'fProgVertShader.js');
+shader2String(inPath + 'fRenderVertShader.glsl',outPath + 'fRenderVertShader.js');
+shader2String(inPath + 'fRenderFragShader.glsl',outPath + 'fRenderFragShader.js');
 
 /*
 function shader2String(shaderSource,shaderClassName,dist)
@@ -42,7 +44,7 @@ function shader2String(shaderSource,shaderClassName,dist)
 
 
 shader2String(inPath + '_glkProgFragShader.glsl',      'Foam.ProgFragShader',     outPath + 'fProgFragShader.js');
-shader2String(inPath + '_glkProgVertexShader.glsl',    'Foam.ProgVertexShader',   outPath + 'fProgVertexShader.js');
+shader2String(inPath + '_glkProgVertexShader.glsl',    'Foam.ProgVertShader',   outPath + 'fProgVertexShader.js');
 shader2String(inPath + '_glkProgFragImgShader.glsl',   'Foam.ProgFragImgShader',  outPath + '_glkProgFragImgShader.js');
 shader2String(inPath + '_glkProgVertexImgShader.glsl', 'Foam.ProgVertexImgShader',outPath + '_glkProgVertexImgShader.js');
     */
