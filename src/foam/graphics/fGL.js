@@ -2,12 +2,17 @@ var fError               = require('../system/common/fError'),
     Platform             = require('../system/common/fPlatform'),
     Flags                = require('../system/fFlags'),
     Program              = require('./gl/fProgram'),
+
     ProgVertShaderGLSL   = require('./gl/shader/fProgVertShader'),
     ProgFragShaderGLSL   = require('./gl/shader/fProgFragShader'),
     RenderVertShaderGLSL = require('./gl/shader/fRenderVertShader'),
     RenderFragShaderGLSL = require('./gl/shader/fRenderFragShader'),
+
     ColorVertShaderGLSL  = require('./gl/shader/fColorVertShader'),
     ColorFragShaderGLSL  = require('./gl/shader/fColorFragShader'),
+    NormalVertShaderGLSL = require('./gl/shader/fNormalVertShader'),
+    NormalFragShaderGLSL = require('./gl/shader/fNormalFragShader'),
+
 
     ProgLoader           = require('./gl/shader/fProgLoader'),
     ShaderLoader         = require('./gl/shader/fShaderLoader'),
@@ -34,9 +39,9 @@ function FGL(context3d,context2d)
 
     var platform = Platform.getTarget();
 
-    this._programRender   = new Program(this,RenderVertShaderGLSL,RenderFragShaderGLSL);
 
-    this._programMaterialColor = new Program(this,ColorVertShaderGLSL,ColorFragShaderGLSL);
+    this._programMaterialColor  = new Program(this,ColorVertShaderGLSL,ColorFragShaderGLSL);
+    this._programMaterialNormal = new Program(this,NormalVertShaderGLSL,NormalFragShaderGLSL);
 
     this._programDefault  = new Program(this,ProgVertShaderGLSL,ProgFragShaderGLSL);
 
@@ -55,13 +60,14 @@ function FGL(context3d,context2d)
     /*---------------------------------------------------------------------------------------------------------*/
 
     this.MATERIAL_MODE_COLOR        = 0;
-    this.MATERIAL_MODE_PHONG        = 1;
-    this.MATERIAL_MODEL_ANTISOPTRIC = 2;
-    this.MATERIAL_MODEL_FRESNEL     = 3;
-    this.MATERIAL_MODEL_BLINN       = 4;
-    this.MATERIAL_MODEL_FLAT        = 5;
+    this.MATERIAL_MODE_NORMAL       = 1;
+    this.MATERIAL_MODE_PHONG        = 2;
+    this.MATERIAL_MODEL_ANTISOPTRIC = 3;
+    this.MATERIAL_MODEL_FRESNEL     = 4;
+    this.MATERIAL_MODEL_BLINN       = 5;
+    this.MATERIAL_MODEL_FLAT        = 6;
 
-    this._materialMode     = 1;
+    this._materialMode     = 2;
     this._materialModeLast = -1;
 
 
@@ -244,6 +250,8 @@ function FGL(context3d,context2d)
     // Init Buffers
     /*---------------------------------------------------------------------------------------------------------*/
 
+    this._pointSize = 1.0;
+
 
     this._bScreenCoords = [0,0];
     this._bPoint0       = [0,0,0];
@@ -346,13 +354,13 @@ function FGL(context3d,context2d)
     //cache
 
     this._circleDetailLast = 10.0;
-    this._sphereDetailLast = 10.0;
+    this._sphereDetailLast = -1;
     this._sphereScaleLast  = -1;
     this._cubeScaleLast    = -1;
 
     // gen gem
 
-    this._genSphere();
+    this.sphereDetail(10);
     this._genCircle();
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -373,7 +381,8 @@ function FGL(context3d,context2d)
 FGL.prototype.useLighting  = function(bool)
 {
     var materialMode = this._materialMode;
-    if(materialMode != this.MATERIAL_MODE_COLOR)
+    if(materialMode != this.MATERIAL_MODE_COLOR &&
+       materialMode != this.MATERIAL_MODE_NORMAL)
     {
         this.gl.uniform1f(this._program.uUseLighting,bool ? 1.0 : 0.0);
     }
@@ -386,7 +395,9 @@ FGL.prototype.light = function(light)
 {
     var materialMode = this._materialMode;
 
-    if(materialMode == this.MATERIAL_MODE_COLOR)return;
+    if(materialMode == this.MATERIAL_MODE_COLOR ||
+       materialMode == this.MATERIAL_MODE_NORMAL)
+       return;
 
     var id = light.getId(),
         gl = this.gl;
@@ -494,6 +505,10 @@ FGL.prototype._bindTexImage = function(glTex)
 
 FGL.prototype.texture = function(texture)
 {
+    var materialMode = this._materialMode;
+    if(materialMode == this.MATERIAL_MODE_COLOR ||
+       materialMode == this.MATERIAL_MODE_NORMAL)return;
+
     var gl = this.gl;
 
     this._tex = texture._tex;
@@ -505,6 +520,10 @@ FGL.prototype.texture = function(texture)
 
 FGL.prototype.disableTextures = function()
 {
+    var materialMode = this._materialMode;
+    if(materialMode == this.MATERIAL_MODE_COLOR ||
+       materialMode == this.MATERIAL_MODE_NORMAL)return;
+
     var gl      = this.gl,
         program = this._program;
 
@@ -520,7 +539,8 @@ FGL.prototype.disableTextures = function()
 FGL.prototype.useMaterial = function(bool)
 {
     var materialMode = this._materialMode;
-    if(materialMode != this.MATERIAL_MODE_COLOR)
+    if(materialMode != this.MATERIAL_MODE_COLOR &&
+       materialMode != this.MATERIAL_MODE_NORMAL)
     {
         this.gl.uniform1f(this._program.uUseMaterial,bool ? 1.0 : 0.0);
     }
@@ -533,17 +553,33 @@ FGL.prototype.materialMode = function(mode)
     if(this._materialModeLast == mode)return;
 
     var gl = this.gl;
+    var program;
+
+    var useTexture  = this._bUseTexture  ? 1.0 : 0.0,
+        useMaterial = this._bUseMaterial ? 1.0 : 0.0;
+        pointSize   = this._pointSize;
 
     switch(mode)
     {
         case this.MATERIAL_MODE_COLOR:
             this.useProgram(this._programMaterialColor);
-            gl.uniform1f(this._program.uPointSize, 1.0);
-
+            program = this._program;
+            gl.uniform1f(program.uPointSize, pointSize);
+            gl.uniform1f(program.uUseTexture,useTexture);
             break;
+
+        case this.MATERIAL_MODE_NORMAL:
+            this.useProgram(this._programMaterialNormal);
+            program = this._program;
+            gl.uniform1f(program.uPointSize,pointSize);
+            break;
+
         case this.MATERIAL_MODE_PHONG:
             this.useProgram(this._programDefault);
-            gl.uniform1f(this._program.uPointSize, 1.0);
+            program = this._program;
+            gl.uniform1f(program.uPointSize,  pointSize);
+            gl.uniform1f(program.uUseTexture, useTexture);
+            gl.uniform1f(program.uUseMaterial,useMaterial);
             break;
     }
 
@@ -556,7 +592,8 @@ FGL.prototype.materialMode = function(mode)
 FGL.prototype.material = function(material)
 {
     var materialMode = this._materialMode;
-    if(materialMode == this.MATERIAL_MODE_COLOR)return;
+    if(materialMode == this.MATERIAL_MODE_COLOR ||
+       materialMode == this.MATERIAL_MODE_NORMAL)return;
 
     var gl = this.gl;
 
@@ -604,7 +641,8 @@ FGL.prototype.setMatricesUniform = function()
     var materialMode = this._materialMode;
 
     if(!this._bUseLighting ||
-        materialMode == this.MATERIAL_MODE_COLOR)return;
+        materialMode == this.MATERIAL_MODE_COLOR ||
+        materialMode == this.MATERIAL_MODE_NORMAL)return;
 
     Mat44.toMat33Inversed(this._mModelView,this._mNormal);
     Mat33.transpose(this._mNormal,this._mNormal);
@@ -668,7 +706,7 @@ FGL.prototype.drawElements = function(vertexFloat32Array,normalFloat32Array,colo
     this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
     this.setMatricesUniform();
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexArray,drawType || gl.DYNAMIC_DRAW);
-    gl.drawElements(mode  || this.TRIANGLES,
+    gl.drawElements((typeof mode === 'undefined') ? this.TRIANGLES : mode,
                     count || indexArray.length,
                     type  || (Flags.__uintTypeAvailable  ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT),
                     offset || 0);
@@ -713,8 +751,8 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
     glDrawMode = glDrawMode || gl.STATIC_DRAW;
 
     var vblen =      vertexFloat32Array.byteLength,
-        nblen = na ? normalFloat32Array.byteLength : 0,
-        cblen = ca ? colorFloat32Array.byteLength   : 0,
+        nblen = na ? normalFloat32Array.byteLength   : 0,
+        cblen = ca ? colorFloat32Array.byteLength    : 0,
         tblen = ta ? texCoordFloat32Array.byteLength : 0;
 
     var offsetV = 0,
@@ -739,14 +777,23 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
         gl.vertexAttribPointer(aVertexNormal,this.SIZE_OF_NORMAL,glFloat,false,0,offsetN);
     }
 
-    if(!ca){ gl.disableVertexAttribArray(aVertexColor); }
+    if(!ca)
+    {
+        if(materialMode != this.MATERIAL_MODE_NORMAL)
+            gl.disableVertexAttribArray(aVertexColor);
+    }
+    else
     {
         gl.enableVertexAttribArray(aVertexColor);
         gl.bufferSubData(glArrayBuffer, offsetC, colorFloat32Array);
         gl.vertexAttribPointer(aVertexColor, this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
     }
 
-    if(!ta){ gl.disableVertexAttribArray(aVertexTexCoord);}
+    if(!ta)
+    {
+        if(materialMode != this.MATERIAL_MODE_NORMAL)
+            gl.disableVertexAttribArray(aVertexTexCoord);
+    }
     else
     {
         gl.enableVertexAttribArray(aVertexTexCoord);
@@ -1337,7 +1384,7 @@ FGL.prototype.circleDetail = function(detail)
 FGL.prototype.lineWidth = function(size){this.gl.lineWidth(size);};
 
 FGL.prototype.useBillboard = function(bool){this._bUseBillboarding = bool;};
-FGL.prototype.pointSize = function(value){this.gl.uniform1f(this._program.uPointSize,value);};
+FGL.prototype.pointSize = function(value){this.gl.uniform1f(this._program.uPointSize,value);this._pointSize = value;};
 
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -1691,7 +1738,7 @@ FGL.prototype._genSphere = function()
     this._bVertexSphere       = new Float32Array(vertices);
     this._bVertexSphereScaled = new Float32Array(vertices);
     this._bNormalSphere       = new Float32Array(normals);
-    this._bColorSphere        = new Float32Array(segments * segments * 4);
+    this._bColorSphere        = new Float32Array(vertices.length / 3 * 4);
     this._bTexCoordsSphere    = new Float32Array(indices);
     this._bIndexSphere        = new Uint16Array(indices);
 };
@@ -1774,6 +1821,8 @@ FGL.prototype.deleteProgram = function(program)
         gl.deleteShader(program.fragShader);
         gl.deleteProgram(program.program);
 };
+
+FGL.prototype.getProgram = function(){return this._program;};
 
 
 
