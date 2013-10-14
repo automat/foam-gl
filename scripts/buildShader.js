@@ -14,9 +14,6 @@ function shader2String(shaderSource,dist)
     fs.writeFileSync(dist,'module.exports ="' + string + '";','utf-8');
 }
 
-shader2String(inPath + 'fEmptyFragShader.glsl', outPath + 'fEmptyFragShader.js');
-shader2String(inPath + 'fEmptyVertShader.glsl', outPath + 'fEmptyVertShader.js');
-
 shader2String(inPath + '/temp/fProgFragShader.glsl',outPath + 'fProgFragShader.js');
 shader2String(inPath + '/temp/fProgVertShader.glsl',outPath + 'fProgVertShader.js');
 shader2String(inPath + '/temp/fRenderVertShader.glsl',outPath + 'fRenderVertShader.js');
