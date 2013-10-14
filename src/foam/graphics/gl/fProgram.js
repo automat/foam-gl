@@ -13,7 +13,7 @@ function Program(fgl,vertexShader,fragmentShader)
         vertShader = this.vertShader = gl.createShader(gl.VERTEX_SHADER),
         fragShader = this.fragShader = gl.createShader(gl.FRAGMENT_SHADER);
 
-    gl.shaderSource(vertShader,vertexShader);
+    gl.shaderSource(vertShader,'#ifdef GL_ES\nprecision highp float;\n#endif\n'  + vertexShader);
     gl.compileShader(vertShader);
 
     //temp fix for some f****up setup
