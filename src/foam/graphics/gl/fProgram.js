@@ -1,5 +1,4 @@
 var Platform     = require('../../system/common/fPlatform'),
-    ShaderLoader = require('./shader/fShaderLoader'),
     System       = require('../../System/fSystem');
 
 var __i = false;
@@ -23,13 +22,7 @@ function Program(fgl,vertexShader,fragmentShader)
         throw gl.getShaderInfoLog(vertShader);
 
     //thanks plask
-    gl.shaderSource(fragShader, "#ifdef GL_ES\n" +
-                                "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
-                                "  precision highp float;\n" +
-                                "#else\n" +
-                                "  precision mediump float;\n" +
-                                "#endif\n" +
-                                "#endif\n" + fragmentShader);
+    gl.shaderSource(fragShader, "#ifdef GL_ES\n#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n#endif\n" + fragmentShader);
     gl.compileShader(fragShader);
 
     if(!gl.getShaderParameter(fragShader,gl.COMPILE_STATUS))

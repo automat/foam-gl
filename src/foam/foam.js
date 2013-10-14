@@ -44,11 +44,7 @@ module.exports =
     Mat44       : require('./math/fMat44'),
     Quaternion  : require('./math/fQuaternion'),
 
-
-
     MatGL        : require('./graphics/gl/fMatGL'),
-    ProgLoader   : require('./graphics/gl/shader/fProgLoader'),
-    ShaderLoader : require('./graphics/gl/shader/fShaderLoader'),
     Program      : require('./graphics/gl/fProgram'),
     CameraBasic  : require('./graphics/fCameraBasic'),
 

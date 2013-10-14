@@ -13,9 +13,6 @@ var fError               = require('../system/common/fError'),
     NormalVertShaderGLSL = require('./gl/shader/fNormalVertShader'),
     NormalFragShaderGLSL = require('./gl/shader/fNormalFragShader'),
 
-
-    ProgLoader           = require('./gl/shader/fProgLoader'),
-    ShaderLoader         = require('./gl/shader/fShaderLoader'),
     Vec2                 = require('../math/fVec2'),
     Vec3                 = require('../math/fVec3'),
     Vec4                 = require('../math/fVec4'),
