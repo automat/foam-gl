@@ -1,4 +1,3 @@
-varying vec4 vVertexPosition;
 varying vec4 vVertexColor;
 varying vec2 vVertexTexCoord;
 
