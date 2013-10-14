@@ -14,41 +14,15 @@ function shader2String(shaderSource,dist)
     fs.writeFileSync(dist,'module.exports ="' + string + '";','utf-8');
 }
 
+shader2String(inPath + 'fEmptyFragShader.glsl', outPath + 'fEmptyFragShader.js');
+shader2String(inPath + 'fEmptyVertShader.glsl', outPath + 'fEmptyVertShader.js');
 
-shader2String(inPath + 'fProgFragShader.glsl',outPath + 'fProgFragShader.js');
-shader2String(inPath + 'fProgVertShader.glsl',outPath + 'fProgVertShader.js');
-shader2String(inPath + 'fColorFragShader.glsl',outPath + 'fColorFragShader.js');
-shader2String(inPath + 'fColorVertShader.glsl',outPath + 'fColorVertShader.js');
-shader2String(inPath + 'fRenderVertShader.glsl',outPath + 'fRenderVertShader.js');
-shader2String(inPath + 'fRenderFragShader.glsl',outPath + 'fRenderFragShader.js');
+shader2String(inPath + '/temp/fProgFragShader.glsl',outPath + 'fProgFragShader.js');
+shader2String(inPath + '/temp/fProgVertShader.glsl',outPath + 'fProgVertShader.js');
+shader2String(inPath + '/temp/fRenderVertShader.glsl',outPath + 'fRenderVertShader.js');
+shader2String(inPath + '/temp/fRenderFragShader.glsl',outPath + 'fRenderFragShader.js');
 
-/*
-function shader2String(shaderSource,shaderClassName,dist)
-{
-    var string = '\n';
-    var arr    =  fs.readFileSync(shaderSource,'utf-8').toString().split('\n');
-    var i      = -1;
-    var l      = arr.length;
-    var line;
-
-    console.log(arr);
-
-    while(++i < l)
-    {
-        line = arr[i];
-
-        string+=line != '' ? ('"'+ line + ((i < l - 1) ? '" + \n' : '"')) : '\n';
-
-    }
-
-    fs.writeFileSync(dist,shaderClassName + '=' + string + ';','utf-8');
-}
-
-
-shader2String(inPath + '_glkProgFragShader.glsl',      'Foam.ProgFragShader',     outPath + 'fProgFragShader.js');
-shader2String(inPath + '_glkProgVertexShader.glsl',    'Foam.ProgVertShader',   outPath + 'fProgVertexShader.js');
-shader2String(inPath + '_glkProgFragImgShader.glsl',   'Foam.ProgFragImgShader',  outPath + '_glkProgFragImgShader.js');
-shader2String(inPath + '_glkProgVertexImgShader.glsl', 'Foam.ProgVertexImgShader',outPath + '_glkProgVertexImgShader.js');
-    */
-
-
+shader2String(inPath + 'fColorFragShader.glsl', outPath + 'fColorFragShader.js');
+shader2String(inPath + 'fColorVertShader.glsl', outPath + 'fColorVertShader.js');
+shader2String(inPath + 'fNormalFragShader.glsl',outPath + 'fNormalFragShader.js');
+shader2String(inPath + 'fNormalVertShader.glsl',outPath + 'fNormalVertShader.js');
