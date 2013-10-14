@@ -8,3 +8,5 @@ sketch
 
 *.BAK
 *.TEST
+
+includes/fFragShader_Template.glsl
