@@ -8,10 +8,12 @@ var fError               = require('../system/common/fError'),
     RenderVertShaderGLSL = require('./gl/shader/fRenderVertShader'),
     RenderFragShaderGLSL = require('./gl/shader/fRenderFragShader'),
 
-    ColorVertShaderGLSL  = require('./gl/shader/fColorVertShader'),
-    ColorFragShaderGLSL  = require('./gl/shader/fColorFragShader'),
-    NormalVertShaderGLSL = require('./gl/shader/fNormalVertShader'),
-    NormalFragShaderGLSL = require('./gl/shader/fNormalFragShader'),
+    ColorVertShaderGLSL      = require('./gl/shader/fColorVertShader'),
+    ColorFragShaderGLSL      = require('./gl/shader/fColorFragShader'),
+    ColorSolidVertShaderGLSL = require('./gl/shader/fColorSolidVertShader'),
+    ColorSolidFragShaderGLSL = require('./gl/shader/fColorSolidFragShader'),
+    NormalVertShaderGLSL     = require('./gl/shader/fNormalVertShader'),
+    NormalFragShaderGLSL     = require('./gl/shader/fNormalFragShader'),
 
     Vec2                 = require('../math/fVec2'),
     Vec3                 = require('../math/fVec3'),
@@ -19,7 +21,9 @@ var fError               = require('../system/common/fError'),
     Mat33                = require('../math/fMat33'),
     Mat44                = require('../math/fMat44'),
     Color                = require('../util/fColor'),
-    Texture              = require('./gl/fTexture');
+    Texture              = require('./gl/fTexture'),
+
+    Util = require('../util/fUtil');
 
 
 function FGL(context3d,context2d)
@@ -37,8 +41,9 @@ function FGL(context3d,context2d)
     var platform = Platform.getTarget();
 
 
-    this._programMaterialColor  = new Program(this,ColorVertShaderGLSL,ColorFragShaderGLSL);
-    this._programMaterialNormal = new Program(this,NormalVertShaderGLSL,NormalFragShaderGLSL);
+    this._programMaterialColor      = new Program(this,ColorVertShaderGLSL,ColorFragShaderGLSL);
+    this._programMaterialColorSolid = new Program(this,ColorSolidVertShaderGLSL,ColorSolidFragShaderGLSL);
+    this._programMaterialNormal     = new Program(this,NormalVertShaderGLSL,NormalFragShaderGLSL);
 
     this._programDefault  = new Program(this,ProgVertShaderGLSL,ProgFragShaderGLSL);
 
@@ -48,7 +53,7 @@ function FGL(context3d,context2d)
     this.useProgram(this._programDefault);
 
     //
-    Flags.__uintTypeAvailable = platform == Platform.PLASK;
+    Flags.__uintTypeAvailable = platform == Platform.PLASK || gl.getExtension('OES_element_index_uint');
     //...
 
 
@@ -57,14 +62,15 @@ function FGL(context3d,context2d)
     /*---------------------------------------------------------------------------------------------------------*/
 
     this.MATERIAL_MODE_COLOR        = 0;
-    this.MATERIAL_MODE_NORMAL       = 1;
-    this.MATERIAL_MODE_PHONG        = 2;
-    this.MATERIAL_MODEL_ANTISOPTRIC = 3;
-    this.MATERIAL_MODEL_FRESNEL     = 4;
-    this.MATERIAL_MODEL_BLINN       = 5;
-    this.MATERIAL_MODEL_FLAT        = 6;
+    this.MATERIAL_MODE_COLOR_SOLID  = 1;
+    this.MATERIAL_MODE_NORMAL       = 2;
+    this.MATERIAL_MODE_PHONG        = 3;
+    this.MATERIAL_MODEL_ANTISOPTRIC = 4;
+    this.MATERIAL_MODEL_FRESNEL     = 5;
+    this.MATERIAL_MODEL_BLINN       = 6;
+    this.MATERIAL_MODEL_FLAT        = 7;
 
-    this._materialMode     = 2;
+    this._materialMode     = 3;
     this._materialModeLast = -1;
 
 
@@ -325,7 +331,6 @@ function FGL(context3d,context2d)
     this._bNormalCube       = new Float32Array([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0] );
     this._bIndexCube        = new Uint16Array([  0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9,10, 8,10,11, 12,13,14,12,14,15, 16,17,18,16,18,19, 20,21,22,20,22,23]);
     this._bTexCoordCube     = new Float32Array(this._bVertexCube.length/3*2);//TODO: add
-
     //Box
 
     this._bVertexBox       = new Float32Array(this._bVertexCube);
@@ -379,6 +384,7 @@ FGL.prototype.useLighting  = function(bool)
 {
     var materialMode = this._materialMode;
     if(materialMode != this.MATERIAL_MODE_COLOR &&
+       materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
        materialMode != this.MATERIAL_MODE_NORMAL)
     {
         this.gl.uniform1f(this._program.uUseLighting,bool ? 1.0 : 0.0);
@@ -393,6 +399,7 @@ FGL.prototype.light = function(light)
     var materialMode = this._materialMode;
 
     if(materialMode == this.MATERIAL_MODE_COLOR ||
+       materialMode == this.MATERIAL_MODE_COLOR_SOLID ||
        materialMode == this.MATERIAL_MODE_NORMAL)
        return;
 
@@ -423,6 +430,13 @@ FGL.prototype.light = function(light)
 //FIX ME
 FGL.prototype.disableLight = function(light)
 {
+    var materialMode = this._materialMode;
+
+    if(materialMode  == this.MATERIAL_MODE_COLOR ||
+        materialMode == this.MATERIAL_MODE_COLOR_SOLID ||
+        materialMode == this.MATERIAL_MODE_NORMAL)
+        return;
+
     var id = light.getId(),
         gl = this.gl;
 
@@ -537,6 +551,7 @@ FGL.prototype.useMaterial = function(bool)
 {
     var materialMode = this._materialMode;
     if(materialMode != this.MATERIAL_MODE_COLOR &&
+       materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
        materialMode != this.MATERIAL_MODE_NORMAL)
     {
         this.gl.uniform1f(this._program.uUseMaterial,bool ? 1.0 : 0.0);
@@ -553,13 +568,20 @@ FGL.prototype.materialMode = function(mode)
     var program;
 
     var useTexture  = this._bUseTexture  ? 1.0 : 0.0,
-        useMaterial = this._bUseMaterial ? 1.0 : 0.0;
+        useMaterial = this._bUseMaterial ? 1.0 : 0.0,
         pointSize   = this._pointSize;
 
     switch(mode)
     {
         case this.MATERIAL_MODE_COLOR:
             this.useProgram(this._programMaterialColor);
+            program = this._program;
+            gl.uniform1f(program.uPointSize, pointSize);
+            gl.uniform1f(program.uUseTexture,useTexture);
+            break;
+
+        case this.MATERIAL_MODE_COLOR_SOLID:
+            this.useProgram(this._programMaterialColorSolid);
             program = this._program;
             gl.uniform1f(program.uPointSize, pointSize);
             gl.uniform1f(program.uUseTexture,useTexture);
@@ -590,6 +612,7 @@ FGL.prototype.material = function(material)
 {
     var materialMode = this._materialMode;
     if(materialMode == this.MATERIAL_MODE_COLOR ||
+       materialMode == this.MATERIAL_MODE_COLOR_SOLID ||
        materialMode == this.MATERIAL_MODE_NORMAL)return;
 
     var gl = this.gl;
@@ -639,6 +662,7 @@ FGL.prototype.setMatricesUniform = function()
 
     if(!this._bUseLighting ||
         materialMode == this.MATERIAL_MODE_COLOR ||
+        materialMode == this.MATERIAL_MODE_COLOR_SOLID ||
         materialMode == this.MATERIAL_MODE_NORMAL)return;
 
     Mat44.toMat33Inversed(this._mModelView,this._mNormal);
@@ -762,10 +786,11 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
     gl.bufferSubData(glArrayBuffer, offsetV, vertexFloat32Array);
     gl.vertexAttribPointer(aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
 
-    if(!na ||
-       materialMode == this.MATERIAL_MODE_COLOR)
+    if(!na)
     {
-        gl.disableVertexAttribArray(aVertexNormal);
+        if(materialMode != this.MATERIAL_MODE_COLOR &&
+           materialMode != this.MATERIAL_MODE_COLOR_SOLID)
+            gl.disableVertexAttribArray(aVertexNormal);
     }
     else
     {
@@ -776,7 +801,8 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
 
     if(!ca)
     {
-        if(materialMode != this.MATERIAL_MODE_NORMAL)
+        if(materialMode != this.MATERIAL_MODE_NORMAL &&
+           materialMode != this.MATERIAL_MODE_COLOR_SOLID)
             gl.disableVertexAttribArray(aVertexColor);
     }
     else
@@ -1134,7 +1160,9 @@ FGL.prototype.drawElementArrayBatchDynamic = function(batch)
 
     this.drawElements(this._bBatchDynVerticesF32,
                       this._bBatchDynNormalsF32,
-                      this._bBatchDynColorsF32,
+                      this._materialMode == this.MATERIAL_MODE_COLOR_SOLID ?
+                        this._bBatchDynColorsF32 :
+                        null,
                       this._bBatchDynTexCoordsF32,
                       this._bBatchDynIndicesU,
                       this.getDrawMode(),
@@ -1277,8 +1305,9 @@ FGL.prototype.drawElementArrayBatch = function(batch)
         batchNormals   = this._batchNormalsF32Last   = new Float32Array(this._bBatchNormals);
         batchColors    = this._batchColorsF32Last    = new Float32Array(this._bBatchColors);
         batchTexCoords = this._batchTexCoordsF32Last = new Float32Array(this._bBatchTexCoords);
-        batchIndices   = this._batchIndicesULast   = Flags.__uintTypeAvailable  ? new Uint32Array(this._bBatchIndices) :
-                                                                                    new Uint16Array(this._bBatchIndices);
+        batchIndices   = this._batchIndicesULast     = Flags.__uintTypeAvailable  ?
+                                                        new Uint32Array(this._bBatchIndices) :
+                                                        new Uint16Array(this._bBatchIndices);
   }
 
 
@@ -1319,16 +1348,64 @@ FGL.prototype._putBatchDyn = function(batchArray,dataArray,offset)
 // Convenience Methods color
 /*---------------------------------------------------------------------------------------------------------*/
 
-FGL.prototype.ambient   = function(color){this.gl.uniform3f(this._program.uAmbient,color[0],color[1],color[2]);};
-FGL.prototype.ambient3f = function(r,g,b){this.gl.uniform3f(this._program.uAmbient,r,g,b);};
-FGL.prototype.ambient1f = function(k)    {this.gl.uniform1f(this._program.uAmbient,k);};
+FGL.prototype.ambient   = function(color)
+{
+    if(this._materialMode == this.MATERIAL_MODE_COLOR_SOLID)return;
+    this.gl.uniform3f(this._program.uAmbient,color[0],color[1],color[2]);
+};
 
-FGL.prototype.color   = function(color)  {this._bColor = Color.set(this._bColor4f,color);};
-FGL.prototype.color4f = function(r,g,b,a){this._bColor = Color.set4f(this._bColor4f,r,g,b,a);};
-FGL.prototype.color3f = function(r,g,b)  {this._bColor = Color.set3f(this._bColor4f,r,g,b);};
-FGL.prototype.color2f = function(k,a)    {this._bColor = Color.set2f(this._bColor4f,k,a);};
-FGL.prototype.color1f = function(k)      {this._bColor = Color.set1f(this._bColor4f,k);};
-FGL.prototype.colorfv = function(array)  {this._bColor = array;};
+FGL.prototype.ambient3f = function(r,g,b)
+{
+    if(this._materialMode == this.MATERIAL_MODE_COLOR_SOLID)return;
+    this.gl.uniform3f(this._program.uAmbient,r,g,b);
+};
+
+FGL.prototype.ambient1f = function(k)
+{
+    if(this._materialMode == this.MATERIAL_MODE_COLOR_SOLID)return;
+    this.gl.uniform1f(this._program.uAmbient,k);
+};
+
+FGL.prototype.color   = function(color)
+{
+    this._bColor = Color.set(this._bColor4f,color);
+    if(this._materialMode == this.MATERIAL_MODE_COLOR_SOLID)
+        this.gl.uniform4fv(this._program.uVertexColor,this._bColor);
+};
+
+FGL.prototype.color4f = function(r,g,b,a)
+{
+    this._bColor = Color.set4f(this._bColor4f,r,g,b,a);
+    if(this._materialMode == this.MATERIAL_MODE_COLOR_SOLID)
+        this.gl.uniform4fv(this._program.uVertexColor,this._bColor);
+};
+
+FGL.prototype.color3f = function(r,g,b)
+{
+    this._bColor = Color.set3f(this._bColor4f,r,g,b);
+    if(this._materialMode == this.MATERIAL_MODE_COLOR_SOLID)
+        this.gl.uniform4fv(this._program.uVertexColor,this._bColor);
+};
+
+FGL.prototype.color2f = function(k,a)
+{
+    this._bColor = Color.set2f(this._bColor4f,k,a);
+    if(this._materialMode == this.MATERIAL_MODE_COLOR_SOLID)
+        this.gl.uniform4fv(this._program.uVertexColor,this._bColor);
+};
+
+FGL.prototype.color1f = function(k)
+{
+    this._bColor = Color.set1f(this._bColor4f,k);
+    if(this._materialMode == this.MATERIAL_MODE_COLOR_SOLID)
+        this.gl.uniform4fv(this._program.uVertexColor,this._bColor4f);
+};
+
+FGL.prototype.colorfv = function(array)
+{
+    if(this._materialMode == this.MATERIAL_MODE_COLOR_SOLID)return;
+    this._bColor = array;
+};
 
 FGL.prototype.alpha = function(alpha)
 {
@@ -1490,7 +1567,13 @@ FGL.prototype.linef = function(x0,y0,z0,x1,y1,z1)
     v[0] = x0;v[1] = y0;v[2] = z0;
     v[3] = x1;v[4] = y1;v[5] = z1;
 
-    this.drawArrays(v,null,this.bufferColors(this._bColor,this._bColorLine),null,this._drawMode);
+    this.drawArrays(v,
+                    null,
+                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        this.bufferColors(this._bColor,this._bColorLine) :
+                        null,
+                    null,
+                    this._drawMode);
 
     this._drawFuncLast = this.linef;
 };
@@ -1498,7 +1581,15 @@ FGL.prototype.linef = function(x0,y0,z0,x1,y1,z1)
 FGL.prototype.line  = function(vertices)
 {
     if(vertices.length == 0)return;
-    this.drawArrays(this.bufferArrays(vertices,this._bVertexLine),null,this.bufferColors(this._bColor,this._bColorLine),null,this._drawMode,0, 2);
+    this.drawArrays(this.bufferArrays(vertices,this._bVertexLine),
+                    null,
+                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        this.bufferColors(this._bColor,this._bColorLine) :
+                        null,
+                    null,
+                    this._drawMode,
+                    0,
+                    2);
 
     this._drawFuncLast = this.line;
 };
@@ -1508,7 +1599,16 @@ FGL.prototype.linev = function(vertices)
     if(vertices.length == 0)return;
     var v = new Float32Array(vertices),
         l = vertices.length / this.SIZE_OF_VERTEX;
-    this.drawArrays(v,null,this.bufferColors(this._bColor, new Float32Array(l*this.SIZE_OF_COLOR)),null,this._drawMode,0, l);
+
+    this.drawArrays(v,
+                    null,
+                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        this.bufferColors(this._bColor, new Float32Array(l*this.SIZE_OF_COLOR)) :
+                        null,
+                    null,
+                    this._drawMode,
+                    0,
+                    l);
 
     this._drawFuncLast = this.linev;
 };
@@ -1526,7 +1626,15 @@ FGL.prototype.quadf = function(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3)
     v[ 6] = x2;v[ 7] = y2;v[ 8] = z2;
     v[ 9] = x3;v[10] = y3;v[11] = z3;
 
-    this.drawArrays(v,null,this.bufferColors(this._bColor,this._bColorQuad),null,this._drawMode,0,4);
+    this.drawArrays(v,
+                    null,
+                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        this.bufferColors(this._bColor,this._bColorQuad) :
+                        null,
+                    null,
+                    this._drawMode,
+                    0,
+                    4);
 
     this._drawFuncLast = this.quadf;
 };
@@ -1538,7 +1646,15 @@ FGL.prototype.quadv = function(v0,v1,v2,v3)
 
 FGL.prototype.quad = function(vertices,normals,texCoords)
 {
-    this.drawArrays(this.bufferArrays(vertices,this._bVertexQuad),normals,this.bufferColors(this._bColor,this._bColorQuad),texCoords,this._drawMode,0,4);
+    this.drawArrays(this.bufferArrays(vertices,this._bVertexQuad),
+                    normals,
+                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        this.bufferColors(this._bColor,this._bColorQuad) :
+                        null,
+                    texCoords,
+                    this._drawMode,
+                    0,
+                    4);
 
     this._drawFuncLast = this.quad;
 };
@@ -1593,7 +1709,15 @@ FGL.prototype.rect = function(width,height)
         this._rectHeightLast = height;
     }
 
-    this.drawArrays(vertices,this._bNormalRect,this.bufferColors(this._bColor,this._bColorRect),this._bTexCoordQuadDefault,this._drawMode,0,4);
+    this.drawArrays(vertices,
+                    this._bNormalRect,
+                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        this.bufferColors(this._bColor,this._bColorRect) :
+                        null,
+                    this._bTexCoordQuadDefault,
+                    this._drawMode,
+                    0,
+                    4);
 
     this._drawFuncLast = this.rect;
 };
@@ -1607,7 +1731,15 @@ FGL.prototype.triangle = function(v0,v1,v2)
     v[3] = v1[0];v[4] = v1[1];v[5] = v1[2];
     v[6] = v2[0];v[7] = v2[1];v[8] = v2[2];
 
-    this.drawArrays(v,null,this.bufferColors(this._bColor,this._bColorTriangle),null,this._drawMode,0,3);
+    this.drawArrays(v,
+                    null,
+                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        this.bufferColors(this._bColor,this._bColorTriangle) :
+                        null,
+                    null,
+                    this._drawMode,
+                    0,
+                    3);
 
     this._drawFuncLast = this.triangle;
 };
@@ -1619,14 +1751,29 @@ FGL.prototype.trianglef = function(v0,v1,v2,v3,v4,v5,v6,v7,v8)
     v[3] = v3;v[4] = v4;v[5] = v5;
     v[6] = v6;v[7] = v7;v[8] = v8;
 
-    this.drawArrays(v,null,this.bufferColors(this._bColor,this._bColorTriangle),null,this._drawMode,0,3);
+    this.drawArrays(v,
+                    null,
+                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        this.bufferColors(this._bColor,this._bColorTriangle) :
+                        null,
+                    null,
+                    this._drawMode,0,3);
 
     this._drawFuncLast = this.trianglef;
 };
 
 FGL.prototype.trianglev = function(vertices,normals,texCoords)
 {
-    this.drawArrays(this.bufferArrays(vertices,this._bVertexTriangle),normals,this.bufferColors(this._bColor,this._bColorTriangle),texCoords,this._drawMode,0,3);
+    this.drawArrays(this.bufferArrays(vertices,this._bVertexTriangle),
+                    normals,
+                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        this.bufferColors(this._bColor,this._bColorTriangle) :
+                        null,
+                    texCoords,
+                    this._drawMode,
+                    0,
+                    3);
+
     this._drawFuncLast = this.trianglev;
 };
 
@@ -1639,7 +1786,17 @@ FGL.prototype.circle3f = function(x,y,z,radius)
     this.pushMatrix();
     this.translate3f(x,y,z);
     this.scale1f(radius);
-    this.drawArrays(this._bVertexCircle,this._bNormalCircle,this.bufferColors(this._bColor,this._bColorCircle),this._bTexCoordCircle,this.getDrawMode(),0,this._circleDetailLast);
+
+    this.drawArrays(this._bVertexCircle,
+                    this._bNormalCircle,
+                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        this.bufferColors(this._bColor,this._bColorCircle) :
+                        null,
+                    this._bTexCoordCircle,
+                    this.getDrawMode(),
+                    0,
+                    this._circleDetailLast);
+
     this.popMatrix();
 
     this._drawFuncLast = this.linef;
@@ -1912,6 +2069,30 @@ FGL.prototype.sphere = function(size)
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
+// Get geom buffers - TEMP -
+/*---------------------------------------------------------------------------------------------------------*/
+
+FGL.prototype.getGeomBufferSphere = function()
+{
+    return [new Float32Array(this._bVertexSphere),
+            new Float32Array(this._bNormalSphere),
+            new Float32Array(this._bColorSphere),
+            new Float32Array(this._bTexCoordsSphere),
+            Flags.__uintTypeAvailable ? new Uint16Array(this._bIndexSphere) :
+                                        new Uint8Array( this._bIndexSphere)];
+};
+
+FGL.prototype.getGeomBufferQuad = function()
+{
+    return [this._bVertexQuad,
+            this._bNormalQuad,
+            this._bColorQuad,
+            this._bTexCoordQuad];
+};
+
+
+
+/*---------------------------------------------------------------------------------------------------------*/
 // expose gl stuff
 /*---------------------------------------------------------------------------------------------------------*/
 
@@ -1973,6 +2154,7 @@ FGL.prototype.glVertexAttribPointer      = function(index,size,type,normalized,s
 
 FGL.prototype.glDrawArrays   = function(mode,first,count){this.gl.drawArrays(mode,first,count);};
 FGL.prototype.glDrawElements = function(mode,count,type,offset){type.gl.drawElements(mode,count,type,offset);};
+
 
 
 
