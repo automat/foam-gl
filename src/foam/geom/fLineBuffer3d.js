@@ -35,9 +35,18 @@ LineBuffer3d = function(points,numSegments,diameter,sliceSegmentFunc,closed)
     this._initDiameter = diameter;
 
     this._tempVec0 = Vec3.make();
+    this._tempVec1 = Vec3.make();
+    this._tempVec2 = Vec3.make();
     this._bPoint0  = Vec3.make();
     this._bPoint1  = Vec3.make();
     this._bPoint01 = Vec3.make();
+
+
+
+    this._tempMat0 = Mat44.make();
+    this._tempMat1 = Mat44.make();
+    this._tempMat2 = Mat44.make();
+
     this._axisY    = Vec3.AXIS_Y();
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -285,15 +294,17 @@ LineBuffer3d.prototype.update = function()
         vertices     = this.vertices,
         verticesNorm = this._verticesNorm;
 
-    var tempVec = this._tempVec0;
+    var tempVec0 = this._tempVec0,
+        tempVec1 = this._tempVec1;
 
     var p0  = this._bPoint0,
         p1  = this._bPoint1,
         p01 = this._bPoint01,
         up  = this._axisY;
 
-    var mat    = Mat44.make(),
-        matRot = Mat44.make();
+    var mat     = Mat44.identity(this._tempMat0),
+        matRot  = Mat44.identity(this._tempMat1),
+        matTemp = Mat44.identity(this._tempMat2);
 
     var index,index3,index6;
 
@@ -305,9 +316,9 @@ LineBuffer3d.prototype.update = function()
     Vec3.set3f(p0,points[0],points[1],points[2]);
     Vec3.set3f(p1,points[3],points[4],points[5]);
 
-    dir01 = Vec3.safeNormalize(Vec3.subbed(p1,p0));
+    dir01 = Vec3.safeNormalize(Vec3.subbed(p1,p0,tempVec0));
     angle = Math.acos(Vec3.dot(dir01,up));
-    axis  = Vec3.safeNormalize(Vec3.cross(up,dir01));
+    axis  = Vec3.safeNormalize(Vec3.cross(up,dir01,tempVec1));
 
     Mat44.identity(mat);
     mat[12] = p0[0];
@@ -315,7 +326,7 @@ LineBuffer3d.prototype.update = function()
     mat[14] = p0[2];
 
     Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2],matRot);
-    mat = Mat44.multPost(mat,matRot);
+    mat = Mat44.multPost(mat,matRot,matTemp);
 
     j = -1;
     while(++j < numSegments)
@@ -323,15 +334,15 @@ LineBuffer3d.prototype.update = function()
         index3 = j * 3;
         index6 = j * 6;
 
-        tempVec[0] = verticesNorm[index6+3];
-        tempVec[1] = verticesNorm[index6+4];
-        tempVec[2] = verticesNorm[index6+5];
+        tempVec0[0] = verticesNorm[index6+3];
+        tempVec0[1] = verticesNorm[index6+4];
+        tempVec0[2] = verticesNorm[index6+5];
 
-        Mat44.multVec3(mat,tempVec);
+        Mat44.multVec3(mat,tempVec0);
 
-        vertices[index3  ] = tempVec[0];
-        vertices[index3+1] = tempVec[1];
-        vertices[index3+2] = tempVec[2];
+        vertices[index3  ] = tempVec0[0];
+        vertices[index3+1] = tempVec0[1];
+        vertices[index3+2] = tempVec0[2];
     }
     //END - calculate first point
 
@@ -339,7 +350,8 @@ LineBuffer3d.prototype.update = function()
     //calc first prev dir
     Vec3.set3f(p0, points[3],points[4],points[5]);
     Vec3.set3f(p01,points[0],points[1],points[2]);
-    dir_10 = Vec3.safeNormalize(Vec3.subbed(p0,p01));
+
+    dir_10 = Vec3.safeNormalize(Vec3.subbed(p0,p01,tempVec0));
 
     var i3;
     var i = 0;
@@ -359,7 +371,7 @@ LineBuffer3d.prototype.update = function()
         p1[2] = points[i3+2];
 
         //calculate direction
-        dir01  = Vec3.safeNormalize(Vec3.subbed(p1,p0));
+        dir01 = Vec3.safeNormalize(Vec3.subbed(p1,p0,tempVec0));
 
         //interpolate with previous direction
         dir01[0] = dir01[0] * 0.5 + dir_10[0] * 0.5;
@@ -368,7 +380,7 @@ LineBuffer3d.prototype.update = function()
 
         //get dir angle + axis
         angle = Math.acos(Vec3.dot(dir01,up));
-        axis  = Vec3.safeNormalize(Vec3.cross(up,dir01));
+        axis  = Vec3.safeNormalize(Vec3.cross(up,dir01,tempVec1));
 
         //reset transformation matrix
         Mat44.identity(mat);
@@ -382,7 +394,7 @@ LineBuffer3d.prototype.update = function()
         Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2],matRot);
 
         //multiply matrices
-        mat = Mat44.multPost(mat,matRot);
+        mat = Mat44.multPost(mat,matRot,matTemp);
 
         j = -1;
         while(++j < numSegments)
@@ -392,17 +404,17 @@ LineBuffer3d.prototype.update = function()
             index6 = index * 6;
 
             //lookup vertex
-            tempVec[0] = verticesNorm[index6+3];
-            tempVec[1] = verticesNorm[index6+4];
-            tempVec[2] = verticesNorm[index6+5];
+            tempVec0[0] = verticesNorm[index6+3];
+            tempVec0[1] = verticesNorm[index6+4];
+            tempVec0[2] = verticesNorm[index6+5];
 
             //transform vertex copy by matrix
-            Mat44.multVec3(mat,tempVec);
+            Mat44.multVec3(mat,tempVec0);
 
             //reassign transformed vertex
-            vertices[index3  ] = tempVec[0];
-            vertices[index3+1] = tempVec[1];
-            vertices[index3+2] = tempVec[2];
+            vertices[index3  ] = tempVec0[0];
+            vertices[index3+1] = tempVec0[1];
+            vertices[index3+2] = tempVec0[2];
         }
 
         //assign current direction to prev
@@ -417,9 +429,9 @@ LineBuffer3d.prototype.update = function()
     Vec3.set3f(p0,points[len - 6],points[len - 5],points[len - 4]);
     Vec3.set3f(p1,points[len - 3],points[len - 2],points[len - 1]);
 
-    dir01 = Vec3.safeNormalize(Vec3.subbed(p1,p0));
+    dir01 =     Vec3.safeNormalize(Vec3.subbed(p1,p0,tempVec0));
     angle = Math.acos(Vec3.dot(dir01,up));
-    axis  = Vec3.safeNormalize(Vec3.cross(up,dir01));
+    axis  = Vec3.safeNormalize(Vec3.cross(up,dir01,tempVec1));
 
     Mat44.identity(mat);
     mat[12] = p1[0];
@@ -427,7 +439,7 @@ LineBuffer3d.prototype.update = function()
     mat[14] = p1[2];
 
     Mat44.makeRotationOnAxis(angle,axis[0],axis[1],axis[2],matRot);
-    mat = Mat44.multPost(mat,matRot);
+    mat = Mat44.multPost(mat,matRot,matTemp);
 
     i  = (i * numSegments);
 
@@ -438,15 +450,15 @@ LineBuffer3d.prototype.update = function()
         index3 = index * 3;
         index6 = index * 6;
 
-        tempVec[0] = verticesNorm[index6+3];
-        tempVec[1] = verticesNorm[index6+4];
-        tempVec[2] = verticesNorm[index6+5];
+        tempVec0[0] = verticesNorm[index6+3];
+        tempVec0[1] = verticesNorm[index6+4];
+        tempVec0[2] = verticesNorm[index6+5];
 
-        Mat44.multVec3(mat,tempVec);
+        Mat44.multVec3(mat,tempVec0);
 
-        vertices[index3  ] = tempVec[0];
-        vertices[index3+1] = tempVec[1];
-        vertices[index3+2] = tempVec[2];
+        vertices[index3  ] = tempVec0[0];
+        vertices[index3+1] = tempVec0[1];
+        vertices[index3+2] = tempVec0[2];
     }
     //END - calculate last point
 };
