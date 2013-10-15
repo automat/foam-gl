@@ -8,9 +8,9 @@ var Vec3 =
 
     make : function(x,y,z)
     {
-        return new Float32Array([ x || 0.0,
-            y || 0.0,
-            z || 0.0]);
+        return new Float32Array([ typeof x !== 'undefined' ? x : 0.0,
+                                  typeof y !== 'undefined' ? y : 0.0,
+                                  typeof z !== 'undefined' ? z : 0.0  ]);
     },
 
     set : function(v0,v1)
@@ -68,7 +68,7 @@ var Vec3 =
         return v0[0]*v1[0] + v0[1]*v1[1] + v0[2]*v1[2];
     },
 
-    cross: function(v0,v1)
+    cross: function(v0,v1,vo)
     {
         var x0 = v0[0],
             y0 = v0[1],
@@ -77,9 +77,14 @@ var Vec3 =
             y1 = v1[1],
             z1 = v1[2];
 
-        return new Float32Array([y0 * z1 - y1 * z0,
-                                 z0 * x1 - z1 * x0,
-                                 x0 * y1 - x1 * y0]);
+        vo = vo || this.make();
+
+        vo[0] = y0 * z1 - y1 * z0;
+        vo[1] = z0 * x1 - z1 * x0;
+        vo[2] = x0 * y1 - x1 * y0;
+
+
+        return vo;
     },
 
     lerp : function(v0,v1,f)
@@ -92,14 +97,19 @@ var Vec3 =
         v0[1] = y0 * (1.0 - f) + v1[1] * f;
         v0[2] = z0 * (1.0 - f) + v1[2] * f;
 
-
+        return v0;
     },
 
-    lerped : function(v0,v1,f)
+    lerped : function(v0,v1,f,vo)
     {
-        return this.lerp(this.copy(v0),v1,f);
-    },
+        vo = vo || vo.make();
 
+        vo[0] = v0[0];
+        vo[1] = v0[1];
+        vo[2] = v0[2];
+
+        return this.lerp(vo,v1,f);
+    },
 
 
     lerp3f : function(v,x,y,z,f)
@@ -111,6 +121,17 @@ var Vec3 =
         v[0] = vx * (1.0 - f) + x * f;
         v[1] = vy * (1.0 - f) + y * f;
         v[2] = vz * (1.0 - f) + z * f;
+    },
+
+    lerped3f : function(v,x,y,z,f,vo)
+    {
+        vo = vo || this.make();
+
+        vo[0] = v[0];
+        vo[1] = v[1];
+        vo[2] = v[2];
+
+        return this.lerp3f(vo,x,y,z,f);
     },
 
 
@@ -223,31 +244,66 @@ var Vec3 =
         return v;
     },
 
-    added  : function(v0,v1)
+    added  : function(v0,v1,vo)
     {
-        return this.add(this.copy(v0),v1);
+        vo = vo || this.make();
+
+        vo[0] = v0[0] + v1[0];
+        vo[1] = v0[1] + v1[1];
+        vo[2] = v0[2] + v1[2];
+
+        return vo;
     },
 
-    subbed : function(v0,v1)
+    subbed : function(v0,v1,vo)
     {
-        return this.sub(this.copy(v0),v1);
+        vo = vo || this.make();
+
+        vo[0] = v0[0] - v1[0];
+        vo[1] = v0[1] - v1[1];
+        vo[2] = v0[2] - v1[2];
+
+        return vo;
     },
 
-    scaled : function(v,n)
+    scaled : function(v,n,vo)
     {
-        return this.scale(this.copy(v),n);
+        vo = vo || this.make();
+
+        vo[0] = v[0] * n;
+        vo[1] = v[1] * n;
+        vo[2] = v[2] * n;
+
+        return vo;
     },
 
-    normalized : function(v)
+    normalized : function(v,vo)
     {
-        return this.normalize(this.copy(v));
+        vo = vo || this.make();
+
+        vo[0] = v[0];
+        vo[1] = v[1];
+        vo[2] = v[2];
+
+        return this.normalize(vo);
+    },
+
+    safeNormalized : function(v,vo)
+    {
+        vo = vo || this.make();
+
+        vo[0] = v[0];
+        vo[1] = v[1];
+        vo[2] = v[2];
+
+        return this.safeNormalize(vo);
     },
 
     random : function(unitX,unitY,unitZ)
     {
-        unitX = typeof unitX == 'undefined' ? 1 : unitX;
-        unitY = typeof unitY == 'undefined' ? 1 : unitY;
-        unitZ = typeof unitZ == 'undefined' ? 1 : unitZ;
+        unitX = typeof unitX !== 'undefined' ? unitX : 1.0;
+        unitY = typeof unitY !== 'undefined' ? unitY : 1.0;
+        unitZ = typeof unitZ !== 'undefined' ? unitZ : 1.0;
 
         return this.make((-0.5 + Math.random()) * 2 * unitX,
                          (-0.5 + Math.random()) * 2 * unitY,
