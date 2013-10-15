@@ -39,7 +39,6 @@ struct Material
     vec4 specular;
 
     float shininess;
-
 };
 
 struct ColorComponent
