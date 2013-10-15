@@ -166,6 +166,7 @@ App.prototype.update = function()
     lineBuffer0.update();
     lineBuffer0.updateVertexNormals();
 
+    gl.drawMode(gl.TRIANGLES);
     gl.drawGeometry(lineBuffer0);
     //gl.drawGeometry(lineBuffer1);
 
