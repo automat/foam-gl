@@ -138,7 +138,7 @@ function FGL(context3d,context2d)
     this.SIZE_OF_VERTEX    = SIZE_OF_VERTEX;
     this.SIZE_OF_NORMAL    = SIZE_OF_VERTEX;
     this.SIZE_OF_COLOR     = SIZE_OF_COLOR;
-    this.SIZE_OF_TEX_COORD =  SIZE_OF_TEX_COORD;
+    this.SIZE_OF_TEX_COORD = SIZE_OF_TEX_COORD;
 
     var SIZE_OF_FACE    = this.SIZE_OF_FACE   = SIZE_OF_VERTEX;
 
@@ -232,8 +232,13 @@ function FGL(context3d,context2d)
 
     this._drawFuncLast = null;
 
-    this._rectWidthLast    = 0;
-    this._rectHeightLast   = 0;
+    this._rectMode = 0;
+
+    this._rectWidthLast    = -1;
+    this._rectHeightLast   = -1;
+    this._rectBBWidthLast  = -1;
+    this._rectBBHeightLast = -1;
+    this._bRectBBDim       = new Float32Array([1,1,1,1]);
 
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -260,6 +265,12 @@ function FGL(context3d,context2d)
 
     this._pointSize = 1.0;
 
+    this._bVertexBBRect   = new Float32Array([-0.5,0,-0.5,
+                                               0.5,0,-0.5,
+                                               0.5,0,0.5,
+                                              -0.5,0,0.5]);
+    this._bColorBBRect    = Color.makeColorArrayf(1,1,1,1,16);
+    this._bTexCoordBBRect = new Float32Array([0,0,0,1,1,1,0,1]);
 
     this._bScreenCoords = [0,0];
     this._bPoint0       = [0,0,0];
@@ -1469,14 +1480,17 @@ FGL.prototype.lineWidth = function(size){this.gl.lineWidth(size);};
 
 FGL.prototype.useBillboard = function(bool)
 {
-    this._bUseBillboard = bool;
+    if(this._bUseBillboard == bool)return;
+
     if(bool)
     {
         this.useProgram(this._programRenderBillboard);
-        this.bindDefaultIBO();
         this.bindDefaultVBO();
     }
     else this.materialMode(this._programLast);
+
+    this._bUseBillboard = bool;
+
 };
 FGL.prototype.pointSize    = function(value)
 {
@@ -1685,74 +1699,85 @@ FGL.prototype.quad = function(vertices,normals,texCoords)
 
 /*---------------------------------------------------------------------------------------------------------*/
 
-FGL.prototype.billboardQuad = function(width,height)
-{
-    if(!this._bUseBillboard)return;
 
-    var gl = this.gl;
-
-
-};
 
 FGL.prototype.rect = function(width,height)
 {
     height = height || width;
 
-    var vertices = this._bVertexRect;
+    var vertices;
 
-    /*
     if(this._bUseBillboard)
     {
-        //23
-        //01
+        var program = this._program;
 
-        var modelViewMatrix = this._mModelView;
+        var aVertexPosition = program.aVertexPosition,
+            aVertexColor    = program.aVertexColor,
+            aVertexTexCoord = program.aVertexTexCoord,
+            aQuadDim        = program.aQuadDim;
 
-        var vecRightX = modelViewMatrix[0],
-            vecRightY = modelViewMatrix[4],
-            vecRightZ = modelViewMatrix[8];
+        var gl            = this.gl,
+            glArrayBuffer = gl.ARRAY_BUFFER,
+            glFloat       = gl.FLOAT;
 
-        var vecUpX = modelViewMatrix[1],
-            vecUpY = modelViewMatrix[5],
-            vecUpZ = modelViewMatrix[9];
+            vertices = this._bVertexBBRect;
+        var colors   = this.bufferColors(this._bColor,this._bColorBBRect),
+            dim      = this._bRectBBDim;
 
+            dim[0] = 1;
+            dim[1] = 1;
+            dim[3] = 1;
+            dim[2] = 1;
 
-        vertices[ 0] = (-vecRightX - vecUpX) * width;
-        vertices[ 1] = (-vecRightY - vecUpY) * width;
-        vertices[ 2] = (-vecRightZ - vecUpZ) * width;
+        var vblen = vertices.byteLength,
+            cblen = colors.byteLength,
+            dblen = dim.byteLength;
 
-        vertices[ 3] = (vecRightX - vecUpX) * width;
-        vertices[ 4] = (vecRightY - vecUpY) * width;
-        vertices[ 5] = (vecRightZ - vecUpZ) * width;
+        var offsetV = 0,
+            offsetC = offsetV + vblen,
+            offsetD = offsetC + cblen;
 
-        vertices[ 6] = (vecRightX + vecUpX) * width;
-        vertices[ 7] = (vecRightY + vecUpY) * width;
-        vertices[ 8] = (vecRightZ + vecUpZ) * width;
+        gl.bufferData(glArrayBuffer,vblen + cblen + dblen,gl.STATIC_DRAW);
+        gl.bufferSubData(glArrayBuffer,offsetV,vertices);
+        gl.bufferSubData(glArrayBuffer,offsetC,colors);
+        gl.bufferSubData(glArrayBuffer,offsetD,dim);
 
-        vertices[ 9] = (-vecRightX + vecUpX) * width;
-        vertices[10] = (-vecRightY + vecUpY) * width;
-        vertices[11] = (-vecRightZ + vecUpZ) * width;
+        gl.disableVertexAttribArray(aVertexTexCoord);
+        gl.vertexAttribPointer(aVertexPosition,3,glFloat,false,0,offsetV);
+        gl.vertexAttribPointer(aVertexColor,   this.SIZE_OF_COLOR,glFloat,false,0,offsetC);
+        gl.vertexAttribPointer(aQuadDim, 2, glFloat, false, 0, offsetD);
 
+        this.setMatricesUniform();
+        gl.drawArrays(this._drawMode,0,4);
+
+        return;
     }
-    else if(width != this._rectWidthLast || height != this._rectHeightLast)
+    else
     {
-        vertices[0] = vertices[1] = vertices[2] = vertices[4] = vertices[5] = vertices[7] = vertices[9] = vertices[10] = 0;
-        vertices[3] = vertices[6] = width; vertices[8] = vertices[11] = height;
+        vertices = this._bVertexRect;
 
-        this._rectWidthLast  = width;
-        this._rectHeightLast = height;
+        if(width != this._rectWidthLast || height != this._rectHeightLast)
+        {
+            vertices[0] = vertices[1] = vertices[2] = vertices[4] = vertices[5] = vertices[7] = vertices[9] = vertices[10] = 0;
+            vertices[3] = vertices[6] = width; vertices[8] = vertices[11] = height;
+
+            this._rectWidthLast  = width;
+            this._rectHeightLast = height;
+        }
+
+        this.drawArrays(vertices,
+                        this._bNormalRect,
+                        this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                            this.bufferColors(this._bColor,this._bColorRect) :
+                            null,
+                        this._bTexCoordQuadDefault,
+                        this._drawMode,
+                        0,
+                        4);
+
     }
-    */
 
-    this.drawArrays(vertices,
-                    this._bNormalRect,
-                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
-                        this.bufferColors(this._bColor,this._bColorRect) :
-                        null,
-                    this._bTexCoordQuadDefault,
-                    this._drawMode,
-                    0,
-                    4);
+
 
     this._drawFuncLast = this.rect;
 };
