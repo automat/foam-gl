@@ -47,4 +47,7 @@ shader2String([
     {src: inPath + '/material/fNormalFragShader.glsl',       dest: outPath + 'fNormalFragShader.js'},
     {src: inPath + '/material/fNormalVertShader.glsl',       dest: outPath + 'fNormalVertShader.js'},
 
+    {src: inPath + '/render/fBillboardVertShader.glsl', dest: outPath + 'fBillboardVertShader.js'},
+    {src: inPath + '/render/fBillboardFragShader.glsl', dest: outPath + 'fBillboardFragShader.js'}
+
 ]);

@@ -15,6 +15,9 @@ var fError               = require('../system/common/fError'),
     NormalVertShaderGLSL     = require('./gl/shader/fNormalVertShader'),
     NormalFragShaderGLSL     = require('./gl/shader/fNormalFragShader'),
 
+    BillboardVertShaderGLSL = require('./gl/shader/fBillboardVertShader'),
+    BillboardFragShaderGLSL = require('./gl/shader/fBillboardFragShader'),
+
     Vec2                 = require('../math/fVec2'),
     Vec3                 = require('../math/fVec3'),
     Vec4                 = require('../math/fVec4'),
@@ -44,6 +47,8 @@ function FGL(context3d,context2d)
     this._programMaterialColor      = new Program(this,ColorVertShaderGLSL,ColorFragShaderGLSL);
     this._programMaterialColorSolid = new Program(this,ColorSolidVertShaderGLSL,ColorSolidFragShaderGLSL);
     this._programMaterialNormal     = new Program(this,NormalVertShaderGLSL,NormalFragShaderGLSL);
+
+    this._programRenderBillboard    = new Program(this,BillboardVertShaderGLSL,BillboardFragShaderGLSL);
 
     this._programDefault  = new Program(this,ProgVertShaderGLSL,ProgFragShaderGLSL);
 
@@ -182,7 +187,7 @@ function FGL(context3d,context2d)
     this._bUseMaterial         = false;
     this._bUseTexture          = false;
 
-    this._bUseBillboarding     = false;
+    this._bUseBillboard     = false;
 
     this._bUseDrawArrayBatch            = false;
     this._bDrawArrayBatchIsDirty        = true;
@@ -554,7 +559,8 @@ FGL.prototype.useMaterial = function(bool)
        materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
        materialMode != this.MATERIAL_MODE_NORMAL)
     {
-        this.gl.uniform1f(this._program.uUseMaterial,bool ? 1.0 : 0.0);
+        this.gl.uniform1f(this._program.uUseMaterial,
+                          bool ? 1.0 : 0.0);
     }
 
     this._bUseMaterial = bool;
@@ -661,9 +667,11 @@ FGL.prototype.setMatricesUniform = function()
     var materialMode = this._materialMode;
 
     if(!this._bUseLighting ||
+        this._bUseBillboard ||
         materialMode == this.MATERIAL_MODE_COLOR ||
         materialMode == this.MATERIAL_MODE_COLOR_SOLID ||
-        materialMode == this.MATERIAL_MODE_NORMAL)return;
+        materialMode == this.MATERIAL_MODE_NORMAL)
+        return;
 
     Mat44.toMat33Inversed(this._mModelView,this._mNormal);
     Mat33.transpose(this._mNormal,this._mNormal);
@@ -763,7 +771,8 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
         aVertexColor    = program.aVertexColor,
         aVertexTexCoord = program.aVertexTexCoord;
 
-    var materialMode = this._materialMode;
+    var materialMode = this._materialMode,
+        useBillboard = this._bUseBillboard;
 
     var gl            = this.gl,
         glArrayBuffer = gl.ARRAY_BUFFER,
@@ -789,7 +798,8 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
     if(!na)
     {
         if(materialMode != this.MATERIAL_MODE_COLOR &&
-           materialMode != this.MATERIAL_MODE_COLOR_SOLID)
+           materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
+           !useBillboard)
             gl.disableVertexAttribArray(aVertexNormal);
     }
     else
@@ -1457,8 +1467,22 @@ FGL.prototype.circleDetail = function(detail)
 
 FGL.prototype.lineWidth = function(size){this.gl.lineWidth(size);};
 
-FGL.prototype.useBillboard = function(bool){this._bUseBillboarding = bool;};
-FGL.prototype.pointSize = function(value){this.gl.uniform1f(this._program.uPointSize,value);this._pointSize = value;};
+FGL.prototype.useBillboard = function(bool)
+{
+    this._bUseBillboard = bool;
+    if(bool)
+    {
+        this.useProgram(this._programRenderBillboard);
+        this.bindDefaultIBO();
+        this.bindDefaultVBO();
+    }
+    else this.materialMode(this._programLast);
+};
+FGL.prototype.pointSize    = function(value)
+{
+    this.gl.uniform1f(this._program.uPointSize,value);
+    this._pointSize = value;
+};
 
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -1661,13 +1685,23 @@ FGL.prototype.quad = function(vertices,normals,texCoords)
 
 /*---------------------------------------------------------------------------------------------------------*/
 
+FGL.prototype.billboardQuad = function(width,height)
+{
+    if(!this._bUseBillboard)return;
+
+    var gl = this.gl;
+
+
+};
+
 FGL.prototype.rect = function(width,height)
 {
     height = height || width;
 
     var vertices = this._bVertexRect;
 
-    if(this._bUseBillboarding)
+    /*
+    if(this._bUseBillboard)
     {
         //23
         //01
@@ -1708,6 +1742,7 @@ FGL.prototype.rect = function(width,height)
         this._rectWidthLast  = width;
         this._rectHeightLast = height;
     }
+    */
 
     this.drawArrays(vertices,
                     this._bNormalRect,
