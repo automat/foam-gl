@@ -1,6 +1,7 @@
-attribute vec3 aVertexPosition;
+attribute vec3 aPosition;
+attribute vec2 aVertexPosition;
 attribute vec4 aVertexColor;
-attribute vec2 aQuadDim;
+attribute vec2 aVertexScale;
 
 attribute vec2 aVertexTexCoord;
 
@@ -15,9 +16,9 @@ void main(void)
     vVertexTexCoord = aVertexTexCoord;
     vVertexColor    = aVertexColor;
 
-    vec3 vecDim = vec3(aVertexPosition.x * 2,
-                       aVertexPosition.y,
-                       aVertexPosition.z * 1);
+    vec3 vecDim = vec3(aPosition.x + aVertexPosition.x * aVertexScale.x,
+                       aPosition.y,
+                       aPosition.z + aVertexPosition.y * aVertexScale.y);
 
     vec3 vecRight = vec3(uModelViewMatrix[0].x,
                          uModelViewMatrix[1].x,
@@ -27,11 +28,8 @@ void main(void)
                          uModelViewMatrix[1].y,
                          uModelViewMatrix[2].y);
 
+    vec3 vecCor = vecRight * vecDim.x + vecUp * vecDim.z;
 
-
-    vec3 vecCor = vec3((vecRight.x * vecDim.x + vecUp.x * vecDim.z),
-                        vecRight.y * vecDim.x + vecUp.y * vecDim.z,
-                       (vecRight.z * vecDim.x + vecUp.z * vecDim.z));
 
     gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(vecCor,1.0);
 }

@@ -238,7 +238,6 @@ function FGL(context3d,context2d)
     this._rectHeightLast   = -1;
     this._rectBBWidthLast  = -1;
     this._rectBBHeightLast = -1;
-    this._bRectBBDim       = new Float32Array([1,1,1,1]);
 
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -265,12 +264,19 @@ function FGL(context3d,context2d)
 
     this._pointSize = 1.0;
 
-    this._bVertexBBRect   = new Float32Array([-0.5,0,-0.5,
-                                               0.5,0,-0.5,
-                                               0.5,0,0.5,
-                                              -0.5,0,0.5]);
-    this._bColorBBRect    = Color.makeColorArrayf(1,1,1,1,16);
-    this._bTexCoordBBRect = new Float32Array([0,0,0,1,1,1,0,1]);
+    //urgh need to rethink this, sufficient for now
+    this._bPositionBBRect  = new Float32Array([0,0,0,0,0,0,0,0,0,0,0,0]);
+    this._bVertexBBRect    = new Float32Array([-0.5,-0.5,0.5,-0.5,0.5,0.5,-0.5,0.5]);
+    this._bColorBBRect     = Color.makeColorArrayf(1,1,1,1,16);
+    this._bScaleBBRect     = new Float32Array([1,1,1,1,1,1,1,1]);
+    this._bTexCoordBBRect  = new Float32Array([0,0,0,1,1,1,0,1]);
+    this._bPositionsBBRect = new Float32Array(this._bPositionBBRect);
+    this._bVerticesBBRect  = new Float32Array(this._bVertexBBRect);
+    this._bColorsBBRect    = new Float32Array(this._bColorBBRect);
+    this._bScalesBBRect    = new Float32Array(this._bScaleBBRect);
+    this._bTexCoordsBBRect = new Float32Array(this._bTexCoordBBRect);
+    this._BBRectNumLast    = -1;
+
 
     this._bScreenCoords = [0,0];
     this._bPoint0       = [0,0,0];
@@ -926,28 +932,10 @@ FGL.prototype._scaleVertices3f = function(vert0,scaleX,scaleY,scaleZ,vert1)
 // Batch
 /*---------------------------------------------------------------------------------------------------------*/
 
-FGL.prototype._putComp = function(orig,target)
-{
 
-};
-
-FGL.prototype.beginDrawArrayBatch = function()
-{
-    this._bUseDrawArrayBatch = true;
-
-
-};
-
-FGL.prototype.endDrawArrayBatch = function()
-{
-    this._bUseDrawArrayBatch = false;
-
-};
-
-FGL.prototype.drawArrayBatch = function()
-{
-
-};
+FGL.prototype.beginDrawArrayBatch = function(){};
+FGL.prototype.endDrawArrayBatch = function(){};
+FGL.prototype.drawArrayBatch = function(){};
 
 //dynamic
 
@@ -1273,35 +1261,17 @@ FGL.prototype.drawElementArrayBatch = function(batch)
     {
         if(batch)
         {
-            this._pushElementArrayBatch(batch[0],
-                                        batch[1],
-                                        batch[2],
-                                        batch[3],
-                                        batch[4]);
-
+            this._pushElementArrayBatch(batch[0],batch[1],batch[2],batch[3],batch[4]);
             return;
         }
 
-
-        this._pushElementArrayBatch(this._bBatchVertices,
-                                    this._bBatchNormals,
-                                    this._bBatchColors,
-                                    this._bBatchTexCoords,
-                                    this._bBatchIndices);
-
-
+        this._pushElementArrayBatch(this._bBatchVertices,this._bBatchNormals,this._bBatchColors,this._bBatchTexCoords,this._bBatchIndices);
         return;
     }
 
     if(batch)
     {
-        this.drawElements(batch[0],
-                          batch[1],
-                          batch[2],
-                          batch[3],
-                          batch[4],
-                          this.getDrawMode());
-
+        this.drawElements(batch[0],batch[1],batch[2],batch[3],batch[4],this.getDrawMode());
         return;
     }
 
@@ -1711,41 +1681,60 @@ FGL.prototype.rect = function(width,height)
     {
         var program = this._program;
 
-        var aVertexPosition = program.aVertexPosition,
+        var aPostion        = program.aPosition,
+            aVertexPosition = program.aVertexPosition,
             aVertexColor    = program.aVertexColor,
-            aVertexTexCoord = program.aVertexTexCoord,
-            aQuadDim        = program.aQuadDim;
+            aVertexScale    = program.aVertexScale,
+            aVertexTexCoord = program.aVertexTexCoord;
 
         var gl            = this.gl,
             glArrayBuffer = gl.ARRAY_BUFFER,
             glFloat       = gl.FLOAT;
 
-            vertices = this._bVertexBBRect;
-        var colors   = this.bufferColors(this._bColor,this._bColorBBRect),
-            dim      = this._bRectBBDim;
+        var position   = this._bPositionBBRect;
+            vertices   = this._bVertexBBRect;
+        var colors     = this.bufferColors(this._bColor,this._bColorBBRect),
+            scales     = this._bScaleBBRect,
+            texCoords  = this._bTexCoordBBRect;
 
-            dim[0] = 1;
-            dim[1] = 1;
-            dim[3] = 1;
-            dim[2] = 1;
 
-        var vblen = vertices.byteLength,
+            if(width != this._rectBBWidthLast ||
+               height != this._rectBBHeightLast)
+            {
+                scales[0] = scales[2] = scales[4] = scales[6] = width;
+                scales[1] = scales[3] = scales[5] = scales[7] = height;
+
+                this._rectBBWidthLast  = width;
+                this._rectBBHeightLast = height;
+            }
+
+        var plen  = position.byteLength,
+            vblen = vertices.byteLength,
             cblen = colors.byteLength,
-            dblen = dim.byteLength;
+            sblen = scales.byteLength,
+            tblen = texCoords.byteLength;
 
-        var offsetV = 0,
+        var offsetP = 0,
+            offsetV = offsetP + plen,
             offsetC = offsetV + vblen,
-            offsetD = offsetC + cblen;
+            offsetT = offsetC + cblen,
+            offsetS = offsetT + tblen;
 
-        gl.bufferData(glArrayBuffer,vblen + cblen + dblen,gl.STATIC_DRAW);
+
+        gl.bufferData(glArrayBuffer,plen + vblen + cblen + tblen + sblen,gl.STATIC_DRAW);
+
+        gl.bufferSubData(glArrayBuffer,offsetP,position);
         gl.bufferSubData(glArrayBuffer,offsetV,vertices);
         gl.bufferSubData(glArrayBuffer,offsetC,colors);
-        gl.bufferSubData(glArrayBuffer,offsetD,dim);
+        gl.bufferSubData(glArrayBuffer,offsetT,texCoords);
+        gl.bufferSubData(glArrayBuffer,offsetS,scales);
 
-        gl.disableVertexAttribArray(aVertexTexCoord);
-        gl.vertexAttribPointer(aVertexPosition,3,glFloat,false,0,offsetV);
+        gl.vertexAttribPointer(aPostion,this.SIZE_OF_VERTEX,glFloat,false,0,offsetP);
+        gl.vertexAttribPointer(aVertexPosition,2,glFloat,false,0,offsetV);
         gl.vertexAttribPointer(aVertexColor,   this.SIZE_OF_COLOR,glFloat,false,0,offsetC);
-        gl.vertexAttribPointer(aQuadDim, 2, glFloat, false, 0, offsetD);
+        gl.vertexAttribPointer(aVertexTexCoord, this.SIZE_OF_TEX_COORD,glFloat,false,0,offsetT);
+
+        gl.vertexAttribPointer(aVertexScale, 2, glFloat, false, 0, offsetS);
 
         this.setMatricesUniform();
         gl.drawArrays(this._drawMode,0,4);
@@ -1780,6 +1769,46 @@ FGL.prototype.rect = function(width,height)
 
 
     this._drawFuncLast = this.rect;
+};
+
+FGL.prototype.rectv = function(positionArray,sizeArray,colorArray,texCoordArray)
+{
+    var posArrLen = positionArray.length;
+
+    if(this._bUseBillboard)
+    {
+        var SIZE_OF_QUAD = this.SIZE_OF_QUAD;
+
+        if(posArrLen > this._BBRectNumLast)
+        {
+            var normLen = posArrLen / 3 * 4;
+            var i = -1;
+
+            this._bPositionsBBRect = new Float32Array(posArrLen * 4);
+            this._bVerticesBBRect  = new Float32Array(normLen * 2);
+            this._bColorsBBRect    = new Float32Array(normLen * 4);
+            this._bScalesBBRect    = new Float32Array(normLen * 2);
+            this._bTexCoordsBBRect = new Float32Array(normLen * 2);
+
+
+
+
+        }
+        else if(posArrLen < this._BBRectNumLast)
+        {
+
+        }
+
+
+
+
+        this._BBRectNumLast = posArrLen;
+    }
+    else
+    {
+
+    }
+
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
