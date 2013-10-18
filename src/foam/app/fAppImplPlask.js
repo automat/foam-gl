@@ -4,8 +4,6 @@ var Default         = require('../system/common/fDefault'),
     AppImpl         = require('./fAppImpl'),
     CameraBasic     = require('../graphics/fCameraBasic'),
     plask           = require('plask'),
-    System          = require('../system/fSystem'),
-    SystemImplPlask = require('../system/fSystemImplPlask'),
     sys             = require('sys');
 
 function AppImplPlask()
@@ -127,8 +125,6 @@ AppImplPlask.prototype.init = function(appObj)
             appObj.onKeyDown(e);
         }
     );
-
-    System.__set(SystemImplPlask);
 
     this._timeStart = Date.now();
 

@@ -1,6 +1,8 @@
 var fs     = require('fs'),
     path   = require('path'),
+    plask  = require('plask'),
     fError = require('./common/fError');
+
 
 var SystemImplPlask =
 {
@@ -39,7 +41,7 @@ var SystemImplPlask =
 
     getDirectory : function(file)
     {
-        file = file || module.parent.parent.parent.parent.filename;
+        file = file || module.parent.parent.parent.filename;
         return path.dirname(file);
     },
 
@@ -49,8 +51,19 @@ var SystemImplPlask =
         return fs.existsSync(p) ? p : null;
     },
 
-    makeFilePath : function(filepath){return path.join(this.getDirectory(),filepath)}
+    makeFilePath : function(filepath){return path.join(this.getDirectory(),filepath)},
 
+    //not sure about simulating web async
+    loadImage : function(filepath,callback)
+    {
+        if(!fs.existsSync(filepath))throw Error(fError.FILE_DOESNT_EXIST);
+        callback(plask.SkCanvas.createFromImage(filepath));
+    },
+
+    bindTextureImageData : function(gl,texture,imageData)
+    {
+
+    }
 
 };
 

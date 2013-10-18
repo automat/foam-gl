@@ -1,5 +1,20 @@
+var Platform             = require('./common/fPlatform'),
+    SystemImplWeb        = require('./fSystemImplWeb'),
+    SystemImplPlask      = require('./fSystemImplPlask'),
+    SystemImplNodeWebkit = require('./fSystemImplNodeWebkit');
+
 
 var __internal = null;
+
+if(!__internal)
+{
+    var platform = Platform.getTarget();
+
+    __internal = platform == Platform.PLASK       ? SystemImplPlask :
+                 platform == Platform.WEB         ? SystemImplWeb :
+                 platform == Platform.NODE_WEBKIT ? SystemImplNodeWebkit :
+                 null;
+}
 
 var SystemInternal =
 {
@@ -12,7 +27,8 @@ var SystemInternal =
     makeFilePath  : function(filepath){return __internal.makeFilePath(filepath);},
     getDirectory  : function(file)    {return __internal.getDirectory(file);},
 
-    __set      : function(system){__internal = system;}
+    loadImage            : function(filepath,callback){return __internal.loadImage(filepath, callback);},
+    bindTextureImageData : function(gl,texture,imageData){return __internal.bindTextureImageData(gl,texture,imageData);},
 };
 
 module.exports = SystemInternal;
