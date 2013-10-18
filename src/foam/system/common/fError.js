@@ -6,6 +6,7 @@ module.exports =
     APP_NO_UPDATE :         'No update method added to app.',
     PLASK_WINDOW_SIZE_SET:  'Plask window size can only be set on startup.',
     WRONG_PLATFORM:         'Wrong Platform.',
+    MATRIX_STACK_POP_ERROR: 'Matrix stack invalid pop.',
     VERTICES_IN_WRONG_SIZE: 'Vertices array has wrong length. Should be ',
     COLORS_IN_WRONG_SIZE:   'Color array length not equal to number of vertices.',
     DIRECTORY_DOESNT_EXIST: 'File target directory does not exist.'
