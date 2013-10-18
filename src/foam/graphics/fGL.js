@@ -35,6 +35,7 @@ function FGL(context3d,context2d)
 
     var gl = this.gl = context3d;
 
+
     /*---------------------------------------------------------------------------------------------------------*/
     // create shaders/program + bind
     /*---------------------------------------------------------------------------------------------------------*/
@@ -112,18 +113,21 @@ function FGL(context3d,context2d)
         ]
     }
 
+
     /*---------------------------------------------------------------------------------------------------------*/
     // Shared uniforms
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this._uAmbient = Vec3.make(0,0,0);
+    this._uAmbient   = Vec3.make();
+    this._uPointSize = 1.0;
 
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Temps
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this._vTemp0 = Vec4.make();
+    this._vTemp0  = Vec4.make();
+    this._vZero3f = Vec3.make();
 
     this._mTemp0 = Mat44.make();
     this._mTemp1 = Mat44.make();
@@ -158,7 +162,6 @@ function FGL(context3d,context2d)
     /*---------------------------------------------------------------------------------------------------------*/
     // Init shared buffers
     /*---------------------------------------------------------------------------------------------------------*/
-
 
     this._defaultVBO = gl.createBuffer();
     this._defaultIBO = gl.createBuffer();
@@ -255,34 +258,24 @@ function FGL(context3d,context2d)
     // Init Matrices
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this._camera    = null;
-
+    this._camera     = null;
     this._mModelView = Mat44.make();
     this._mNormal    = Mat33.make();
-
-    this._mStack = [];
+    this._mStack     = [];
 
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init Buffers
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this._uPointSize = 1.0;
 
     this._bScreenCoords = [0,0];
     this._bPoint0       = [0,0,0];
     this._bPoint1       = [0,0,0];
 
-    // misc
-
-    this._bEmpty3f = new Float32Array([0,0,0]);
-
     this._bColor4f   = Color.WHITE();
     this._bColorBg4f = Color.BLACK();
     this._bColor     = this._bColor4f;
-
-    this._bColor4fLast = null;
-    this._bColorLast   = null;
 
     this._axisX = Vec3.AXIS_X();
     this._axisY = Vec3.AXIS_Y();
@@ -384,7 +377,7 @@ function FGL(context3d,context2d)
 
     //cache
 
-    this._circleDetailLast = 10.0;
+    this._circleDetailLast = -1;
     this._sphereDetailLast = -1;
     this._sphereScaleLast  = -1;
     this._cubeScaleLast    = -1;
@@ -393,7 +386,7 @@ function FGL(context3d,context2d)
     // gen gem
 
     this.sphereDetail(10);
-    this._genCircle();
+    this.circleDetail(10);
 
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -420,22 +413,16 @@ function FGL(context3d,context2d)
 
 FGL.prototype.useLighting  = function(bool)
 {
-    var materialMode = this._materialMode;
-    if(materialMode != this.MATERIAL_MODE_COLOR &&
-       materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
-       materialMode != this.MATERIAL_MODE_NORMAL)
-    {
-        this.gl.uniform1f(this._program.uUseLighting,bool ? 1.0 : 0.0);
-    }
-
     this._bUseLighting = bool;
+
+    var puUseLighting = this._program.uUseLighting;
+    if(puUseLighting !== undefined)this.gl.uniform1f(puUseLighting,Number(bool));
 };
-FGL.prototype.getLighting  = function()    {return this._bUseLighting;};
+
+FGL.prototype.getLighting  = function(){return this._bUseLighting;};
 
 FGL.prototype.light = function(light)
 {
-    var materialMode = this._materialMode;
-
     var id     = light.getId();
     var uLight = this._uLights[id];
 
@@ -448,11 +435,8 @@ FGL.prototype.light = function(light)
         uLight[5] = light.linearAttentuation;
         uLight[6] = light.quadricAttentuation;
 
-
-    if(materialMode == this.MATERIAL_MODE_COLOR ||
-       materialMode == this.MATERIAL_MODE_COLOR_SOLID ||
-       materialMode == this.MATERIAL_MODE_NORMAL)
-       return;
+    if(this._program['uLights['+(this.MAX_LIGHTS - 1)+'].position'] === undefined)
+        return;
 
     this._setLightUniform(id);
 };
@@ -464,9 +448,8 @@ FGL.prototype._setLightUniform = function(id)
 
     var uLight  = this._uLights[id];
 
-    var tempVec4    = this._vTemp0;
-    Vec4.set(tempVec4,uLight[0]);
-    var lightPosEyeSpace = Mat44.multVec4(this._mModelView,tempVec4);
+    var vTemp = Vec4.set(this._vTemp0,uLight[0]);
+    var lightPosEyeSpace = Mat44.multVec4(this._mModelView,vTemp);
 
     var gl = this.gl;
 
@@ -510,28 +493,23 @@ FGL.prototype._setLightUniforms = function()
 //FIX ME
 FGL.prototype.disableLight = function(light)
 {
-    var materialMode = this._materialMode;
+    var id = light.getId();
+    var uLight = this._uLights[id];
 
-    if(materialMode  == this.MATERIAL_MODE_COLOR ||
-        materialMode == this.MATERIAL_MODE_COLOR_SOLID ||
-        materialMode == this.MATERIAL_MODE_NORMAL)
+    var vZerof = this._vZero3f;
+
+        Vec3.set(uLight[1], vZerof);
+        Vec3.set(uLight[2], vZerof);
+        Vec3.set(uLight[3], vZerof);
+
+        uLight[4] = 1.0;
+        uLight[5] = 0.0;
+        uLight[6] = 0.0;
+
+    if(this._program['uLights['+(this.MAX_LIGHTS - 1)+'].position'] === undefined)
         return;
 
-    var id = light.getId(),
-        gl = this.gl;
-
-    var bEmpty = this._bEmpty3f;
-
-    var program    = this._program,
-        lightIndex = 'uLights[' + id + '].';
-
-    gl.uniform3fv(program[lightIndex + 'ambient'],  bEmpty);
-    gl.uniform3fv(program[lightIndex + 'diffuse'],  bEmpty);
-    gl.uniform3fv(program[lightIndex + 'specular'], bEmpty);
-
-    gl.uniform1f(program[lightIndex + 'constantAttenuation'],   1.0);
-    gl.uniform1f(program[lightIndex + 'linearAttenuation'],     0.0);
-    gl.uniform1f(program[lightIndex + 'quadraticAttenuation'],  0.0);
+    this._setLightUniform(id);
 };
 
 
@@ -540,9 +518,14 @@ FGL.prototype.disableLight = function(light)
 // Texture
 /*---------------------------------------------------------------------------------------------------------*/
 
-//TODO: do it the plask way
+FGL.prototype.useTexture  = function(bool)
+{
+    this._bUseTexture = bool;
+    var puUseTexture = this._program.uUseTexture;
+    if(puUseTexture !== undefined)this.gl.uniform1f(puUseTexture,Number(bool));
+};
 
-FGL.prototype.useTexture  = function(bool){this.gl.uniform1f(this._program.uUseTexture, bool ? 1.0 : 0.0);this._bUseTexture = bool;};
+//TODO: do it the plask way
 
 FGL.prototype.loadTextureWithImage = function(img)
 {
@@ -598,9 +581,9 @@ FGL.prototype._bindTexImage = function(glTex)
 
 FGL.prototype.texture = function(texture)
 {
-    var materialMode = this._materialMode;
-    if(materialMode == this.MATERIAL_MODE_COLOR ||
-       materialMode == this.MATERIAL_MODE_NORMAL)return;
+    var puTexImage = this._program.uTexImage;
+
+    if(puTexImage === undefined)return;
 
     var gl = this.gl;
 
@@ -608,9 +591,10 @@ FGL.prototype.texture = function(texture)
     gl.bindTexture(gl.TEXTURE_2D,this._tex);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this._texMode );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this._texMode );
-    gl.uniform1i(this._program.uTexImage,0);
+    gl.uniform1i(puTexImage,0);
 };
 
+/*
 FGL.prototype.disableTextures = function()
 {
     var materialMode = this._materialMode;
@@ -624,6 +608,7 @@ FGL.prototype.disableTextures = function()
     gl.vertexAttribPointer(program.aVertexTexCoord,Vec2.SIZE,gl.FLOAT,false,0,0);
     gl.uniform1f(program.uUseTexture,0.0);
 };
+*/
 
 /*---------------------------------------------------------------------------------------------------------*/
 // Material
@@ -631,16 +616,10 @@ FGL.prototype.disableTextures = function()
 
 FGL.prototype.useMaterial = function(bool)
 {
-    var materialMode = this._materialMode;
-    if(materialMode != this.MATERIAL_MODE_COLOR &&
-       materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
-       materialMode != this.MATERIAL_MODE_NORMAL)
-    {
-        this.gl.uniform1f(this._program.uUseMaterial,
-                          bool ? 1.0 : 0.0);
-    }
-
     this._bUseMaterial = bool;
+
+    var puUseMaterial= this._program.uUseMaterial;
+    if(puUseMaterial !== undefined)this.gl.uniform1f(puUseMaterial,Number(bool));
 };
 
 FGL.prototype.materialMode = function(mode)
@@ -668,20 +647,20 @@ FGL.prototype.materialMode = function(mode)
             break;
     }
 
-    var gl = this.gl;
-
-    var useTexture  = this._bUseTexture  ? 1.0 : 0.0,
-        useMaterial = this._bUseMaterial ? 1.0 : 0.0,
-        pointSize   = this._uPointSize;
-
-    var program = this._program;
+    var program       = this._program;
     var puPointSize   = program.uPointSize,
         puUseTexture  = program.uUseTexture,
-        puUseMaterial = program.uUseMaterial;
+        puUseMaterial = program.uUseMaterial,
+        puUseLighting = program.uUseLighting,
+        puAmbient     = program.uAmbient;
 
-    if(puPointSize   !== undefined)gl.uniform1f(puPointSize,   pointSize);
-    if(puUseTexture  !== undefined)gl.uniform1f(puUseTexture,  useTexture);
-    if(puUseMaterial !== undefined)gl.uniform1f(puUseMaterial, useMaterial);
+    var gl = this.gl;
+
+    if(puPointSize   !== undefined)gl.uniform1f(puPointSize,   this._uPointSize);
+    if(puUseTexture  !== undefined)gl.uniform1f(puUseTexture,  Number(this._bUseTexture));
+    if(puUseMaterial !== undefined)gl.uniform1f(puUseMaterial, Number(this._bUseMaterial));
+    if(puUseLighting !== undefined)gl.uniform1f(puUseLighting, Number(this._bUseLighting));
+    if(puAmbient     !== undefined)gl.uniform1f(puAmbient,     this._uAmbient);
 
     this.bindDefaultVBO();
     this.bindDefaultIBO();
@@ -697,11 +676,6 @@ FGL.prototype.material = function(material)
     Vec4.set(this._uMaterialSpecular,material.specular);
     this._uMaterialShniness = material.shininess;
 
-    var materialMode = this._materialMode;
-    if(materialMode == this.MATERIAL_MODE_COLOR ||
-       materialMode == this.MATERIAL_MODE_COLOR_SOLID ||
-       materialMode == this.MATERIAL_MODE_NORMAL)return;
-
     this._setMaterialUniforms();
 };
 
@@ -710,14 +684,16 @@ FGL.prototype._setMaterialUniforms = function()
     var gl      = this.gl,
         program = this._program;
 
-    gl.uniform4fv(program['uMaterial.ambient'],   this._uMaterialAmbient);
-    gl.uniform4fv(program['uMaterial.diffuse'],   this._uMaterialDiffuse);
-    gl.uniform4fv(program['uMaterial.specular'],  this._uMaterialSpecular);
-    gl.uniform1f( program['uMaterial.shininess'], this._uMaterialShniness);;
+    var puMaterialAmbient   = program['uMaterial.ambient'],
+        puMaterialDiffuse   = program['uMaterial.diffuse'],
+        puMaterialSpecular  = program['uMaterial.specular'],
+        puMaterialShininess = program['uMaterial.shininess'];
+
+    if(puMaterialAmbient   !== undefined)gl.uniform4fv(puMaterialAmbient,   this._uMaterialAmbient);
+    if(puMaterialDiffuse   !== undefined)gl.uniform4fv(puMaterialDiffuse,   this._uMaterialDiffuse);
+    if(puMaterialSpecular  !== undefined)gl.uniform4fv(puMaterialSpecular,  this._uMaterialSpecular);
+    if(puMaterialShininess !== undefined)gl.uniform1f( puMaterialShininess, this._uMaterialShniness);;
 };
-
-
-
 
 /*---------------------------------------------------------------------------------------------------------*/
 // Camera
@@ -735,7 +711,7 @@ FGL.prototype.popMatrix    = function()
 {
     var stack = this._mStack;
 
-    if(stack.length == 0)throw ('Invalid pop!');
+    if(stack.length == 0)throw new Error(fError.MATRIX_STACK_POP_ERROR);
     this._mModelView = stack.pop();
 
     return this._mModelView;
@@ -743,26 +719,25 @@ FGL.prototype.popMatrix    = function()
 
 FGL.prototype.setMatricesUniform = function()
 {
-    var gl = this.gl;
+    var gl         = this.gl,
+        program    = this._program,
+        mModelView = this._mModelView;
 
-    var program = this._program;
+    gl.uniformMatrix4fv(program.uModelViewMatrix,  false, mModelView);
+    gl.uniformMatrix4fv(program.uProjectionMatrix, false, this._camera.projectionMatrix);
 
-    gl.uniformMatrix4fv(program.uModelViewMatrix,false,this._mModelView);
-    gl.uniformMatrix4fv(program.uProjectionMatrix,false,this._camera.projectionMatrix);
-
-    var materialMode = this._materialMode;
+    var puNormalMatrix = program.uNormalMatrix;
 
     if(!this._bUseLighting ||
-        this._bUseBillboard ||
-        materialMode == this.MATERIAL_MODE_COLOR ||
-        materialMode == this.MATERIAL_MODE_COLOR_SOLID ||
-        materialMode == this.MATERIAL_MODE_NORMAL)
+        puNormalMatrix === undefined)
         return;
 
-    Mat44.toMat33Inversed(this._mModelView,this._mNormal);
-    Mat33.transpose(this._mNormal,this._mNormal);
+    var mNormal = this._mNormal;
 
-    gl.uniformMatrix3fv(program.uNormalMatrix,false,this._mNormal);
+    Mat44.toMat33Inversed(mModelView,mNormal);
+    Mat33.transpose(mNormal, mNormal);
+
+    gl.uniformMatrix3fv(puNormalMatrix,false,mNormal);
 };
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -846,9 +821,6 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
         aVertexNormal   = program.aVertexNormal,
         aVertexColor    = program.aVertexColor,
         aVertexTexCoord = program.aVertexTexCoord;
-
-    var materialMode = this._materialMode,
-        useBillboard = this._bUseBillboard;
 
     var gl            = this.gl,
         glArrayBuffer = gl.ARRAY_BUFFER,
@@ -1427,13 +1399,7 @@ FGL.prototype.color   = function(color){this.color4f(color[0],color[1],color[2],
 FGL.prototype.color3f = function(r,g,b){this.color4f(r,g,b,1.0);};
 FGL.prototype.color2f = function(k,a)  {this.color4f(k,k,k,a);};
 FGL.prototype.color1f = function(k)    {this.color4f(k,k,k,1.0);};
-
-
-FGL.prototype.colorfv = function(array)
-{
-    if(this._materialMode == this.MATERIAL_MODE_COLOR_SOLID)return;
-    this._bColor = array;
-};
+FGL.prototype.colorfv = function(array){if(this._program.uVertexColor)return;this._bColor = array;};
 
 // alpha
 
@@ -1451,7 +1417,7 @@ FGL.prototype.clear      = function()     {this.clear4f(0,0,0,1);};
 FGL.prototype.clear3f    = function(r,g,b){this.clear4f(r,g,b,1);};
 FGL.prototype.clear2f    = function(k,a)  {this.clear4f(k,k,k,a);};
 FGL.prototype.clear1f    = function(k)    {this.clear4f(k,k,k,1.0);};
-FGL.prototype.clear4f   = function(r,g,b,a)
+FGL.prototype.clear4f    = function(r,g,b,a)
 {
     var c  = Color.set4f(this._bColorBg4f,r,g,b,a);
     var gl = this.gl;
@@ -1613,7 +1579,6 @@ FGL.prototype.points = function(vertices,colors)
 
 FGL.prototype.point3f = function(x,y,z){this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;this._bVertexPoint[2] = z;this.point(this._bVertexPoint);};
 FGL.prototype.point2f = function(x,y)  {this._bVertexPoint[0] = x;this._bVertexPoint[1] = y;this._bVertexPoint[2] = 0;this.point(this._bVertexPoint);};
-FGL.prototype.pointv  = function(arr)  {this._bVertexPoint[0] = arr[0];this._bVertexPoint[1] = arr[1];this._bVertexPoint[2] = arr[2];this.point(this._bVertexPoint);};
 
 /*---------------------------------------------------------------------------------------------------------*/
 
