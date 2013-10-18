@@ -1,7 +1,8 @@
-var fError               = require('../system/common/fError'),
-    Platform             = require('../system/common/fPlatform'),
-    Flags                = require('../system/fFlags'),
-    Program              = require('./gl/fProgram'),
+var fError   = require('../system/common/fError'),
+    Platform = require('../system/common/fPlatform'),
+    Flags    = require('../system/fFlags'),
+    Program  = require('./gl/fProgram'),
+    System   = require('../system/fSystem'),
 
     ProgVertShaderGLSL       = require('./gl/shader/fProgVertShader'),
     ProgFragShaderGLSL       = require('./gl/shader/fProgFragShader'),
@@ -239,14 +240,10 @@ function FGL(context3d,context2d)
     // Texture
     /*---------------------------------------------------------------------------------------------------------*/
 
-    this.REPEAT        = gl.REPEAT;
-    this.CLAMP         = gl.CLAMP;
-    this.CLAMP_TO_EDGE = gl.CLAMP_TO_EDGE;
+    this._textureMode  = this.REPEAT;
+    this._textureSet   = false;
 
-    this._texMode  = this.REPEAT;
-    this._texSet   = false;
-
-    this._texEmpty = gl.createTexture();
+   //this._texEmpty = gl.createTexture();
     //gl.bindTexture(gl.TEXTURE_2D,this._texEmpty);
     //gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([1,1,1,1]));
     //gl.uniform1f(program.uUseTexture,0.0);
@@ -548,7 +545,7 @@ FGL.prototype.loadTexture = function(src,texture,callback)
 
     glTex.image.addEventListener('load',function()
     {
-        texture.setTexSource(this._bindTexImage(glTex));
+        texture.setImageData(this._bindTexImage(glTex));
         callback();
     });
 
@@ -589,8 +586,8 @@ FGL.prototype.texture = function(texture)
 
     this._tex = texture._tex;
     gl.bindTexture(gl.TEXTURE_2D,this._tex);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this._texMode );
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this._texMode );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this._textureMode );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this._textureMode );
     gl.uniform1i(puTexImage,0);
 };
 
@@ -2217,6 +2214,9 @@ FGL.prototype.stencilOpSeparate     = function(face,fail,zfail,zpass){this.gl.st
 
 
 //convenient bindings, for now every function in conflict is prefixed with gl, odd
+
+FGL.prototype.glCreateTexture = function()              {return this.gl.createTexture();};
+FGL.prototype.glBindTexture   = function(target,texture){this.gl.bindTexture(target,texture);};
 
 FGL.prototype.glUniform1i  = function(location,x)      {this.gl.uniform1i(location,x);};
 FGL.prototype.glUniform2i  = function(location,x,y)    {this.gl.uniform2i(location,x,y);};
