@@ -248,7 +248,7 @@ function FGL(context3d,context2d)
     //gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([1,1,1,1]));
     //gl.uniform1f(program.uUseTexture,0.0);
 
-    this._tex      = null;
+    this._ctexture = null;
 
 
     /*---------------------------------------------------------------------------------------------------------*/
@@ -537,22 +537,9 @@ FGL.prototype.loadTextureWithImage = function(img)
 
 };
 
-FGL.prototype.loadTexture = function(src,texture,callback)
-{
-    var gl  = this.gl,
-        glTex = gl.createTexture();
-    glTex.image = new Image();
 
-    glTex.image.addEventListener('load',function()
-    {
-        texture.setImageData(this._bindTexImage(glTex));
-        callback();
-    });
-
-    glTex.image.src = src;
-};
-
-FGL.prototype._bindTexImage = function(glTex)
+/*
+FGL.prototype._bindTextureImage = function(glTex)
 {
     if(!glTex.image)throw ('Texture image is null.');
 
@@ -565,7 +552,9 @@ FGL.prototype._bindTexImage = function(glTex)
     var gl = this.gl;
 
     gl.bindTexture(gl.TEXTURE_2D,glTex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glTex.image);
+    System.bindTextureImageData(gl,glTex.image,)
+   // System.bindTextureImageData(gl,);
+   // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glTex.image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -575,19 +564,38 @@ FGL.prototype._bindTexImage = function(glTex)
 
     return glTex;
 };
+*/
+
+FGL.prototype._bindTextureImage = function(texture)
+{
+    var gl = this.gl;
+    var glActiveID = texture._activeID;
+    var glTexture;
+
+    if(!texture._texture)texture._texture = gl.createTexture();
+    glTexture = texture._texture;
+
+    gl.activeTexture(texture._activeID);
+    gl.bindTexture(gl.TEXTURE_2D,glTexture);
+    System.bindTextureImageData(gl,glTexture,glActiveID,texture._image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texture._mag_filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, texture._min_filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texture._wrap);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texture._wrap);
+    if(texture._mipmap)gl.generateMipmap(gl.TEXTURE_2D);
+    gl.bindTexture(gl.TEXTURE_2D,null);
+};
 
 FGL.prototype.texture = function(texture)
 {
     var puTexImage = this._program.uTexImage;
-
     if(puTexImage === undefined)return;
 
     var gl = this.gl;
 
-    this._tex = texture._tex;
-    gl.bindTexture(gl.TEXTURE_2D,this._tex);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this._textureMode );
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this._textureMode );
+    this._ctexture = texture._texture;
+    gl.bindTexture(gl.TEXTURE_2D,this._ctexture);
+
     gl.uniform1i(puTexImage,0);
 };
 
@@ -2215,53 +2223,54 @@ FGL.prototype.stencilOpSeparate     = function(face,fail,zfail,zpass){this.gl.st
 
 //convenient bindings, for now every function in conflict is prefixed with gl, odd
 
-FGL.prototype.glCreateTexture = function()              {return this.gl.createTexture();};
-FGL.prototype.glBindTexture   = function(target,texture){this.gl.bindTexture(target,texture);};
+FGL.prototype.createTexture = function()              {return this.gl.createTexture();};
+FGL.prototype.bindTexture   = function(target,texture){this.gl.bindTexture(target,texture);};
 
-FGL.prototype.glUniform1i  = function(location,x)      {this.gl.uniform1i(location,x);};
-FGL.prototype.glUniform2i  = function(location,x,y)    {this.gl.uniform2i(location,x,y);};
-FGL.prototype.glUniform3i  = function(location,x,y,z)  {this.gl.uniform3i(location,x,y,z);};
-FGL.prototype.glUniform4i  = function(location,x,y,z,w){this.gl.uniform4i(location,x,y,z,w);};
+FGL.prototype.uniform1i  = function(location,x)      {this.gl.uniform1i(location,x);};
+FGL.prototype.uniform2i  = function(location,x,y)    {this.gl.uniform2i(location,x,y);};
+FGL.prototype.uniform3i  = function(location,x,y,z)  {this.gl.uniform3i(location,x,y,z);};
+FGL.prototype.uniform4i  = function(location,x,y,z,w){this.gl.uniform4i(location,x,y,z,w);};
 
-FGL.prototype.glUniform1iv = function(location,v)      {this.gl.uniform1iv(location,v);};
-FGL.prototype.glUniform2iv = function(location,v)      {this.gl.uniform2iv(location,v);};
-FGL.prototype.glUniform3iv = function(location,v)      {this.gl.uniform3iv(location,v);};
-FGL.prototype.glUniform4iv = function(location,v)      {this.gl.uniform4iv(location,v);};
+FGL.prototype.uniform1iv = function(location,v)      {this.gl.uniform1iv(location,v);};
+FGL.prototype.uniform2iv = function(location,v)      {this.gl.uniform2iv(location,v);};
+FGL.prototype.uniform3iv = function(location,v)      {this.gl.uniform3iv(location,v);};
+FGL.prototype.uniform4iv = function(location,v)      {this.gl.uniform4iv(location,v);};
 
-FGL.prototype.glUniform1f = function(location,x)      {this.gl.uniform1f(location,x);};
-FGL.prototype.glUniform2f = function(location,x,y)    {this.gl.uniform2f(location,x,y);};
-FGL.prototype.glUniform3f = function(location,x,y,z)  {this.gl.uniform3f(location,x,y,z);};
-FGL.prototype.glUniform4f = function(location,x,y,z,w){this.gl.uniform4f(location,x,y,z,w);};
+FGL.prototype.uniform1f = function(location,x)      {this.gl.uniform1f(location,x);};
+FGL.prototype.uniform2f = function(location,x,y)    {this.gl.uniform2f(location,x,y);};
+FGL.prototype.uniform3f = function(location,x,y,z)  {this.gl.uniform3f(location,x,y,z);};
+FGL.prototype.uniform4f = function(location,x,y,z,w){this.gl.uniform4f(location,x,y,z,w);};
 
-FGL.prototype.glUniform1fv = function(location,v)      {this.gl.uniform1fv(location,v);};
-FGL.prototype.glUniform2fv = function(location,v)      {this.gl.uniform2fv(location,v);};
-FGL.prototype.glUniform3fv = function(location,v)      {this.gl.uniform3fv(location,v);};
-FGL.prototype.glUniform4fv = function(location,v)      {this.gl.uniform4fv(location,v);};
+FGL.prototype.uniform1fv = function(location,v)      {this.gl.uniform1fv(location,v);};
+FGL.prototype.uniform2fv = function(location,v)      {this.gl.uniform2fv(location,v);};
+FGL.prototype.uniform3fv = function(location,v)      {this.gl.uniform3fv(location,v);};
+FGL.prototype.uniform4fv = function(location,v)      {this.gl.uniform4fv(location,v);};
 
-FGL.prototype.glUniformMatrix2fv = function(location,transpose,value){this.gl.uniformMatrix2fv(location,transpose,value);}
-FGL.prototype.glUniformMatrix3fv = function(location,transpose,value){this.gl.uniformMatrix3fv(location,transpose,value);}
-FGL.prototype.glUniformMatrix4fv = function(location,transpose,value){this.gl.uniformMatrix4fv(location,transpose,value);}
+FGL.prototype.uniformMatrix2fv = function(location,transpose,value){this.gl.uniformMatrix2fv(location,transpose,value);}
+FGL.prototype.uniformMatrix3fv = function(location,transpose,value){this.gl.uniformMatrix3fv(location,transpose,value);}
+FGL.prototype.uniformMatrix4fv = function(location,transpose,value){this.gl.uniformMatrix4fv(location,transpose,value);}
 
-FGL.prototype.glVertexAttrib1f = function(index,x)      {this.gl.vertexAttrib1f(index,x)};
-FGL.prototype.glVertexAttrib2f = function(index,x,y)    {this.gl.vertexAttrib2f(index,x,y);};
-FGL.prototype.glVertexAttrib3f = function(index,x,y,z)  {this.gl.vertexAttrib3f(index,x,y,z);};
-FGL.prototype.glVertexAttrib4f = function(index,x,y,z,w){this.gl.vertexAttrib4f(index,x,y,z,w);};
+FGL.prototype.vertexAttrib1f = function(index,x)      {this.gl.vertexAttrib1f(index,x)};
+FGL.prototype.vertexAttrib2f = function(index,x,y)    {this.gl.vertexAttrib2f(index,x,y);};
+FGL.prototype.vertexAttrib3f = function(index,x,y,z)  {this.gl.vertexAttrib3f(index,x,y,z);};
+FGL.prototype.vertexAttrib4f = function(index,x,y,z,w){this.gl.vertexAttrib4f(index,x,y,z,w);};
 
-FGL.prototype.glVertexAttrib1fv = function(index,values){this.gl.vertexAttrib1fv(index,values);};
-FGL.prototype.glVertexAttrib2fv = function(index,values){this.gl.vertexAttrib2fv(index,values);};
-FGL.prototype.glVertexAttrib3fv = function(index,values){this.gl.vertexAttrib3fv(index,values);};
-FGL.prototype.glVertexAttrib4fv = function(index,values){this.gl.vertexAttrib4fv(index,values);};
+FGL.prototype.vertexAttrib1fv = function(index,values){this.gl.vertexAttrib1fv(index,values);};
+FGL.prototype.vertexAttrib2fv = function(index,values){this.gl.vertexAttrib2fv(index,values);};
+FGL.prototype.vertexAttrib3fv = function(index,values){this.gl.vertexAttrib3fv(index,values);};
+FGL.prototype.vertexAttrib4fv = function(index,values){this.gl.vertexAttrib4fv(index,values);};
 
-FGL.prototype.glDisableVertexAttribArray = function(index){this.gl.disableVertexAttribArray(index);};
-FGL.prototype.glEnableVertexAttribArray  = function(index){this.gl.enableVertexAttribArray(index);};
-FGL.prototype.glVertexAttribPointer      = function(index,size,type,normalized,stride,offset){this.gl.vertexAttribPointer(index,size,type,normalized,stride,offset);}
+FGL.prototype.disableVertexAttribArray = function(index){this.gl.disableVertexAttribArray(index);};
+FGL.prototype.enableVertexAttribArray  = function(index){this.gl.enableVertexAttribArray(index);};
+FGL.prototype.vertexAttribPointer      = function(index,size,type,normalized,stride,offset){this.gl.vertexAttribPointer(index,size,type,normalized,stride,offset);}
 
-FGL.prototype.glBufferData    = function(target,data,usage){this.gl.bufferData(target,data,usage);};
-FGL.prototype.glBufferSubData = function(target,offset,data){this.gl.bufferSubData(target,offset,data);}
+FGL.prototype.bufferData    = function(target,data,usage){this.gl.bufferData(target,data,usage);};
+FGL.prototype.bufferSubData = function(target,offset,data){this.gl.bufferSubData(target,offset,data);}
 
 FGL.prototype.glDrawArrays   = function(mode,first,count){this.gl.drawArrays(mode,first,count);};
 FGL.prototype.glDrawElements = function(mode,count,type,offset){type.gl.drawElements(mode,count,type,offset);};
 
+FGL.prototype.glUseProgram = function(program){this.gl.useProgram(program);};
 
 /*---------------------------------------------------------------------------------------------------------*/
 // Framebuffer
