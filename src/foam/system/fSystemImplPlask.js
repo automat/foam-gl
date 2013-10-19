@@ -60,9 +60,9 @@ var SystemImplPlask =
         callback(plask.SkCanvas.createFromImage(filepath));
     },
 
-    bindTextureImageData : function(gl,texture,activeTexture,imageData)
+    bindTextureImageData : function(gl,imageData)
     {
-        gl.texImage2DSkCanvas(texture,activeTexture,imageData);
+        gl.texImage2DSkCanvas(gl.TEXTURE_2D,0,imageData);
     }
 
 };
