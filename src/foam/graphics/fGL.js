@@ -524,20 +524,6 @@ FGL.prototype.useTexture  = function(bool)
 
 //TODO: do it the plask way
 
-FGL.prototype.loadTextureWithImage = function(img)
-{
-    var gl = this.gl,
-        glTex = gl.createTexture();
-    glTex.image = img;
-
-    var tex = new Texture(glTex);
-    this._bindTexImage(tex._tex);
-
-    return tex;
-
-};
-
-
 /*
 FGL.prototype._bindTextureImage = function(glTex)
 {
@@ -566,7 +552,7 @@ FGL.prototype._bindTextureImage = function(glTex)
 };
 */
 
-FGL.prototype._bindTextureImage = function(texture)
+FGL.prototype.bindTextureImage = function(texture)
 {
     var gl = this.gl;
     var glActiveID = texture._activeID;
@@ -575,15 +561,31 @@ FGL.prototype._bindTextureImage = function(texture)
     if(!texture._texture)texture._texture = gl.createTexture();
     glTexture = texture._texture;
 
-    gl.activeTexture(texture._activeID);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D,glTexture);
-    System.bindTextureImageData(gl,glTexture,glActiveID,texture._image);
+    System.bindTextureImageData(gl,texture._image);
+    /*
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texture._mag_filter);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, texture._min_filter);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texture._wrap);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texture._wrap);
+    */
+    /*
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
     if(texture._mipmap)gl.generateMipmap(gl.TEXTURE_2D);
+    */
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
     gl.bindTexture(gl.TEXTURE_2D,null);
+
+
 };
 
 FGL.prototype.texture = function(texture)
@@ -591,10 +593,13 @@ FGL.prototype.texture = function(texture)
     var puTexImage = this._program.uTexImage;
     if(puTexImage === undefined)return;
 
+
     var gl = this.gl;
 
     this._ctexture = texture._texture;
     gl.bindTexture(gl.TEXTURE_2D,this._ctexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texture._wrap );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texture._wrap );
 
     gl.uniform1i(puTexImage,0);
 };
@@ -1915,7 +1920,7 @@ FGL.prototype.circlev = function(v,radius){this.circle3f(v[0],v[1],v[2],radius);
 FGL.prototype.circles = function(centers,radii){};
 
 /*---------------------------------------------------------------------------------------------------------*/
-// Geometry gen
+// Geom3d gen
 /*---------------------------------------------------------------------------------------------------------*/
 
 FGL.prototype._genSphere = function()

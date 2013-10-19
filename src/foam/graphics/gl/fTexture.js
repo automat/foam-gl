@@ -13,7 +13,6 @@ function Texture(image)
     else if((height & (height-1) != 0))
         throw new Error(fError.TEXTURE_HEIGHT_NOT_P2);
 
-    this._activeID = 0;
     this._image    = image;
     this._texture  = null;
 
@@ -22,6 +21,7 @@ function Texture(image)
     this._mag_filter = 9729;
     this._min_filter = 9987;
     this._wrap       = 33071;
+
 }
 
 Texture.prototype.getWidth  = function(){return this._width;};
