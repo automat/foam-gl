@@ -27,8 +27,8 @@ var SystemInternal =
     makeFilePath  : function(filepath){return __internal.makeFilePath(filepath);},
     getDirectory  : function(file)    {return __internal.getDirectory(file);},
 
-    loadImage            : function(filepath,callback){return __internal.loadImage(filepath, callback);},
-    bindTextureImageData : function(gl,texture,imageData){return __internal.bindTextureImageData(gl,texture,imageData);},
+    loadImage            : function(filepath,callback)                 {return __internal.loadImage(filepath, callback);},
+    bindTextureImageData : function(gl,texture,activeTexture,imageData){return __internal.bindTextureImageData(gl,texture,activeTexture,imageData);},
 };
 
 module.exports = SystemInternal;

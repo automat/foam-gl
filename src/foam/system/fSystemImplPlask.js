@@ -41,7 +41,7 @@ var SystemImplPlask =
 
     getDirectory : function(file)
     {
-        file = file || module.parent.parent.parent.filename;
+        file = file || module.parent.parent.parent.parent.filename;
         return path.dirname(file);
     },
 
@@ -60,9 +60,9 @@ var SystemImplPlask =
         callback(plask.SkCanvas.createFromImage(filepath));
     },
 
-    bindTextureImageData : function(gl,texture,imageData)
+    bindTextureImageData : function(gl,texture,activeTexture,imageData)
     {
-
+        gl.texImage2DSkCanvas(texture,activeTexture,imageData);
     }
 
 };
