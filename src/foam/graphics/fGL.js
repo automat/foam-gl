@@ -827,10 +827,10 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
 
     var program = this._program;
 
-    var aVertexPosition = program.aVertexPosition,
-        aVertexNormal   = program.aVertexNormal,
-        aVertexColor    = program.aVertexColor,
-        aVertexTexCoord = program.aVertexTexCoord;
+    var paVertexPosition = program.aVertexPosition,
+        paVertexNormal   = program.aVertexNormal,
+        paVertexColor    = program.aVertexColor,
+        paVertexTexCoord = program.aVertexTexCoord;
 
     var gl            = this.gl,
         glArrayBuffer = gl.ARRAY_BUFFER,
@@ -851,43 +851,46 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
     gl.bufferData(glArrayBuffer, vblen + nblen + cblen + tblen, glDrawMode);
 
     gl.bufferSubData(glArrayBuffer, offsetV, vertexFloat32Array);
-    gl.vertexAttribPointer(aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
+    gl.vertexAttribPointer(paVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
 
-    if(!na)
+    if(paVertexNormal !== undefined)
     {
-        if(aVertexNormal !== undefined)
-            gl.disableVertexAttribArray(aVertexNormal);
-    }
-    else
-    {
-        gl.enableVertexAttribArray(aVertexNormal);
-        gl.bufferSubData(glArrayBuffer,offsetN,normalFloat32Array);
-        gl.vertexAttribPointer(aVertexNormal,this.SIZE_OF_NORMAL,glFloat,false,0,offsetN);
-    }
-
-    if(!ca)
-    {
-        if(aVertexColor !== undefined)
-            gl.disableVertexAttribArray(aVertexColor);
-    }
-    else
-    {
-        gl.enableVertexAttribArray(aVertexColor);
-        gl.bufferSubData(glArrayBuffer, offsetC, colorFloat32Array);
-        gl.vertexAttribPointer(aVertexColor, this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
+        if(!na){gl.disableVertexAttribArray(paVertexNormal);}
+        else
+        {
+            gl.enableVertexAttribArray(paVertexNormal);
+            gl.bufferSubData(glArrayBuffer,offsetN,normalFloat32Array);
+            gl.vertexAttribPointer(paVertexNormal,this.SIZE_OF_NORMAL,glFloat,false,0,offsetN);
+        }
     }
 
-    if(!ta)
+    if(paVertexColor !== undefined)
     {
-        if(aVertexTexCoord !== undefined)
-            gl.disableVertexAttribArray(aVertexTexCoord);
+        if(!ca){gl.disableVertexAttribArray(paVertexColor);}
+        else
+        {
+            gl.enableVertexAttribArray(paVertexColor);
+            gl.bufferSubData(glArrayBuffer, offsetC, colorFloat32Array);
+            gl.vertexAttribPointer(paVertexColor, this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
+        }
     }
-    else
+
+    if(paVertexTexCoord !== undefined)
     {
-        gl.enableVertexAttribArray(aVertexTexCoord);
-        gl.bufferSubData(glArrayBuffer,offsetT,texCoordFloat32Array);
-        gl.vertexAttribPointer(aVertexTexCoord,this.SIZE_OF_TEX_COORD,glFloat,false,0,offsetT);
+        if(!ta){gl.disableVertexAttribArray(paVertexTexCoord);}
+        else
+        {
+            gl.enableVertexAttribArray(paVertexTexCoord);
+            gl.bufferSubData(glArrayBuffer,offsetT,texCoordFloat32Array);
+            gl.vertexAttribPointer(paVertexTexCoord,this.SIZE_OF_TEX_COORD,glFloat,false,0,offsetT);
+        }
     }
+
+
+
+
+
+
 };
 
 
