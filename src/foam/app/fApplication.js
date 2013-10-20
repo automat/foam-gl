@@ -1,5 +1,6 @@
 var fError            = require('../system/common/fError'),
     Platform          = require('../system/common/fPlatform'),
+    Shared            = require('../system/fShared'),
     AppImplWeb        = require('./fAppImplWeb'),
     AppImplNodeWebkit = require('./fAppImplNodeWebkit'),
     AppImplPlask      = require('./fAppImplPlask'),
@@ -33,6 +34,9 @@ Application.prototype.setSize = function(width,height)
 {
     var appImpl = this._appImpl;
         appImpl.setSize(width,height);
+
+    Shared.__windowSize[0] = width;
+    Shared.__windowSize[1] = height;
 
     if(!appImpl.isInitialized())appImpl.init(this);
 };
@@ -84,9 +88,9 @@ Application.prototype.getTimeDelta      = function(){return this._appImpl.getTim
 
 Application.prototype.getWindow = function(){return this._appImpl.getWindow();};
 
-Application.prototype.getAspectRatioWindow = function(){return this._appImpl.getAspectRatio();};
+Application.prototype.getAspectRatioWindow = function(){return this._appImpl.getAspectRatioWindow();};
 
-Application.__instance = null;
+Application.__instance   = null;
 Application.getInstance = function(){return Application.__instance;};
 
 module.exports = Application;

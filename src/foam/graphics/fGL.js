@@ -3,6 +3,7 @@ var fError   = require('../system/common/fError'),
     Flags    = require('../system/fFlags'),
     Program  = require('./gl/fProgram'),
     System   = require('../system/fSystem'),
+    Shared   = require('../system/fShared'),
 
     ProgVertShaderGLSL       = require('./gl/shader/fProgVertShader'),
     ProgFragShaderGLSL       = require('./gl/shader/fProgFragShader'),
@@ -38,7 +39,6 @@ function FGL(context3d,context2d)
 
     var gl = this.gl = context3d;
 
-
     /*---------------------------------------------------------------------------------------------------------*/
     // create shaders/program + bind
     /*---------------------------------------------------------------------------------------------------------*/
@@ -52,8 +52,8 @@ function FGL(context3d,context2d)
     this._programRenderImage        = new Program(this,ImageVertShaderGLSL,ImageFragShaderGLSL);
     this._programDefault            = new Program(this,ProgVertShaderGLSL,ProgFragShaderGLSL);
 
-    this._program     = null;
-    this._programLast = null;
+    this._cprogram     = null;
+    this._cprogramLast = null;
 
     //
     Flags.__uintTypeAvailable = platform == Platform.PLASK || gl.getExtension('OES_element_index_uint');
@@ -422,7 +422,13 @@ FGL.prototype.useImageViewport = function(bool)
 {
     if(bool == this._useImageViewport)return;
     this._useImageViewport = bool;
-    this.useProgram(bool ? this._programRenderImage : this._programLast);
+
+    if(bool)
+    {
+        this.useProgram(this._programRenderImage);
+        this.gl.uniform2fv(this._cprogram.uWindowSize ,Shared.__windowSize);
+    }
+    else this.useProgram(this._cprogramLast);
 
 };
 
@@ -434,7 +440,7 @@ FGL.prototype.useLighting  = function(bool)
 {
     this._bUseLighting = bool;
 
-    var puUseLighting = this._program.uUseLighting;
+    var puUseLighting = this._cprogram.uUseLighting;
     if(puUseLighting !== undefined)this.gl.uniform1f(puUseLighting,Number(bool));
 };
 
@@ -454,7 +460,7 @@ FGL.prototype.light = function(light)
         uLight[5] = light.linearAttentuation;
         uLight[6] = light.quadricAttentuation;
 
-    if(this._program['uLights['+(this.MAX_LIGHTS - 1)+'].position'] === undefined)
+    if(this._cprogram['uLights['+(this.MAX_LIGHTS - 1)+'].position'] === undefined)
         return;
 
     this._setLightUniform(id);
@@ -462,7 +468,7 @@ FGL.prototype.light = function(light)
 
 FGL.prototype._setLightUniform = function(id)
 {
-    var program = this._program,
+    var program = this._cprogram,
         lightId = 'uLights[' + id + '].';
 
     var uLight  = this._uLights[id];
@@ -484,7 +490,7 @@ FGL.prototype._setLightUniform = function(id)
 
 FGL.prototype._setLightUniforms = function()
 {
-    var program = this._program,
+    var program = this._cprogram,
         uLights = this._uLights;
 
     var i = -1, l = uLights.length;
@@ -527,7 +533,7 @@ FGL.prototype.disableLight = function(light)
         uLight[5] = 0.0;
         uLight[6] = 0.0;
 
-    if(this._program['uLights['+(this.MAX_LIGHTS - 1)+'].position'] === undefined)
+    if(this._cprogram['uLights['+(this.MAX_LIGHTS - 1)+'].position'] === undefined)
         return;
 
     this._setLightUniform(id);
@@ -542,7 +548,7 @@ FGL.prototype.disableLight = function(light)
 FGL.prototype.useTexture  = function(bool)
 {
     this._bUseTexture = bool;
-    var puUseTexture = this._program.uUseTexture;
+    var puUseTexture = this._cprogram.uUseTexture;
     if(puUseTexture !== undefined)this.gl.uniform1f(puUseTexture,Number(bool));
 };
 
@@ -600,7 +606,7 @@ FGL.prototype.bindTextureImage = function(texture)
 
 FGL.prototype.texture = function(texture)
 {
-    var puTexImage = this._program.uTexImage;
+    var puTexImage = this._cprogram.uTexImage;
     if(puTexImage === undefined)return;
 
     var gl = this.gl;
@@ -624,7 +630,7 @@ FGL.prototype.useMaterial = function(bool)
 {
     this._bUseMaterial = bool;
 
-    var puUseMaterial= this._program.uUseMaterial;
+    var puUseMaterial= this._cprogram.uUseMaterial;
     if(puUseMaterial !== undefined)this.gl.uniform1f(puUseMaterial,Number(bool));
 };
 
@@ -653,7 +659,7 @@ FGL.prototype.materialMode = function(mode)
             break;
     }
 
-    var program       = this._program;
+    var program       = this._cprogram;
     var puPointSize   = program.uPointSize,
         puUseTexture  = program.uUseTexture,
         puUseMaterial = program.uUseMaterial,
@@ -688,7 +694,7 @@ FGL.prototype.material = function(material)
 FGL.prototype._setMaterialUniforms = function()
 {
     var gl      = this.gl,
-        program = this._program;
+        program = this._cprogram;
 
     var puMaterialAmbient   = program['uMaterial.ambient'],
         puMaterialDiffuse   = program['uMaterial.diffuse'],
@@ -726,7 +732,7 @@ FGL.prototype.popMatrix    = function()
 FGL.prototype.setMatricesUniform = function()
 {
     var gl         = this.gl,
-        program    = this._program;
+        program    = this._cprogram;
 
     var puModelViewMatrix  = program.uModelViewMatrix,
         puProjectionMatrix = program.uProjectionMatrix;
@@ -808,6 +814,7 @@ FGL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,colorF
 {
     this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
     this.setMatricesUniform();
+
     this.gl.drawArrays(mode  || this._drawMode,
                        first || 0,
                        count || vertexFloat32Array.length / this.SIZE_OF_VERTEX);
@@ -825,7 +832,7 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
         ca = colorFloat32Array    ? true : false,
         ta = texCoordFloat32Array ? true : false;
 
-    var program = this._program;
+    var program = this._cprogram;
 
     var paVertexPosition = program.aVertexPosition,
         paVertexNormal   = program.aVertexNormal,
@@ -1397,7 +1404,7 @@ FGL.prototype._putBatchDyn = function(batchArray,dataArray,offset)
 FGL.prototype.ambient3f = function(r,g,b)
 {
     var uAmbient  = this._uAmbient,
-        program   = this._program,
+        program   = this._cprogram,
         puAmbient = program.uAmbient;
 
     Vec3.set3f(uAmbient,r,g,b);
@@ -1412,7 +1419,7 @@ FGL.prototype.ambient1f = function(k)    {this.ambient3f(k,k,k);};
 
 FGL.prototype.color4f = function(r,g,b,a)
 {
-    var program       = this._program,
+    var program       = this._cprogram,
         puVertexColor = program.uVertexColor;
 
     this._bColor = Color.set4f(this._bColor4f,r,g,b,a);
@@ -1424,7 +1431,7 @@ FGL.prototype.color   = function(color){this.color4f(color[0],color[1],color[2],
 FGL.prototype.color3f = function(r,g,b){this.color4f(r,g,b,1.0);};
 FGL.prototype.color2f = function(k,a)  {this.color4f(k,k,k,a);};
 FGL.prototype.color1f = function(k)    {this.color4f(k,k,k,1.0);};
-FGL.prototype.colorfv = function(array){if(this._program.uVertexColor)return;this._bColor = array;};
+FGL.prototype.colorfv = function(array){if(this._cprogram.uVertexColor)return;this._bColor = array;};
 
 // alpha
 
@@ -1499,7 +1506,7 @@ FGL.prototype.useBillboard = function(bool)
 
 FGL.prototype.pointSize    = function(value)
 {
-    var program     = this._program,
+    var program     = this._cprogram,
         puPointSize = program.uPointSize;
 
     //hm
@@ -1540,7 +1547,7 @@ FGL.prototype.point = function(vector)
     var offsetV = 0,
         offsetC = vblen;
 
-    var program         = this._program,
+    var program         = this._cprogram,
         aVertexPosition = program.aVertexPosition,
         aVertexNormal   = program.aVertexNormal,
         aVertexColor    = program.aVertexColor,
@@ -1582,7 +1589,7 @@ FGL.prototype.points = function(vertices,colors)
     var offsetV = 0,
         offsetC = vblen;
 
-    var program    = this._program,
+    var program    = this._cprogram,
         aVertexPosition = program.aVertexPosition,
         aVertexNormal   = program.aVertexNormal,
         aVertexColor    = program.aVertexColor,
@@ -1683,7 +1690,7 @@ FGL.prototype.quadf = function(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3)
                     this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
                         this.bufferColors(this._bColor,this._bColorQuad) :
                         null,
-                    null,
+                    this._bTexCoordQuadDefault,
                     this._drawMode,
                     0,
                     4);
@@ -1723,13 +1730,13 @@ FGL.prototype.rect = function(width,height)
 
     if(this._bUseBillboard)
     {
-        var program = this._program;
+        var program = this._cprogram;
 
-        var aPostion        = program.aPosition,
-            aVertexPosition = program.aVertexPosition,
-            aVertexColor    = program.aVertexColor,
-            aVertexScale    = program.aVertexScale,
-            aVertexTexCoord = program.aVertexTexCoord;
+        var paPostion        = program.aPosition,
+            paVertexPosition = program.aVertexPosition,
+            paVertexColor    = program.aVertexColor,
+            paVertexScale    = program.aVertexScale,
+            paVertexTexCoord = program.aVertexTexCoord;
 
         var gl            = this.gl,
             glArrayBuffer = gl.ARRAY_BUFFER,
@@ -1776,12 +1783,12 @@ FGL.prototype.rect = function(width,height)
         gl.bufferSubData(glArrayBuffer,offsetT,texCoords);
         gl.bufferSubData(glArrayBuffer,offsetS,scales);
 
-        gl.vertexAttribPointer(aPostion,this.SIZE_OF_VERTEX,glFloat,false,0,offsetP);
-        gl.vertexAttribPointer(aVertexPosition,2,glFloat,false,0,offsetV);
-        gl.vertexAttribPointer(aVertexColor,   this.SIZE_OF_COLOR,glFloat,false,0,offsetC);
-        gl.vertexAttribPointer(aVertexTexCoord, this.SIZE_OF_TEX_COORD,glFloat,false,0,offsetT);
+        gl.vertexAttribPointer(paPostion,this.SIZE_OF_VERTEX,glFloat,false,0,offsetP);
+        gl.vertexAttribPointer(paVertexPosition,2,glFloat,false,0,offsetV);
+        gl.vertexAttribPointer(paVertexColor,   this.SIZE_OF_COLOR,glFloat,false,0,offsetC);
+        gl.vertexAttribPointer(paVertexTexCoord, this.SIZE_OF_TEX_COORD,glFloat,false,0,offsetT);
 
-        gl.vertexAttribPointer(aVertexScale, 2, glFloat, false, 0, offsetS);
+        gl.vertexAttribPointer(paVertexScale, 2, glFloat, false, 0, offsetS);
 
         this.setMatricesUniform();
         gl.drawArrays(this._drawMode,0,4);
@@ -2079,20 +2086,20 @@ FGL.prototype.getDefaultIBO  = function(){return this._defaultIBO;};
 FGL.prototype.bindDefaultVBO = function(){this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this._defaultVBO);};
 FGL.prototype.bindDefaultIBO = function(){this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER,this._defaultIBO);};
 
-FGL.prototype.getDefaultVertexAttrib   = function(){return this._program.aVertexPosition;};
-FGL.prototype.getDefaultNormalAttrib   = function(){return this._program.aVertexNormal;};
-FGL.prototype.getDefaultColorAttrib    = function(){return this._program.aVertexColor;};
-FGL.prototype.getDefaultTexCoordAttrib = function(){return this._program.aVertexTexCoord;};
+FGL.prototype.getDefaultVertexAttrib   = function(){return this._cprogram.aVertexPosition;};
+FGL.prototype.getDefaultNormalAttrib   = function(){return this._cprogram.aVertexNormal;};
+FGL.prototype.getDefaultColorAttrib    = function(){return this._cprogram.aVertexColor;};
+FGL.prototype.getDefaultTexCoordAttrib = function(){return this._cprogram.aVertexTexCoord;};
 
-FGL.prototype.enableDefaultVertexAttribArray     = function(){this.gl.enableVertexAttribArray(this._program.aVertexPosition);};
-FGL.prototype.enableDefaultNormalAttribArray     = function(){this.gl.enableVertexAttribArray(this._program.aVertexNormal);};
-FGL.prototype.enableDefaultColorAttribArray      = function(){this.gl.enableVertexAttribArray(this._program.aVertexColor);};
-FGL.prototype.enableDefaultTexCoordsAttribArray  = function(){this.gl.enableVertexAttribArray(this._program.aVertexTexCoord);};
+FGL.prototype.enableDefaultVertexAttribArray     = function(){this.gl.enableVertexAttribArray(this._cprogram.aVertexPosition);};
+FGL.prototype.enableDefaultNormalAttribArray     = function(){this.gl.enableVertexAttribArray(this._cprogram.aVertexNormal);};
+FGL.prototype.enableDefaultColorAttribArray      = function(){this.gl.enableVertexAttribArray(this._cprogram.aVertexColor);};
+FGL.prototype.enableDefaultTexCoordsAttribArray  = function(){this.gl.enableVertexAttribArray(this._cprogram.aVertexTexCoord);};
 
-FGL.prototype.disableDefaultVertexAttribArray    = function(){this.gl.disableVertexAttribArray(this._program.aVertexPosition);};
-FGL.prototype.disableDefaultNormalAttribArray    = function(){this.gl.disableVertexAttribArray(this._program.aVertexNormal);};
-FGL.prototype.disableDefaultColorAttribArray     = function(){this.gl.disableVertexAttribArray(this._program.aVertexColor);};
-FGL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVertexAttribArray(this._program.aVertexTexCoord);};
+FGL.prototype.disableDefaultVertexAttribArray    = function(){this.gl.disableVertexAttribArray(this._cprogram.aVertexPosition);};
+FGL.prototype.disableDefaultNormalAttribArray    = function(){this.gl.disableVertexAttribArray(this._cprogram.aVertexNormal);};
+FGL.prototype.disableDefaultColorAttribArray     = function(){this.gl.disableVertexAttribArray(this._cprogram.aVertexColor);};
+FGL.prototype.disableDefaultTexCoordsAttribArray = function(){this.gl.disableVertexAttribArray(this._cprogram.aVertexTexCoord);};
 
 
 FGL.prototype.useDefaultProgram = function()
@@ -2102,16 +2109,16 @@ FGL.prototype.useDefaultProgram = function()
 
 FGL.prototype.useProgram = function(program)
 {
-    if(program == this._program)return;
+    if(program == this._cprogram)return;
 
-    this._programLast = this._program;
+    this._cprogramLast = this._cprogram;
     this.gl.useProgram(program.program);
     program.enableVertexAttribArrays(this);
-    this._program = program;
+    this._cprogram = program;
 };
 
 //naa, need better name
-FGL.prototype.restoreProgram = function(){this.useProgram(this._programLast);};
+FGL.prototype.restoreProgram = function(){this.useProgram(this._cprogramLast);};
 
 FGL.prototype.deleteProgram = function(program)
 {
@@ -2121,7 +2128,7 @@ FGL.prototype.deleteProgram = function(program)
         gl.deleteProgram(program.program);
 };
 
-FGL.prototype.getProgram = function(){return this._program;};
+FGL.prototype.getProgram = function(){return this._cprogram;};
 
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -2272,6 +2279,7 @@ FGL.prototype.stencilFunc           = function(func,ref,mask){this.gl.stencilFun
 FGL.prototype.stencilFuncSeparate   = function(face,func,ref,mask){this.gl.stencilFuncSeparate(face,func,ref,mask);};
 FGL.prototype.stencilOp             = function(fail,zfail,zpass){this.gl.stencilOp(fail,zfail,zpass);};
 FGL.prototype.stencilOpSeparate     = function(face,fail,zfail,zpass){this.gl.stencilOpSeparate(face,fail,zfail,zpass);};
+
 
 
 //convenient bindings, for now every function in conflict is prefixed with gl, odd
