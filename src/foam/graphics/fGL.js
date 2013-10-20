@@ -625,6 +625,37 @@ FGL.prototype.texture = function(texture)
 FGL.prototype.deleteTexture = function(texture)
 {}
 
+FGL.prototype.image = function(texture,x,y,width,height)
+{
+    var puTexImage = this._cprogram.uTexImage;
+    if(puTexImage === undefined)return;
+
+    x = x || 0;
+    y = y || 0;
+    width  = width  === undefined ? texture.getWidth()  : width;
+    height = height === undefined ? texture.getHeight() : height;
+
+    if(this._rectMode != this.RECT_MODE_CORNER)
+    {
+        x -= width  * 0.5;
+        y -= height * 0.5;
+    }
+
+    var xw = x + width,
+        yh = y + height;
+
+    var useTexture = this._bUseTexture;
+
+    if(!useTexture)this.useTexture(true);
+    this.texture(texture);
+
+    this.quadf(x,  0, y,
+               xw, 0, y,
+               xw, 0, yh,
+               y,  0, yh);
+
+    if(!useTexture)this.useTexture(false);
+};
 
 
 
