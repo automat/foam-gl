@@ -93,7 +93,9 @@ Geom3d.prototype.updateVertexNormals = function()
         z = normals[i+2];
 
         l = Math.sqrt(x*x+y*y+z*z);
-        l = 1 / (l || 1);
+
+        //l = 1 / (l || 1);
+        l = !l ? 0 : 1/l;
 
         normals[i  ] *= l;
         normals[i+1] *= l;
