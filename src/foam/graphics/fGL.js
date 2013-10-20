@@ -16,6 +16,8 @@ var fError   = require('../system/common/fError'),
 
     BillboardVertShaderGLSL = require('./gl/shader/fBillboardVertShader'),
     BillboardFragShaderGLSL = require('./gl/shader/fBillboardFragShader'),
+    ImageVertShaderGLSL     = require('./gl/shader/fImageVertShader'),
+    ImageFragShaderGLSL     = require('./gl/shader/fImageFragShader'),
 
     Vec2                 = require('../math/fVec2'),
     Vec3                 = require('../math/fVec3'),
@@ -47,6 +49,7 @@ function FGL(context3d,context2d)
     this._programMaterialColorSolid = new Program(this,ColorSolidVertShaderGLSL,ColorSolidFragShaderGLSL);
     this._programMaterialNormal     = new Program(this,NormalVertShaderGLSL,NormalFragShaderGLSL);
     this._programRenderBillboard    = new Program(this,BillboardVertShaderGLSL,BillboardFragShaderGLSL);
+    this._programRenderImage        = new Program(this,ImageVertShaderGLSL,ImageFragShaderGLSL);
     this._programDefault            = new Program(this,ProgVertShaderGLSL,ProgFragShaderGLSL);
 
     this._program     = null;
@@ -264,6 +267,7 @@ function FGL(context3d,context2d)
     this._mNormal    = Mat33.make();
     this._mStack     = [];
 
+    this._useImageViewport = false;
 
     /*---------------------------------------------------------------------------------------------------------*/
     // Init Buffers
@@ -413,6 +417,14 @@ function FGL(context3d,context2d)
     this.ambient(Color.BLACK());
 
 }
+
+FGL.prototype.useImageViewport = function(bool)
+{
+    if(bool == this._useImageViewport)return;
+    this._useImageViewport = bool;
+    this.useProgram(bool ? this._programRenderImage : this._programLast);
+
+};
 
 /*---------------------------------------------------------------------------------------------------------*/
 // Light
@@ -712,11 +724,15 @@ FGL.prototype.popMatrix    = function()
 FGL.prototype.setMatricesUniform = function()
 {
     var gl         = this.gl,
-        program    = this._program,
-        mModelView = this._mModelView;
+        program    = this._program;
 
-    gl.uniformMatrix4fv(program.uModelViewMatrix,  false, mModelView);
-    gl.uniformMatrix4fv(program.uProjectionMatrix, false, this._camera.projectionMatrix);
+    var puModelViewMatrix  = program.uModelViewMatrix,
+        puProjectionMatrix = program.uProjectionMatrix;
+
+    var mModelView = this._mModelView;
+
+    if(puModelViewMatrix  !== undefined)gl.uniformMatrix4fv(puModelViewMatrix,  false, mModelView);
+    if(puProjectionMatrix !== undefined)gl.uniformMatrix4fv(puProjectionMatrix, false, this._camera.projectionMatrix);
 
     var puNormalMatrix = program.uNormalMatrix;
 
@@ -2084,6 +2100,8 @@ FGL.prototype.useDefaultProgram = function()
 
 FGL.prototype.useProgram = function(program)
 {
+    if(program == this._programLast)return;
+
     this._programLast = this._program;
     this.gl.useProgram(program.program);
     program.enableVertexAttribArrays(this);
