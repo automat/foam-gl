@@ -48,13 +48,14 @@ module.exports =
     Program      : require('./graphics/gl/fProgram'),
     CameraBasic  : require('./graphics/fCameraBasic'),
 
-    Light            : require('./graphics/gl/fLight'),
-    PointLight       : require('./graphics/gl/fPointLight'),
-    DirectionalLight : require('./graphics/gl/fDirectionalLight'),
-    SpotLight        : require('./graphics/gl/fSpotLight'),
+    Light            : require('./graphics/gl/light/fLight'),
+    PointLight       : require('./graphics/gl/light/fPointLight'),
+    DirectionalLight : require('./graphics/gl/light/fDirectionalLight'),
+    SpotLight        : require('./graphics/gl/light/fSpotLight'),
 
-    Material    : require('./graphics/gl/fMaterial'),
-    Texture     : require('./graphics/gl/fTexture'),
+    Material      : require('./graphics/gl/fMaterial'),
+    Texture       : require('./graphics/gl/texture/fTexture'),
+    CanvasTexture : require('./graphics/gl/texture/fCanvasTexture'),
 
     fGLUtil     : require('./graphics/fGLUtil'),
     fGL         : require('./graphics/fGL'),

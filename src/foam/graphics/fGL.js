@@ -20,13 +20,14 @@ var fError   = require('../system/common/fError'),
     ImageVertShaderGLSL     = require('./gl/shader/fImageVertShader'),
     ImageFragShaderGLSL     = require('./gl/shader/fImageFragShader'),
 
-    Vec2                 = require('../math/fVec2'),
-    Vec3                 = require('../math/fVec3'),
-    Vec4                 = require('../math/fVec4'),
-    Mat33                = require('../math/fMat33'),
-    Mat44                = require('../math/fMat44'),
-    Color                = require('../util/fColor'),
-    Texture              = require('./gl/fTexture'),
+    Vec2          = require('../math/fVec2'),
+    Vec3          = require('../math/fVec3'),
+    Vec4          = require('../math/fVec4'),
+    Mat33         = require('../math/fMat33'),
+    Mat44         = require('../math/fMat44'),
+    Color         = require('../util/fColor'),
+    Texture       = require('./gl/texture/fTexture'),
+    CanvasTexture = require('./gl/texture/fCanvasTexture'),
 
     Util = require('../util/fUtil');
 
@@ -608,6 +609,11 @@ FGL.prototype.texture = function(texture)
 {
     var puTexImage = this._cprogram.uTexImage;
     if(puTexImage === undefined)return;
+
+    if((texture instanceof CanvasTexture) && texture.isDirty())
+    {
+
+    }
 
     var gl = this.gl;
     this._ctexture = texture._texture;
