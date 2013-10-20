@@ -943,13 +943,11 @@ FGL.prototype.bufferVertices = function(vertices,buffer)
 
 FGL.prototype._scaleVertices1f = function(vert0,scale,vert1)
 {
-    if(scale == 1)return vert0;
     var i = -1, l = vert0.length;while(++i < l)vert1[i] = vert0[i] * scale;return vert1;
 };
 
 FGL.prototype._scaleVertices2f = function(vert0,scaleX,scaleY,vert1)
 {
-    if(scaleX == 1 && scaleY == 1)return vert0;
     var i = 0, l = vert0.length;
     while(i < l)
     {
@@ -964,7 +962,6 @@ FGL.prototype._scaleVertices2f = function(vert0,scaleX,scaleY,vert1)
 
 FGL.prototype._scaleVertices3f = function(vert0,scaleX,scaleY,scaleZ,vert1)
 {
-    if(scaleX == 1 && scaleY == 1 && scaleZ == 1)return vert0;
     var i = 0, l = vert0.length;
     while(i < l)
     {
@@ -2136,14 +2133,20 @@ FGL.prototype.box = function(width,height,depth)
         boxHeightLast = this._boxHeightLast,
         boxDepthLast  = this._boxDepthLast;
 
-    var boxVerticesLast = this._bVertexBoxScaled;
+    var bVertexBox       = this._bVertexBox,
+        bVertexBoxScaled = this._bVertexBoxScaled;
 
-    this.drawElements((width  == boxWidthLast  &&
+    this.drawElements((width  == 1 &&
+                       height == 1 &&
+                       depth  == 1) ?
+                           bVertexBox :
+                      (width  == boxWidthLast  &&
                        height == boxHeightLast &&
-                       depth  == boxDepthLast) ? boxVerticesLast :
-                       this._scaleVertices3f(this._bVertexBox,
+                       depth  == boxDepthLast) ?
+                           bVertexBoxScaled :
+                       this._scaleVertices3f(bVertexBox,
                                              width,height,depth,
-                                             boxVerticesLast),
+                                             bVertexBoxScaled),
                        this._bNormalBox,
                        this.bufferColors(this._bColor,this._bColorBox),
                        this._bTexCoordBox,
@@ -2162,15 +2165,21 @@ FGL.prototype.box = function(width,height,depth)
 
 FGL.prototype.cube = function(size)
 {
-    size = (typeof size == 'undefined') ? 1.0 : size;
+    size = typeof size === 'undefined' ? 1.0 : size;
 
-    var cubeScaleLast    = this._cubeScaleLast,
-        cubeVerticesLast = this._bVertexCubeScaled;
+    if(size == 0)return;
 
-   this.drawElements((size == cubeScaleLast) ? cubeVerticesLast :
-                     this._scaleVertices1f(this._bVertexCube,
-                                           size,
-                                           cubeVerticesLast),
+    var cubeScaleLast     = this._cubeScaleLast,
+        bVertexCube       = this._bVertexCube,
+        bVertexCubeScaled = this._bVertexCubeScaled;
+
+   this.drawElements((size == 1) ?
+                        bVertexCube :
+                     (size == cubeScaleLast) ?
+                         bVertexCubeScaled :
+                            this._scaleVertices1f(bVertexCube,
+                                                  size,
+                                                  bVertexCubeScaled),
                      this._bNormalCube,
                      this.bufferColors(this._bColor,this._bColorCube),
                      this._bTexCoordCube,
@@ -2187,15 +2196,21 @@ FGL.prototype.cube = function(size)
 
 FGL.prototype.sphere = function(size)
 {
-    size = size || 1;
+    size = (typeof size === 'undefined') ? 1.0 : size;
 
-    var sphereScaleLast      = this._sphereScaleLast,
-        sphereVerticesScaled = this._bVertexSphereScaled;
+    if(size == 0)return;
 
-    this.drawElements((size == sphereScaleLast) ? sphereVerticesScaled :
-                      this._scaleVertices1f(this._bVertexSphere,
-                                            size,
-                                            sphereVerticesScaled),
+    var sphereScaleLast     = this._sphereScaleLast,
+        bVertexSphere       = this._bVertexSphere,
+        bVertexSphereScaled = this._bVertexSphereScaled;
+
+    this.drawElements((size == 1) ?
+                        bVertexSphere :
+                      (size == sphereScaleLast) ?
+                        bVertexSphereScaled :
+                            this._scaleVertices1f(bVertexSphere,
+                                                  size,
+                                                  bVertexSphereScaled),
                       this._bNormalSphere,
                       this.bufferColors(this._bColor,this._bColorSphere),
                       this._bTexCoordsSphere,
