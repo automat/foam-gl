@@ -492,6 +492,7 @@ FGL.prototype._setLightUniforms = function()
 
     var uLight, light;
 
+
     while(++i < l)
     {
         uLight = uLights[i];
@@ -505,6 +506,7 @@ FGL.prototype._setLightUniforms = function()
         gl.uniform1f(program[light + 'constantAttenuation'], uLight[4]);
         gl.uniform1f(program[light + 'linearAttenuation'],   uLight[5]);
         gl.uniform1f(program[light + 'quadraticAttenuation'],uLight[6]);
+
     }
 
 };
@@ -2097,7 +2099,7 @@ FGL.prototype.useDefaultProgram = function()
 
 FGL.prototype.useProgram = function(program)
 {
-    if(program == this._programLast)return;
+    if(program == this._program)return;
 
     this._programLast = this._program;
     this.gl.useProgram(program.program);
