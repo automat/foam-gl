@@ -228,7 +228,11 @@ function FGL(context3d,context2d)
 
     this._drawFuncLast = null;
 
+    this.RECT_MODE_CORNER = 0;
+    this.RECT_MODE_CENTER = 1;
+
     this._rectMode = 0;
+    this._rectModeLast = -1;
 
     this._rectWidthLast    = -1;
     this._rectHeightLast   = -1;
@@ -308,7 +312,9 @@ function FGL(context3d,context2d)
 
     //Rect
 
-    this._bVertexRect = new Float32Array(SIZE_OF_QUAD);
+    this._bVertexRectCenter = new Float32Array([-0.5,0,-0.5,0.5,0,-0.5,0.5,0,0.5,-0.5,0,0.5]);
+    this._bVertexRectCorner = new Float32Array([0,0,0,1,0,0,1,0,1,0,0,1]);
+    this._bVertexRectScaled  = new Float32Array(SIZE_OF_QUAD);
     this._bNormalRect = new Float32Array([0,1,0,0,1,0,0,1,0,0,1,0]);
     this._bColorRect  = new Float32Array(4 * SIZE_OF_COLOR);
 
@@ -359,18 +365,21 @@ function FGL(context3d,context2d)
     this._bTexCoordsSphere    = null;
 
     //urgh need to rethink this, sufficient for now
-    this._bPositionBBRect  = new Float32Array([0,0,0,0,0,0,0,0,0,0,0,0]);
-    this._bVertexBBRect    = new Float32Array([-0.5,-0.5,0.5,-0.5,0.5,0.5,-0.5,0.5]);
-    this._bColorBBRect     = Color.makeColorArrayf(1,1,1,1,16);
-    this._bScaleBBRect     = new Float32Array([1,1,1,1,1,1,1,1]);
-    this._bTexCoordBBRect  = new Float32Array([0,0,0,1,1,1,0,1]);
+    this._bPositionBBRect     = new Float32Array([0,0,0,0,0,0,0,0,0,0,0,0]);
+    this._bVertexBBRectScaled = new Float32Array(8);
+    this._bVertexBBRectCenter = new Float32Array([-0.5,-0.5,0.5,-0.5,0.5,0.5,-0.5,0.5]);
+    this._bVertexBBrectCorner = new Float32Array([0,0,1,0,1,1,0,1]);
+    this._bColorBBRect        = Color.makeColorArrayf(1,1,1,1,16);
+    this._bScaleBBRect        = new Float32Array([1,1,1,1,1,1,1,1]);
+    this._bTexCoordBBRect     = new Float32Array([0,0,0,1,1,1,0,1]);
 
+    /*
     this._bPositionsBBRect = new Float32Array(this._bPositionBBRect);
-    this._bVerticesBBRect  = new Float32Array(this._bVertexBBRect);
+    this._bVerticesBBRect  = new Float32Array(this._bVertexBBRectScaled);
     this._bColorsBBRect    = new Float32Array(this._bColorBBRect);
     this._bScalesBBRect    = new Float32Array(this._bScaleBBRect);
     this._bTexCoordsBBRect = new Float32Array(this._bTexCoordBBRect);
-
+    */
 
     //cache
 
@@ -390,6 +399,7 @@ function FGL(context3d,context2d)
     // Init
     /*---------------------------------------------------------------------------------------------------------*/
 
+    this.rectMode(this.RECT_MODE_CORNER);
     this.drawMode(this.LINES);
     this.materialMode(this.MATERIAL_MODE_PHONG);
 
@@ -555,37 +565,23 @@ FGL.prototype._bindTextureImage = function(glTex)
 FGL.prototype.bindTextureImage = function(texture)
 {
     var gl = this.gl;
-    var glActiveID = texture._activeID;
     var glTexture;
 
     if(!texture._texture)texture._texture = gl.createTexture();
     glTexture = texture._texture;
 
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D,glTexture);
     System.bindTextureImageData(gl,texture._image);
-    /*
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texture._mag_filter);
+    if(texture._mipmap)gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, texture._min_filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texture._mag_filter);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texture._wrap);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texture._wrap);
-    */
-    /*
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-    if(texture._mipmap)gl.generateMipmap(gl.TEXTURE_2D);
-    */
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
     gl.bindTexture(gl.TEXTURE_2D,null);
 
-
+    return texture;
 };
 
 FGL.prototype.texture = function(texture)
@@ -593,32 +589,18 @@ FGL.prototype.texture = function(texture)
     var puTexImage = this._program.uTexImage;
     if(puTexImage === undefined)return;
 
-
     var gl = this.gl;
-
     this._ctexture = texture._texture;
     gl.bindTexture(gl.TEXTURE_2D,this._ctexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texture._wrap );
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texture._wrap );
-
     gl.uniform1i(puTexImage,0);
 };
 
-/*
-FGL.prototype.disableTextures = function()
-{
-    var materialMode = this._materialMode;
-    if(materialMode == this.MATERIAL_MODE_COLOR ||
-       materialMode == this.MATERIAL_MODE_NORMAL)return;
 
-    var gl      = this.gl,
-        program = this._program;
+FGL.prototype.deleteTexture = function(texture)
+{}
 
-    gl.bindTexture(gl.TEXTURE_2D,this._texEmpty);
-    gl.vertexAttribPointer(program.aVertexTexCoord,Vec2.SIZE,gl.FLOAT,false,0,0);
-    gl.uniform1f(program.uUseTexture,0.0);
-};
-*/
+
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 // Material
@@ -945,13 +927,28 @@ FGL.prototype.bufferVertices = function(vertices,buffer)
 
 FGL.prototype._scaleVertices1f = function(vert0,scale,vert1)
 {
-    if(!scale)return vert0;
+    if(scale == 1)return vert0;
     var i = -1, l = vert0.length;while(++i < l)vert1[i] = vert0[i] * scale;return vert1;
+};
+
+FGL.prototype._scaleVertices2f = function(vert0,scaleX,scaleY,vert1)
+{
+    if(scaleX == 1 && scaleY == 1)return vert0;
+    var i = 0, l = vert0.length;
+    while(i < l)
+    {
+        vert1[i  ] = vert0[i  ] * scaleX;
+        vert1[i+1] = vert0[i+1] * scaleY;
+
+        i+=2;
+    }
+
+    return vert1;
 };
 
 FGL.prototype._scaleVertices3f = function(vert0,scaleX,scaleY,scaleZ,vert1)
 {
-    if(!scaleX && !scaleY && !scaleZ)return vert0;
+    if(scaleX == 1 && scaleY == 1 && scaleZ == 1)return vert0;
     var i = 0, l = vert0.length;
     while(i < l)
     {
@@ -1492,6 +1489,12 @@ FGL.prototype.pointSize    = function(value)
     if(puPointSize !== undefined)this.gl.uniform1f(puPointSize,this._uPointSize);
 };
 
+FGL.prototype.rectMode = function(mode)
+{
+    this._rectModeLast = this._rectMode;
+    this._rectMode = mode;
+};
+
 
 /*---------------------------------------------------------------------------------------------------------*/
 // Methods draw primitives
@@ -1693,11 +1696,11 @@ FGL.prototype.quad = function(vertices,normals,texCoords)
 /*---------------------------------------------------------------------------------------------------------*/
 
 
-
 FGL.prototype.rect = function(width,height)
 {
     height = height || width;
 
+    var rectMode = this._rectMode;
     var vertices;
 
     if(this._bUseBillboard)
@@ -1715,17 +1718,20 @@ FGL.prototype.rect = function(width,height)
             glFloat       = gl.FLOAT;
 
         var position   = this._bPositionBBRect;
-            vertices   = this._bVertexBBRect;
+            vertices   = this._bVertexBBRectScaled;
         var colors     = this.bufferColors(this._bColor,this._bColorBBRect),
             scales     = this._bScaleBBRect,
             texCoords  = this._bTexCoordBBRect;
 
 
             if(width != this._rectBBWidthLast ||
-               height != this._rectBBHeightLast)
+               height != this._rectBBHeightLast ||
+               rectMode != this._rectModeLast)
             {
-                scales[0] = scales[2] = scales[4] = scales[6] = width;
-                scales[1] = scales[3] = scales[5] = scales[7] = height;
+                this._scaleVertices2f(rectMode == this.RECT_MODE_CORNER ?
+                                      this._bVertexBBrectCorner :
+                                      this._bVertexBBRectCenter,
+                                      width,height,vertices);
 
                 this._rectBBWidthLast  = width;
                 this._rectBBHeightLast = height;
@@ -1766,12 +1772,16 @@ FGL.prototype.rect = function(width,height)
     }
     else
     {
-        vertices = this._bVertexRect;
+        vertices = this._bVertexRectScaled;
 
-        if(width != this._rectWidthLast || height != this._rectHeightLast)
+        if(width != this._rectWidthLast ||
+           height != this._rectHeightLast ||
+           rectMode != this._rectModeLast)
         {
-            vertices[0] = vertices[1] = vertices[2] = vertices[4] = vertices[5] = vertices[7] = vertices[9] = vertices[10] = 0;
-            vertices[3] = vertices[6] = width; vertices[8] = vertices[11] = height;
+            this._scaleVertices3f(rectMode == this.RECT_MODE_CORNER ?
+                                  this._bVertexRectCorner :
+                                  this._bVertexRectCenter,
+                                  width,0,height,vertices);
 
             this._rectWidthLast  = width;
             this._rectHeightLast = height;
