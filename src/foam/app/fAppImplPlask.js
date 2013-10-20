@@ -193,6 +193,7 @@ AppImplPlask.prototype.setFullWindowFrame = function(bool){this._isFullWindowFra
 AppImplPlask.prototype.setFullscreen      = function(bool){this._isFullscreen = bool;return true;};
 AppImplPlask.prototype.setBorderless      = function(bool){this._isBorderless = bool;return true;};
 
+AppImplPlask.prototype.getAspectRatioWindow = function(){return this._width / this._height;};
 
 module.exports = AppImplPlask;
 
