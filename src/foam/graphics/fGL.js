@@ -652,7 +652,7 @@ FGL.prototype.image = function(texture,x,y,width,height)
     this.quadf(x,  0, y,
                xw, 0, y,
                xw, 0, yh,
-               y,  0, yh);
+               x,  0, yh);
 
     if(!useTexture)this.useTexture(false);
 };
