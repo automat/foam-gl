@@ -15,14 +15,15 @@ function Application()
     var target  = Platform.getTarget();
     if(typeof target === 'undefined' )throw new Error(fError.WRONG_PLATFORM);
 
+    this.mouse  = new Mouse();
+    this.fgl    = null;
+    this.camera = null;
+
     this._appImpl = target == Platform.WEB         ? new AppImplWeb(arguments) :
                     target == Platform.NODE_WEBKIT ? new AppImplNodeWebkit(arguments) :
                     target == Platform.PLASK       ? new AppImplPlask(arguments) :
                     null;
 
-    this.mouse  = new Mouse();
-    this.fgl    = null;
-    this.camera = null;
 
     Application.__instance = this;
 }

@@ -61,6 +61,7 @@ module.exports =
     fGL         : require('./graphics/fGL'),
 
     Mouse       : require('./util/fMouse'),
+    MouseState  : require('./util/fMouseState'),
     Color       : require('./util/fColor'),
     Util        : require('./util/fUtil'),
 

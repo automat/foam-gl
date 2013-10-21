@@ -1,5 +1,5 @@
-var fError = require('../system/common/fError');
-    Vec2   = require('../math/fVec2');
+var fError     = require('../system/common/fError'),
+    Vec2       = require('../math/fVec2');
 
 function Mouse()
 {
@@ -7,6 +7,9 @@ function Mouse()
 
     this._position     = Vec2.make();
     this._positionLast = Vec2.make();
+    this._state        = null;
+    this._stateLast    = null;
+    this._wheelDelta   = 0;
 
     Mouse.__instance = this;
 }
@@ -17,6 +20,9 @@ Mouse.prototype.getX            = function(){return this._position[0];};
 Mouse.prototype.getY            = function(){return this._position[1];};
 Mouse.prototype.getXLast        = function(){return this._positionLast[0];};
 Mouse.prototype.getYLast        = function(){return this._positionLast[1];};
+Mouse.prototype.getState        = function(){return this._state;};
+Mouse.prototype.getStateLast    = function(){return this._stateLast;};
+Mouse.prototype.getWheelDelta   = function(){return this._wheelDelta;};
 
 Mouse.__instance = null;
 Mouse.getInstance = function(){return Mouse.__instance;};

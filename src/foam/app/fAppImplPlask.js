@@ -2,6 +2,7 @@ var Default         = require('../system/common/fDefault'),
     fError          = require('../system/common/fError'),
     fGL             = require('../graphics/fGL'),
     AppImpl         = require('./fAppImpl'),
+    MouseState      = require('../util/fMouseState'),
     CameraBasic     = require('../graphics/fCameraBasic'),
     plask           = require('plask'),
     sys             = require('sys');
@@ -50,20 +51,22 @@ AppImplPlask.prototype.init = function(appObj)
     plaskWindow.setTitle(appObj._windowTitle || Default.APP_PLASK_WINDOW_TITLE);
     if(appObj._hideCursor)plaskWindow.hideCursor();
 
+    var mouse = appObj.mouse;
+
     function updateMouse(x,y)
     {
-        appObj.mouse._positionLast[0] = appObj.mouse._position[0];
-        appObj.mouse._positionLast[1] = appObj.mouse._position[1];
+        mouse._positionLast[0] = mouse._position[0];
+        mouse._positionLast[1] = mouse._position[1];
 
         if(self._mouseBounds)
         {
-            appObj.mouse._position[0] = Math.max(0,Math.min(x,self._width));
-            appObj.mouse._position[1] = Math.max(0,Math.min(y,self._height));
+            mouse._position[0] = Math.max(0,Math.min(x,self._width));
+            mouse._position[1] = Math.max(0,Math.min(y,self._height));
         }
         else
         {
-            appObj.mouse._position[0] = x;
-            appObj.mouse._position[1] = y;
+            mouse._position[0] = x;
+            mouse._position[1] = y;
         }
     }
 
@@ -71,6 +74,8 @@ AppImplPlask.prototype.init = function(appObj)
     function(e)
     {
         updateMouse(e.x, e.y);
+        mouse._stateLast = mouse._state;
+        mouse._state     = MouseState.MOUSE_MOVE;
         appObj.onMouseMove(e);
     });
 
@@ -78,14 +83,17 @@ AppImplPlask.prototype.init = function(appObj)
         function(e)
         {
             updateMouse(e.x, e.y);
+            mouse._stateLast = mouse._state;
+            mouse._state     = MouseState.MOUSE_DRAG;
             appObj.onMouseMove(e);
-
         });
 
     plaskWindow.on('leftMouseDown',
         function(e)
         {
             self._mouseDown = true;
+            mouse._stateLast = mouse._state;
+            mouse._state     = MouseState.MOUSE_DOWN;
             appObj.onMouseDown(e);
         }
     );
@@ -94,6 +102,8 @@ AppImplPlask.prototype.init = function(appObj)
         function(e)
         {
             self._mouseDown = false;
+            mouse._stateLast = mouse._state;
+            mouse._state     = MouseState.MOUSE_UP;
             appObj.onMouseUp(e);
         }
     );
@@ -101,7 +111,9 @@ AppImplPlask.prototype.init = function(appObj)
     plaskWindow.on('scrollWheel',
         function(e)
         {
-            self._mouseWheelDelta += Math.max(-1,Math.min(1,e.dy)) * -1;
+            self._mouseWheelDelta += mouse._wheelDelta = Math.max(-1,Math.min(1,e.dy)) * -1;
+            mouse._stateLast = mouse._state;
+            mouse._state     = MouseState.MOUSE_WHEEL;
             appObj.onMouseWheel(e);
         }
     );
