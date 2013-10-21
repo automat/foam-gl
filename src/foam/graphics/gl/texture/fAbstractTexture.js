@@ -3,7 +3,7 @@ function AbstractTexture()
     this._width  = -1;
     this._height = -1;
 
-    this._image    = null;
+    this._data     = null;
     this._texture  = null;
 
     this._mipmap     = false;

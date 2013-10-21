@@ -16,7 +16,7 @@ function Texture(image)
     else if((height & (height-1) != 0))
         throw new Error(fError.TEXTURE_HEIGHT_NOT_P2);
 
-    this._image = image;
+    this._data = image;
 }
 
 Texture.prototype = Object.create(AbstractTexture.prototype);
