@@ -312,7 +312,11 @@ function FGL(context3d,context2d)
     this._bNormalQuad          = new Float32Array(SIZE_OF_QUAD);
     this._bColorQuad           = new Float32Array(4 * SIZE_OF_COLOR);
     this._bIndexQuad           = new Uint16Array([0,1,2,1,2,3]);
-    this._bTexCoordQuadDefault = new Float32Array([0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0]);
+   // this._bTexCoordQuadDefault = new Float32Array([0.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0]);
+    this._bTexCoordQuadDefault = new Float32Array([0.0,1.0,
+                                                   1.0,1.0,
+                                                   1.0,0.0,
+                                                   0.0,0.0]);
     this._bTexCoordQuad        = new Float32Array(this._bTexCoordQuadDefault.length);
 
     //Rect
@@ -594,7 +598,7 @@ FGL.prototype.bindTextureImage = function(texture)
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D,glTexture);
-    System.bindTextureImageData(gl,texture._image);
+    System.bindTextureImageData(gl,texture._data);
     if(texture._mipmap)gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, texture._min_filter);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texture._mag_filter);
@@ -2296,6 +2300,19 @@ FGL.prototype.getGeomBufferQuad = function()
             this._bTexCoordQuad];
 };
 
+/*---------------------------------------------------------------------------------------------------------*/
+// ...
+/*---------------------------------------------------------------------------------------------------------*/
+
+FGL.prototype.setAlphaBlending = function(bool,premultiplied)
+{
+    var gl = this.gl;
+    if(!bool){gl.disable(gl.BLEND);return;}
+
+    gl.enable(gl.BLEND);
+    if(premultiplied)gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    else gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
+};
 
 
 /*---------------------------------------------------------------------------------------------------------*/
