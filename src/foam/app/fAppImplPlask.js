@@ -91,6 +91,7 @@ AppImplPlask.prototype.init = function(appObj)
     plaskWindow.on('leftMouseDown',
         function(e)
         {
+            updateMouse(e.x, e.y);
             self._mouseDown = true;
             mouse._stateLast = mouse._state;
             mouse._state     = MouseState.MOUSE_DOWN;
@@ -101,6 +102,7 @@ AppImplPlask.prototype.init = function(appObj)
     plaskWindow.on('leftMouseUp',
         function(e)
         {
+            updateMouse(e.x, e.y);
             self._mouseDown = false;
             mouse._stateLast = mouse._state;
             mouse._state     = MouseState.MOUSE_UP;
