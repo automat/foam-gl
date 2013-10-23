@@ -855,7 +855,6 @@ FGL.prototype.drawArrays = function(vertexFloat32Array,normalFloat32Array,colorF
 {
     this.bufferArrays(vertexFloat32Array,normalFloat32Array,colorFloat32Array,uvFloat32Array);
     this.setMatricesUniform();
-
     this.gl.drawArrays(mode  || this._drawMode,
                        first || 0,
                        count || vertexFloat32Array.length / this.SIZE_OF_VERTEX);
@@ -933,12 +932,6 @@ FGL.prototype.bufferArrays = function(vertexFloat32Array,normalFloat32Array,colo
             gl.vertexAttribPointer(paVertexTexCoord,this.SIZE_OF_TEX_COORD,glFloat,false,0,offsetT);
         }
     }
-
-
-
-
-
-
 };
 
 
@@ -1614,44 +1607,22 @@ FGL.prototype.point = function(vector)
     this._drawFuncLast = this.point;
 };
 
-FGL.prototype.points = function(vertices,colors)
+FGL.prototype.points = function(vertices,colors,first,count)
 {
     if(vertices.length == 0)return;
 
-    colors = colors || this.bufferColors(this._bColor4f,new Float32Array(vertices.length / 3 * 4));
+    var materialMode = this._materialMode;
 
-    var gl            = this.gl,
-        glArrayBuffer = gl.ARRAY_BUFFER,
-        glFloat       = gl.FLOAT;
-
-    var vblen = vertices.byteLength,
-        cblen = colors.byteLength;
-
-    var offsetV = 0,
-        offsetC = vblen;
-
-    var program    = this._cprogram,
-        aVertexPosition = program.aVertexPosition,
-        aVertexNormal   = program.aVertexNormal,
-        aVertexColor    = program.aVertexColor,
-        aVertexTexCoord = program.aVertexTexCoord;
-
-    gl.bufferData(glArrayBuffer,vblen + cblen,gl.STATIC_DRAW);
-
-    gl.bufferSubData(glArrayBuffer, offsetV, vertices);
-    gl.bufferSubData(glArrayBuffer, offsetC, colors);
-
-    gl.disableVertexAttribArray(aVertexNormal);
-    gl.disableVertexAttribArray(aVertexTexCoord);
-
-    gl.vertexAttribPointer(aVertexPosition, this.SIZE_OF_VERTEX, glFloat, false, 0, offsetV);
-    gl.vertexAttribPointer(aVertexColor,    this.SIZE_OF_COLOR,  glFloat, false, 0, offsetC);
-
-    this.setMatricesUniform();
-    gl.drawArrays(this._drawMode,0,vertices.length/3);
-
-    gl.enableVertexAttribArray(aVertexNormal);
-    gl.enableVertexAttribArray(aVertexTexCoord);
+    this.drawArrays(vertices,
+                    null,
+                    materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
+                    materialMode != this.MATERIAL_MODE_NORMAL  ?
+                        colors || this.bufferColors(this._bColor4f,new Float32Array(vertices.length / 3 * 4)) :
+                        null,
+                    null,
+                    this._drawMode,
+                    first,
+                    count);
 
     this._drawFuncLast = this.points;
 };
@@ -1667,9 +1638,12 @@ FGL.prototype.linef = function(x0,y0,z0,x1,y1,z1)
     v[0] = x0;v[1] = y0;v[2] = z0;
     v[3] = x1;v[4] = y1;v[5] = z1;
 
+    var materialMode = this._materialMode;
+
     this.drawArrays(v,
                     null,
-                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                    materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
+                    materialMode != this.MATERIAL_MODE_NORMAL ?
                         this.bufferColors(this._bColor,this._bColorLine) :
                         null,
                     null,
@@ -1681,9 +1655,13 @@ FGL.prototype.linef = function(x0,y0,z0,x1,y1,z1)
 FGL.prototype.line  = function(vertices)
 {
     if(vertices.length == 0)return;
+
+    var materialMode = this._materialMode;
+
     this.drawArrays(this.bufferArrays(vertices,this._bVertexLine),
                     null,
-                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                    materialMode != this.MATERIAL_MODE_COLOR_SOLID  &&
+                    materialMode != this.MATERIAL_MODE_NORMAL ?
                         this.bufferColors(this._bColor,this._bColorLine) :
                         null,
                     null,
@@ -1700,9 +1678,12 @@ FGL.prototype.linev = function(vertices)
     var v = new Float32Array(vertices),
         l = vertices.length / this.SIZE_OF_VERTEX;
 
+    var materialMode = this._materialMode;
+
     this.drawArrays(v,
                     null,
-                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                    materialMode != this.MATERIAL_MODE_COLOR_SOLID  &&
+                    materialMode != this.MATERIAL_MODE_NORMAL ?
                         this.bufferColors(this._bColor, new Float32Array(l*this.SIZE_OF_COLOR)) :
                         null,
                     null,
@@ -1726,9 +1707,12 @@ FGL.prototype.quadf = function(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3)
     v[ 6] = x2;v[ 7] = y2;v[ 8] = z2;
     v[ 9] = x3;v[10] = y3;v[11] = z3;
 
+    var materialMode = this._materialMode;
+
     this.drawArrays(v,
                     null,
-                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                    materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
+                    materialMode != this.MATERIAL_MODE_NORMAL ?
                         this.bufferColors(this._bColor,this._bColorQuad) :
                         null,
                     this._bTexCoordQuadDefault,
@@ -1746,9 +1730,12 @@ FGL.prototype.quadv = function(v0,v1,v2,v3)
 
 FGL.prototype.quad = function(vertices,normals,texCoords)
 {
+    var materialMode = this._materialMode;
+
     this.drawArrays(this.bufferArrays(vertices,this._bVertexQuad),
                     normals,
-                    this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                    materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
+                    materialMode != this.MATERIAL_MODE_NORMAL ?
                         this.bufferColors(this._bColor,this._bColorQuad) :
                         null,
                     texCoords,
@@ -1853,9 +1840,12 @@ FGL.prototype.rect = function(width,height)
             this._rectHeightLast = height;
         }
 
+        var materialMode = this._materialMode;
+
         this.drawArrays(vertices,
                         this._bNormalRect,
-                        this._materialMode != this.MATERIAL_MODE_COLOR_SOLID ?
+                        materialMode != this.MATERIAL_MODE_COLOR_SOLID &&
+                        materialMode != this.MATERIAL_MODE_NORMAL ?
                             this.bufferColors(this._bColor,this._bColorRect) :
                             null,
                         this._bTexCoordQuadDefault,
