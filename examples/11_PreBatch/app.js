@@ -133,6 +133,8 @@ App.prototype.update = function()
     light1.constantAttentuation = Math.abs(Math.sin(time*50+Math.PI*0.5));
     light2.constantAttentuation = Math.abs(Math.sin(time*50+Math.PI*0.75));
 
+  //  fgl.materialMode(fgl.MATERIAL_MODE_COLOR);
+
     //this.drawSystem();
 
     fgl.useLighting(true);

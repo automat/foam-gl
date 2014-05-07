@@ -507,12 +507,7 @@ module.exports =
 
         }
 
-        c = startX;
-        d = startY;
-        a = c - 1;
-        b = d;
-        e = 0;
-        f = 0;
+
 
         corners = 1;
 

@@ -18,9 +18,16 @@ App.prototype.setup = function()
 
     this._zoom = 6;
 
-    var isoBand = this._isoBand = new Foam.ISOBand(100,100,4,4);
-        isoBand.setFunction(function(x,y,t){return Math.sin(x*y*100+t*10);});
-        isoBand.applyFunction();
+    var isoBand = this._isoBand = new Foam.ISOBand(5,5,4,4);
+    //console.log(isoBand.getCells());
+        isoBand.setFunction(function(x,y,t){return 1.0;});
+        isoBand.setData([0,1,0,1,0,
+                         0,1,0,1,0,
+                         0,1,0,1,0,
+                         0,1,0,1,0,
+                         0,1,0,1,0],5,5);
+        isoBand.applyFunctionMult();
+   console.log(isoBand.getEdges().length);
 };
 
 App.prototype.update = function()
@@ -66,7 +73,7 @@ App.prototype.update = function()
     /*---------------------------------------------------------------------------------------------------------*/
 
     var isoBand = this._isoBand;
-        isoBand.applyFunction(time);
+        //isoBand.applyFunction();
 
     kgl.drawMode(kgl.LINES);
     kgl.color3f(1,0,1);

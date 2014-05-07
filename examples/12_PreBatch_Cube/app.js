@@ -41,7 +41,7 @@ App.prototype.setup = function()
 
     this._zoom = 8;
 
-    var size = 35;
+    var size = 34;
     var i, j,k;
     var ni,nj,nk;
     var s = 40;

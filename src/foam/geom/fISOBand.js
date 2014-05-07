@@ -136,7 +136,6 @@ ISOBand.prototype._genSurface = function()
             if(i < cellSizeZ && j < cellSizeX)
             {
                 vertsIndexRowNext = (vertSizeX * i + j + vertSizeX) * 4;
-
                 cellsIndex        = cellSizeX * i + j;
                 cells[cellsIndex] = [vertsIndex,
                                      vertsIndex + 4,
@@ -316,7 +315,13 @@ ISOBand.prototype.march = function()
             edgeIndexBottom = edgeIndexRight + cellSizeX;
             edgeIndexLeft   = edgeIndexRight - 1;
 
+           // console.log(cellState);
+
+
+
             entryTopLu = ISOBAND_TOP_LU[cellState];
+
+            //console.log(cellIndex * 4);
 
             //cell upper left
             k = 0;
@@ -347,6 +352,8 @@ ISOBand.prototype.march = function()
                                     entryTopLu2 == 2 ? edgeIndexBottom :
                                     edgeIndexLeft;
 
+                    //console.log(cell[entryTopLu2]);
+
                     this._intrpl(cell[entryTopLu2],cell[entryTopLu3],edges,edgeIndexTemp * 3);
                     indices.push(edgeIndexTemp);
 
@@ -365,6 +372,10 @@ ISOBand.prototype.march = function()
                     entryTopLu1 = entryTopLu[k+1];
                     entryTopLu2 = entryTopLu[k+2];
                     entryTopLu3 = entryTopLu[k+3];
+
+
+                    //console.log(k);
+                    console.log(entryTopLu0,entryTopLu1,entryTopLu2,entryTopLu3);
 
                     //check if edge is on adjacent left side, and push index of edge,
                     //if not, calculate edge, push index of new edge
@@ -385,6 +396,9 @@ ISOBand.prototype.march = function()
 
                         this._intrpl(cell[entryTopLu0],cell[entryTopLu1],edges,edgeIndexTemp * 3);
                         indices.push(edgeIndexTemp);
+                        console.log(cell[entryTopLu0]);
+
+
                     }
 
                     //check second vertex is on left edge
@@ -528,6 +542,8 @@ ISOBand.prototype._draw = function(gl)
         indices =  this._indices;
 
      gl.drawElements(edges,null,colors,null,indices,gl.getDrawMode(),indices.length,0);
+
+    //gl.drawAr(edges,null,gl.bufferColors(new Float32Array([1,1,1,1]),new Float32Array(edges.length/3*4)),null,indices,gl.getDrawMode(),indices.length,0);
 };
 
 

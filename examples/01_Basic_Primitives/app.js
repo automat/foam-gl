@@ -30,11 +30,11 @@ App.prototype.update = function()
 
     this.drawSystem();
 
-    kgl.drawMode(kgl.TRIANGLES);
+    kgl.drawMode(kgl.TRIANGLE_FAN);
     kgl.color1f(1);
    // fgl.linef(0,0,0,1,1,1);
-
-    kgl.cube(1);
+    kgl.rect(1,0);
+    //kgl.cube(1);
 
 
     kgl.drawMode(kgl.LINES);
