@@ -8,8 +8,8 @@ function CanvasTexture(width,height)
 {
     AbstractTexture.call(this);
 
-    this._width  = width;
-    this._height = height;
+    this._windowWidth  = width;
+    this._windowHeight = height;
 
     var canvas = this._data    = plask.SkCanvas.create(width,height);
         canvas.drawColor(255,255,255,0);

@@ -1,7 +1,7 @@
-var Vec3   = require('../math/fVec3'),
-    Vec4   = require('../math/fVec4'),
-    Flags  = require('../system/fFlags'),
-    Geom3d = require('./fGeom3d');
+var Vec3   = require('../src/foam/math/fVec3'),
+    Vec4   = require('../src/foam/math/fVec4'),
+    Flags  = require('../src/foam/system/fFlags'),
+    Geom3d = require('./../src/foam/geom/fGeom3d');
 
 
 //This is just an initial version

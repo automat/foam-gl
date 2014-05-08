@@ -1,4 +1,4 @@
-var fMath      = require('../math/fMath'),
+var fMath      = require('../src/foam/math/fMath'),
     Line2dUtil = require('./fLine2dUtil');
 
 module.exports =

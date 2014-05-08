@@ -1,6 +1,6 @@
 var Platform             = require('./common/fPlatform'),
     SystemImplWeb        = require('./fSystemImplWeb'),
-    SystemImplPlask      = require('./fSystemImplPlask'),
+   // SystemImplPlask      = require('./fSystemImplPlask'),
     SystemImplNodeWebkit = require('./fSystemImplNodeWebkit');
 
 
@@ -10,10 +10,14 @@ if(!__internal)
 {
     var platform = Platform.getTarget();
 
+    /*
     __internal = platform == Platform.PLASK       ? SystemImplPlask :
                  platform == Platform.WEB         ? SystemImplWeb :
                  platform == Platform.NODE_WEBKIT ? SystemImplNodeWebkit :
                  null;
+                 */
+
+    __internal = SystemImplWeb;
 }
 
 var SystemInternal =

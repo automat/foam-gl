@@ -1,3 +1,4 @@
+/*
 var fs     = require('fs'),
     path   = require('path'),
     plask  = require('plask'),
@@ -67,4 +68,8 @@ var SystemImplPlask =
 
 };
 
-module.exports = SystemImplPlask;
+ module.exports = SystemImplPlask;
+   */
+
+module.exports = {};
+

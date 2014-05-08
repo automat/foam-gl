@@ -8,8 +8,8 @@ function Texture(image)
     if(!image)
         throw new Error(fError.TEXTURE_IMAGE_DATA_NULL);
 
-    var width  = this._width  = image.width,
-        height = this._height = image.height;
+    var width  = this._windowWidth  = image.width,
+        height = this._windowHeight = image.height;
 
     if((width & (width-1) != 0))
         throw new Error(fError.TEXTURE_WIDTH_NOT_P2);
