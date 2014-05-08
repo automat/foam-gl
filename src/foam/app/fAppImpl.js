@@ -1,5 +1,5 @@
 var Default     = require('../system/common/fDefault'),
-    fError      = require('../system/common/fError'),
+    fError      = require('../system/common/Error'),
     ObjectUtil  = require('../util/fObjectUtil');
 
 /*--------------------------------------------------------------------------------------------*/
@@ -38,8 +38,7 @@ function AppImpl() {
     this._timeDelta = 0;
     this._timeElapsed = 0;
 
-    this._windowWidth  = -1;
-    this._windowHeight = -1;
+    this._windowSize   = [-1,-1];
     this._windowRatio  = -1;
 
     this._isInitialized = false;
@@ -53,8 +52,8 @@ AppImpl.prototype.isInitialized = function () {
     return this._isInitialized;
 };
 
-AppImpl.prototype.init = function (appObj) {
-    throw new Error(fError.METHOD_NOT_IMPLEMENTED);
+AppImpl.prototype.initialize = function (appObj) {
+    throw new Error(Error.METHOD_NOT_IMPLEMENTED);
 }
 
 /*--------------------------------------------------------------------------------------------*/
@@ -75,19 +74,19 @@ AppImpl.prototype.loop = function (bool) {
 /*--------------------------------------------------------------------------------------------*/
 
 AppImpl.prototype.setWindowSize = function (width, height) {
-    throw new Error(fError.METHOD_NOT_IMPLEMENTED);
+    throw new Error(Error.METHOD_NOT_IMPLEMENTED);
 };
 
 AppImpl.prototype.getWindowWidth = function () {
-    return this._windowWidth;
+    return this._windowSize[0];
 };
 
 AppImpl.prototype.getWindowHeight = function () {
-    return this._windowHeight;
+    return this._windowSize[1];
 };
 
 AppImpl.prototype.getWindowSize = function(){
-    return [this._windowWidth,this._windowHeight];
+    return this._windowSize.slice();
 };
 
 
@@ -166,7 +165,7 @@ AppImpl.prototype.getTimeDelta = function () {
 /*--------------------------------------------------------------------------------------------*/
 
 AppImpl.prototype.hideMouseCursor = function (bool) {
-    throw new Error(fError.METHOD_NOT_IMPLEMENTED);
+    throw new Error(Error.METHOD_NOT_IMPLEMENTED);
 };
 
 AppImpl.prototype.setWindowTitle = function (title) {

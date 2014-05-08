@@ -2,7 +2,7 @@ var Color = require('../../util/fColor');
 
 function Material(ambient,diffuse,specular,shininess,emission)
 {
-    ambient   = ambient   || Color.make(1.0,0.5,0.5,1.0);
+    ambient   = ambient   || Color.create(1.0,0.5,0.5,1.0);
     diffuse   = diffuse   || Color.BLACK();
     specular  = specular  || Color.BLACK();
     shininess = shininess || 10.0;

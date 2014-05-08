@@ -1,4 +1,4 @@
-var Vec3  = require('../math/fVec3'),
+var Vec3  = require('../math/Vec3'),
     Color = require('../util/fColor');
 
 var fGLUtil = {};

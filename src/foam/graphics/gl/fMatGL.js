@@ -1,4 +1,4 @@
-var Mat44 = require('../../math/fMat44');
+var Mat44 = require('../../math/Matrix44');
 
 module.exports =
 {
@@ -71,7 +71,7 @@ module.exports =
         if (Math.abs(eyex - targetx) < 0.000001 &&
             Math.abs(eyey - tartety) < 0.000001 &&
             Math.abs(eyez - targetz) < 0.000001) {
-            return Mat44.identity(m);
+            return Matrix44.identity(m);
         }
 
         z0 = eyex - targetx;

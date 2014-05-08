@@ -1,12 +1,12 @@
-var fError     = require('../system/common/fError'),
-    Vec2       = require('../math/fVec2');
+var fError     = require('../system/common/Error'),
+    Vec2       = require('../math/Vec2');
 
 function Mouse()
 {
-    if(Mouse.__instance)throw new Error(fError.CLASS_IS_SINGLETON);
+    if(Mouse.__instance)throw new Error(Error.CLASS_IS_SINGLETON);
 
-    this._position     = Vec2.make();
-    this._positionLast = Vec2.make();
+    this._position     = Vec2.create();
+    this._positionLast = Vec2.create();
     this._state        = null;
     this._stateLast    = null;
     this._wheelDelta   = 0;

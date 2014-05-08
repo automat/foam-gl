@@ -41,12 +41,12 @@ module.exports = {
     Vec3        : require('./math/fVec3'),
     Vec4        : require('./math/fVec4'),
     Mat33       : require('./math/fMat33'),
-    Mat44       : require('./math/fMat44'),
+    Matrix44       : require('./math/fMat44'),
     Quaternion  : require('./math/fQuaternion'),
 
     MatGL        : require('./graphics/gl/fMatGL'),
     Program      : require('./graphics/gl/fProgram'),
-    CameraBasic  : require('./graphics/fCameraBasic'),
+    Camera  : require('./graphics/fCameraBasic'),
 
     Light            : require('./graphics/gl/light/fLight'),
     PointLight       : require('./graphics/gl/light/fPointLight'),
@@ -58,7 +58,7 @@ module.exports = {
     CanvasTexture : require('./graphics/gl/texture/fCanvasTexture'),
 
     fGLUtil     : require('./graphics/fGLUtil'),
-    fGL         : require('./graphics/fGL'),
+    GL         : require('./graphics/GL'),
 
     Mouse       : require('./util/fMouse'),
     MouseState  : require('./util/fMouseState'),
@@ -70,7 +70,7 @@ module.exports = {
 
     Flags : require('./system/fFlags'),
     */
-    Application : require('./app/fApplication')
+    Application : require('./app/App')
 
 };
 

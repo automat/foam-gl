@@ -1,4 +1,4 @@
-var Vec3 = require('../../../math/fVec3'),
+var Vec3 = require('../../../math/Vec3'),
     Vec4 = require('../../../math/fVec4');
 
 function Light(id)

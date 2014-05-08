@@ -1,6 +1,6 @@
 var Default = require('../system/common/fDefault'),
     AppImpl = require('./fAppImpl'),
-    fGL = require('../graphics/fGL');
+    GL      = require('../graphics/gl');
 
 function AppImplWeb() {
     AppImpl.apply(this, arguments);
@@ -21,6 +21,10 @@ function AppImplWeb() {
                                    window.webkitRequestAnimationFrame ||
                                    window.mozRequestAnimationFrame;
 
+    this.fgl = new GL(this._context3d);
+
+
+
 }
 
 AppImplWeb.prototype = Object.create(AppImpl.prototype);
@@ -34,18 +38,22 @@ AppImplWeb.prototype.setWindowSize = function (width, height) {
         width = window.innerWidth;
         height = window.innerHeight;
     }
-    if (width == this._windowWidth && height == this._windowHeight)return;
+    if (width  == this.getWindowWidth() && height == this.getWindowHeight()){
+        return;
+    }
 
-    this._windowWidth = width;
-    this._windowHeight = height;
-    this._windowRatio = width / height;
+    this._windowSize[0] = width;
+    this._windowSize[1] = height;
+    this._windowRatio   = width / height;
 
-    if (!this._isInitialized) return;
+    if (!this._isInitialized){
+        return;
+    }
 
     this._updateCanvas3dSize();
 };
 
-AppImplWeb.prototype._init = function (appObj) {
+AppImplWeb.prototype.initialize = function (appObj) {
     var self = this;
     var mouse = appObj.mouse;
     var canvas = this._canvas3d;
@@ -57,18 +65,20 @@ AppImplWeb.prototype._init = function (appObj) {
     } else {
         this._parent.appendChild(canvas);
     }
+
     this._updateCanvas3dSize();
 
     var mouseEventTarget = this._mouseEventTarget,
         keyEventTarget = this._keyEventTarget;
 
 
-    appObj.fgl = new fGL(this._context3d);
+    appObj.gl = new GL(this._context3d);
+
 
     /*
      appObj.fgl.gl.viewport(0,0,this._windowWidth,this._windowHeight);
 
-     appObj.camera = new CameraBasic();
+     appObj.camera = new Camera();
      appObj.fgl.setCamera(appObj.camera);
      appObj.camera.setPerspective(Default.CAMERA_FOV,
      self._windowRatio,
@@ -149,8 +159,8 @@ AppImplWeb.prototype._init = function (appObj) {
 
     function updateViewportGL() {
         gl = appObj.fgl;
-        gl.gl.viewport(0, 0, self._windowWidth, self._windowHeight);
-        gl.clearColor(gl.getClearBuffer());
+        gl.viewport(0, 0, self.getWindowWidth(), self.getWindowHeight());
+        gl.clearColor(0,0,0,0);
     }
 
 
@@ -210,7 +220,7 @@ AppImplWeb.prototype._init = function (appObj) {
 AppImplWeb.prototype.init = function (appObj) {
     var self = this;
     window.addEventListener('load', function () {
-        self._init(appObj);
+        self.initialize(appObj);
     });
 };
 
