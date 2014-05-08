@@ -1,8 +1,8 @@
-var Vec2   = require('../math/fVec2'),
-    Vec3   = require('../math/fVec3'),
-    Color  = require('../util/fColor'),
-    Geom3d = require('./fGeom3d'),
-    Flags  = require('../system/fFlags');
+var Vec2   = require('../src/foam/math/fVec2'),
+    Vec3   = require('../src/foam/math/fVec3'),
+    Color  = require('../src/foam/util/fColor'),
+    Geom3d = require('./../src/foam/geom/fGeom3d'),
+    Flags  = require('../src/foam/system/fFlags');
 
 ParametricSurface = function(size)
 {
@@ -15,13 +15,13 @@ ParametricSurface = function(size)
     this.vr    = [-1,1];
     this.size  = null;
 
-    this.setSize(size);
+    this.setWindowSize(size);
 
 };
 
 ParametricSurface.prototype = Object.create(Geom3d.prototype);
 
-ParametricSurface.prototype.setSize = function(size,unit)
+ParametricSurface.prototype.setWindowSize = function(size,unit)
 {
     unit = unit || 1;
 

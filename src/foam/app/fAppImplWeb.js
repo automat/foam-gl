@@ -1,27 +1,21 @@
-var Default     = require('../system/common/fDefault'),
-    AppImpl     = require('./fAppImpl'),
-    fGL         = require('../graphics/fGL'),
-    CameraBasic = require('../graphics/fCameraBasic');
+var Default = require('../system/common/fDefault'),
+    AppImpl = require('./fAppImpl'),
+    fGL = require('../graphics/fGL');
 
-function AppImplWeb()
-{
-    AppImpl.apply(this,arguments);
+function AppImplWeb() {
+    AppImpl.apply(this, arguments);
 
     var canvas3d = this._canvas3d = document.createElement('canvas');
-        canvas3d.setAttribute('tabindex','0');
+        canvas3d.setAttribute('tabindex', '0');
         canvas3d.focus();
 
     this._context3d = canvas3d.getContext('webkit-3d') ||
                       canvas3d.getContext("webgl") ||
                       canvas3d.getContext("experimental-webgl");
 
-    var canvas2d = this._canvas2d = document.createElement('canvas');
-
-    this._parent           = null;
+    this._parent = null;
     this._mouseEventTarget = canvas3d;
-    this._keyEventTarget   = canvas3d;
-
-    this._context2d = canvas2d.getContext('2d');
+    this._keyEventTarget = canvas3d;
 
     window.requestAnimationFrame = window.requestAnimationFrame ||
                                    window.webkitRequestAnimationFrame ||
@@ -31,58 +25,65 @@ function AppImplWeb()
 
 AppImplWeb.prototype = Object.create(AppImpl.prototype);
 
-AppImplWeb.prototype.getWindow = function(){return this._context3d.parentNode;};
+AppImplWeb.prototype.getWindow = function () {
+    return this._context3d.parentNode;
+};
 
-AppImplWeb.prototype.setSize = function(width,height)
-{
-    if(this._isFullWindowFrame){width = window.innerWidth; height = window.innerHeight;}
-    if(width == this._width && height == this._height)return;
+AppImplWeb.prototype.setWindowSize = function (width, height) {
+    if (this._isFullWindowFrame) {
+        width = window.innerWidth;
+        height = window.innerHeight;
+    }
+    if (width == this._windowWidth && height == this._windowHeight)return;
 
-    this._width  = width;
-    this._height = height;
-    this._ratio  = width / height;
+    this._windowWidth = width;
+    this._windowHeight = height;
+    this._windowRatio = width / height;
 
-    if(!this._isInitialized) return;
+    if (!this._isInitialized) return;
 
     this._updateCanvas3dSize();
 };
 
-AppImplWeb.prototype._init = function(appObj)
-{
-    var self   = this;
-    var mouse  = appObj.mouse;
+AppImplWeb.prototype._init = function (appObj) {
+    var self = this;
+    var mouse = appObj.mouse;
     var canvas = this._canvas3d;
 
     document.title = this._windowTitle || document.title;
 
-    if(!this._parent)document.body.appendChild(canvas);
-    else this._parent.appendChild(canvas);
-
+    if (!this._parent){
+        document.body.appendChild(canvas);
+    } else {
+        this._parent.appendChild(canvas);
+    }
     this._updateCanvas3dSize();
 
     var mouseEventTarget = this._mouseEventTarget,
-        keyEventTarget   = this._keyEventTarget;
+        keyEventTarget = this._keyEventTarget;
 
 
-    appObj.fgl = new fGL(this._context3d,this._context2d);
-    appObj.fgl.gl.viewport(0,0,this._width,this._height);
+    appObj.fgl = new fGL(this._context3d);
 
-    appObj.camera = new CameraBasic();
-    appObj.fgl.setCamera(appObj.camera);
-    appObj.camera.setPerspective(Default.CAMERA_FOV,
-                                 self._ratio,
-                                 Default.CAMERA_NEAR,
-                                 Default.CAMERA_FAR);
-    appObj.camera.setTarget3f(0,0,0);
-    appObj.camera.updateMatrices();
+    /*
+     appObj.fgl.gl.viewport(0,0,this._windowWidth,this._windowHeight);
 
-    appObj.fgl.loadIdentity();
+     appObj.camera = new CameraBasic();
+     appObj.fgl.setCamera(appObj.camera);
+     appObj.camera.setPerspective(Default.CAMERA_FOV,
+     self._windowRatio,
+     Default.CAMERA_NEAR,
+     Default.CAMERA_FAR);
+     appObj.camera.setTarget3f(0,0,0);
+     appObj.camera.updateMatrices();
+
+     appObj.fgl.loadIdentity();
+     */
 
     appObj.setup();
 
     mouseEventTarget.addEventListener('mousemove',
-        function(e)
-        {
+        function (e) {
             mouse._positionLast[0] = mouse._position[0];
             mouse._positionLast[1] = mouse._position[1];
 
@@ -94,45 +95,40 @@ AppImplWeb.prototype._init = function(appObj)
         });
 
     mouseEventTarget.addEventListener('mousedown',
-        function(e)
-        {
+        function (e) {
             self._mouseDown = true;
             appObj.onMouseDown(e);
 
         });
 
     mouseEventTarget.addEventListener('mouseup',
-        function(e)
-        {
+        function (e) {
             self._mouseDown = false;
             appObj.onMouseUp(e);
 
         });
 
     mouseEventTarget.addEventListener('mousewheel',
-        function(e)
-        {
-            self._mouseWheelDelta += Math.max(-1,Math.min(1, e.wheelDelta)) * -1;
+        function (e) {
+            self._mouseWheelDelta += Math.max(-1, Math.min(1, e.wheelDelta)) * -1;
             appObj.onMouseWheel(e);
         });
 
 
     keyEventTarget.addEventListener('keydown',
-        function(e)
-        {
+        function (e) {
             self._keyDown = true;
             self._keyCode = e.keyCode;
-            self._keyStr  = String.fromCharCode(e.keyCode);//not reliable;
+            self._keyStr = String.fromCharCode(e.keyCode);//not reliable;
             appObj.onKeyDown(e);
 
         });
 
     keyEventTarget.addEventListener('keyup',
-        function(e)
-        {
+        function (e) {
             self._keyDown = false;
             self._keyCode = e.keyCode;
-            self._keyStr  = String.fromCharCode(e.keyCode);
+            self._keyStr = String.fromCharCode(e.keyCode);
             appObj.onKeyUp(e);
 
         });
@@ -145,30 +141,26 @@ AppImplWeb.prototype._init = function(appObj)
     var windowWidth,
         windowHeight;
 
-    function updateCameraRatio()
-    {
+    function updateCameraRatio() {
         camera = appObj.camera;
-        camera.setAspectRatio(self._ratio);
+        camera.setAspectRatio(self._windowRatio);
         camera.updateProjectionMatrix();
     }
 
-    function updateViewportGL()
-    {
+    function updateViewportGL() {
         gl = appObj.fgl;
-        gl.gl.viewport(0,0,self._width,self._height);
+        gl.gl.viewport(0, 0, self._windowWidth, self._windowHeight);
         gl.clearColor(gl.getClearBuffer());
     }
 
 
     window.addEventListener('resize',
-        function(e)
-        {
-            windowWidth  = window.innerWidth;
+        function (e) {
+            windowWidth = window.innerWidth;
             windowHeight = window.innerHeight;
 
-            if(fullWindowFrame)
-            {
-                self.setSize(windowWidth,windowHeight);
+            if (fullWindowFrame) {
+                self.setWindowSize(windowWidth, windowHeight);
 
                 updateCameraRatio();
                 updateViewportGL();
@@ -176,48 +168,36 @@ AppImplWeb.prototype._init = function(appObj)
 
             appObj.onWindowResize(e);
 
-            if(!fullWindowFrame && (self._width == windowWidth && self._height == windowHeight))
-            {
+            if (!fullWindowFrame && (self._windowWidth == windowWidth && self._windowHeight == windowHeight)) {
                 updateCameraRatio();
                 updateViewportGL();
             }
         });
 
-    if(this._bUpdate)
-    {
+    if (this._loop) {
         var time, timeDelta;
         var timeInterval = this._timeInterval;
         var timeNext;
 
-        function update()
-        {
-            requestAnimationFrame(update,null);
+        function update() {
+            requestAnimationFrame(update, null);
 
-            time      = self._time = Date.now();
+            time = self._time = Date.now();
             timeDelta = time - self._timeNext;
 
             self._timeDelta = Math.min(timeDelta / timeInterval, 1);
 
-            if(timeDelta > timeInterval)
-            {
+            if (timeDelta > timeInterval) {
                 timeNext = self._timeNext = time - (timeDelta % timeInterval);
 
-                appObj.fgl._prepareFramebuffer();
-
                 appObj.update();
-
-                appObj.fgl._renderFramebuffer();
 
                 self._timeElapsed = (timeNext - self._timeStart) / 1000.0;
                 self._framenum++;
             }
-
-
-
         }
 
         update();
-
     }
     else appObj.update();
 
@@ -227,27 +207,34 @@ AppImplWeb.prototype._init = function(appObj)
 };
 
 
-AppImplWeb.prototype.init = function(appObj)
-{
+AppImplWeb.prototype.init = function (appObj) {
     var self = this;
-    window.addEventListener('load',function(){self._init(appObj);});
+    window.addEventListener('load', function () {
+        self._init(appObj);
+    });
 };
 
-AppImplWeb.prototype._updateCanvas3dSize = function()
-{
+AppImplWeb.prototype._updateCanvas3dSize = function () {
     var canvas = this._canvas3d,
-        width  = this._width,
-        height = this._height;
+        width = this._windowWidth,
+        height = this._windowHeight;
 
-        canvas.style.width  = width  + 'px';
-        canvas.style.height = height + 'px';
-        canvas.width        = width;
-        canvas.height       = height;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    canvas.width = width;
+    canvas.height = height;
 };
 
-AppImplWeb.prototype.setMouseListenerTarget = function(obj){this._mouseEventTarget = obj;};
-AppImplWeb.prototype.setKeyListenerTarget   = function(obj){this._keyEventTarget = obj;};
-AppImplWeb.prototype.setFullWindowFrame     = function(bool){this._isFullWindowFrame = bool;return true;};
+AppImplWeb.prototype.setMouseListenerTarget = function (obj) {
+    this._mouseEventTarget = obj;
+};
+AppImplWeb.prototype.setKeyListenerTarget = function (obj) {
+    this._keyEventTarget = obj;
+};
+AppImplWeb.prototype.setFullWindowFrame = function (bool) {
+    this._isFullWindowFrame = bool;
+    return true;
+};
 
 
 module.exports = AppImplWeb;

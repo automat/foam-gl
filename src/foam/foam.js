@@ -34,8 +34,8 @@
  *
  */
 
-module.exports =
-{
+module.exports = {
+    /*
     Math        : require('./math/fMath'),
     Vec2        : require('./math/fVec2'),
     Vec3        : require('./math/fVec3'),
@@ -68,18 +68,8 @@ module.exports =
     Platform    : require('./system/common/fPlatform'),
     System      : require('./system/fSystem'),
 
-    Geom3d            : require('./geom/fGeom3d'),
-    ParametricSurface : require('./geom/fParametricSurface'),
-    ISOSurface        : require('./geom/fISOSurface'),
-    ISOBand           : require('./geom/fISOBand'),
-    LineBuffer2d      : require('./geom/fLineBuffer2d'),
-    LineBuffer3d      : require('./geom/fLineBuffer3d'),
-    Spline            : require('./geom/fSpline'),
-    Line2dUtil        : require('./geom/fLine2dUtil'),
-    Polygon2dUtil     : require('./geom/fPolygon2dUtil'),
-
     Flags : require('./system/fFlags'),
-
+    */
     Application : require('./app/fApplication')
 
 };

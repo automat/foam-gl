@@ -1,7 +1,7 @@
 //temp
 var fs = require('fs');
 
-var inPath  = '../includes/';
+var inPath  = '../resources/';
     outPath = '../src/foam/graphics/gl/shader/';
 
 /*
@@ -11,7 +11,7 @@ function shader2String(shaderSource,dist)
         string = string.replace(/(\r\n|\n|\r)/gm,"");
         string = string.replace(/ +(?= )/g,'');
 
-    fs.writeFileSync(dist,'module.exports ="' + string + '";','utf-8');
+    fs.writeFileSync(dist,'modules.exports ="' + string + '";','utf-8');
 }
 */
 

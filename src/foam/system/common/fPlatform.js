@@ -15,8 +15,9 @@ Platform.getTarget  = function()
         //TODO fix
         //hm this needs to be fixed -> browserify require vs node-webkit require
         //for now this does the job
-        if(bDocument)
+        if(bDocument){
             bNodeWebkit = document.createElement('IFRAME').hasOwnProperty('nwdisable');
+        }
 
         this.__target = (bWindow && bDocument && !bNodeWebkit) ? this.WEB :
                         (bWindow && bDocument &&  bNodeWebkit) ? this.NODE_WEBKIT :

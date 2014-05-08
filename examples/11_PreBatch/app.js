@@ -5,8 +5,8 @@ function App()
     Foam.Application.apply(this,arguments);
 
 
-    this.setTargetFPS(60);
-    this.setSize(1024,768);
+    this.setFPS(60);
+    this.setWindowSize(1024,768);
 }
 
 App.prototype = Object.create(Foam.Application.prototype);
@@ -103,8 +103,8 @@ App.prototype.update = function()
 
     if(this.isMouseDown())
     {
-        camRotX = (-1 + this.mouse.getX() / this.getWidth()  * 2.0) * Math.PI;
-        camRotY = (-1 + this.mouse.getY() / this.getHeight() * 2.0) * Math.PI ;
+        camRotX = (-1 + this.mouse.getX() / this.getWindowWidth()  * 2.0) * Math.PI;
+        camRotY = (-1 + this.mouse.getY() / this.getWindowHeight() * 2.0) * Math.PI ;
 
         Foam.Vec3.lerp3f(cam.position,
                          Math.cos(camRotX) * zoom,

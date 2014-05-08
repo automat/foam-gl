@@ -1,7 +1,6 @@
 var AppImplWeb = require('./fAppImplWeb');
 
-function AppImplNodeWebkit()
-{
+function AppImplNodeWebkit(){
     AppImplWeb.apply(this,arguments);
 }
 

@@ -6,8 +6,8 @@ function App()
 
     this.setFullWindowFrame(true);
 
-    this.setTargetFPS(60);
-    this.setSize(800,600);
+    this.setFPS(60);
+    this.setWindowSize(800,600);
 }
 
 App.prototype = Object.create(Foam.Application.prototype);
