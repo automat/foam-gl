@@ -25,7 +25,7 @@ App.prototype.update = function()
     fgl.clear3f(0.1,0.1,0.1);
     fgl.loadIdentity();
 
-    cam.setPosition3f(Math.cos(time)*Math.PI*zoom,zoom,Math.sin(time)*Math.PI*zoom);
+    cam.setEye3f(Math.cos(time)*Math.PI*zoom,zoom,Math.sin(time)*Math.PI*zoom);
     cam.updateMatrices();
 
     this.drawSystem();

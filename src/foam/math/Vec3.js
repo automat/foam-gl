@@ -1,9 +1,14 @@
-var Vec3 =
-{
+var Vec2 = require('./Vec2');
+
+var Vec3 = {
     SIZE: 3,
     ZERO: function () {
         return new Float32Array([0, 0, 0])
     },
+    ONE: function () {
+        return new Float32Array([1, 1, 1]);
+    },
+
     AXIS_X: function () {
         return new Float32Array([1, 0, 0])
     },
@@ -260,7 +265,7 @@ var Vec3 =
     },
 
     normalized: function (v, vo) {
-        vo = vo || this.make();
+        vo = vo || this.create();
 
         vo[0] = v[0];
         vo[1] = v[1];
@@ -270,7 +275,7 @@ var Vec3 =
     },
 
     safeNormalized: function (v, vo) {
-        vo = vo || this.make();
+        vo = vo || this.create();
 
         vo[0] = v[0];
         vo[1] = v[1];
@@ -284,14 +289,21 @@ var Vec3 =
         unitY = typeof unitY !== 'undefined' ? unitY : 1.0;
         unitZ = typeof unitZ !== 'undefined' ? unitZ : 1.0;
 
-        return this.make((-0.5 + Math.random()) * 2 * unitX,
+        return this.create((-0.5 + Math.random()) * 2 * unitX,
                 (-0.5 + Math.random()) * 2 * unitY,
                 (-0.5 + Math.random()) * 2 * unitZ);
     },
 
-
     toString: function (v) {
         return '[' + v[0] + ',' + v[1] + ',' + v[2] + ']';
+    },
+
+    xy: function (v) {
+        return Vec2.create(v[0], v[1]);
+    },
+
+    xz: function (v) {
+        return Vec2.create(v[0], v[2]);
     }
 
 };

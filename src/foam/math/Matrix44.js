@@ -1,4 +1,4 @@
-var fMath = require('./fMath'),
+var fMath = require('./Math'),
     Mat33 = require('./Matrix33');
 
 //for node debug
@@ -145,7 +145,7 @@ var Matrix44 = {
     createRotationOnAxis: function (rot, x, y, z, out) {
         var len = Math.sqrt(x * x + y * y + z * z);
 
-        if (Math.sqrt(x * x + y * y + z * z) < fMath.EPSILON) {
+        if (Math.sqrt(x * x + y * y + z * z) < _Math.EPSILON) {
             return null;
         }
 
@@ -701,7 +701,7 @@ var Matrix44 = {
     isFloatEqual: function (m0, m1) {
         var i = -1;
         while (++i < 16) {
-            if (!fMath.isFloatEqual(m0[i], m1[i]))return false;
+            if (!_Math.isFloatEqual(m0[i], m1[i]))return false;
         }
         return true;
 

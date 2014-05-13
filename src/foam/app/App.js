@@ -1,12 +1,12 @@
 var fError = require('../system/common/Error'),
-    ObjectUtil = require('../util/fObjectUtil'),
-    Platform = require('../system/common/fPlatform'),
-    Shared = require('../system/fShared'),
-    AppImplWeb = require('./fAppImplWeb'),
-    Mouse = require('../util/fMouse'),
-    GL = require('../graphics/gl');
+    ObjectUtil = require('../util/ObjectUtil'),
+    Platform = require('../system/common/Platform'),
+    Mouse = require('../util/Mouse');
 
-var Default     = require('../system/common/fDefault');
+var gl     = require('../gl/gl'),
+    glDraw = require('../gl/glDraw');
+
+var Default     = require('../system/common/Default');
 
 function App() {
     if (App.__instance) {
@@ -65,9 +65,11 @@ function App() {
         canvas.setAttribute('tabindex','0');
         canvas.focus();
 
-    this._context = canvas.getContext('webkit-3d') ||
-                    canvas.getContext("webgl") ||
-                    canvas.getContext("experimental-webgl");
+    gl.context = canvas.getContext('webkit-3d') ||
+                 canvas.getContext("webgl") ||
+                 canvas.getContext("experimental-webgl");
+
+    graphics.matrix = new glMatrix();
 
     document.body.appendChild(canvas);
 
@@ -75,9 +77,10 @@ function App() {
                                    window.webkitRequestAnimationFrame ||
                                    window.mozRequestAnimationFrame;
 
-    this.gl = new GL(this._context);
 
-    App.__instance = this;
+
+
+     App.__instance = this;
 
     //
     //
@@ -222,6 +225,10 @@ App.prototype.getTimeDelta = function () {
     return this._timeDelta;
 };
 
+App.prototype.loop = function(loop){
+    this._loop = loop;
+}
+
 
 /*--------------------------------------------------------------------------------------------*/
 //  input
@@ -311,8 +318,3 @@ App.prototype.onMouseMove = function (e) {};
  App.getInstance = function(){return App.__instance;};
  */
 module.exports = App;
-
-
-
-
-

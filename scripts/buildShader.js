@@ -2,7 +2,7 @@
 var fs = require('fs');
 
 var inPath  = '../resources/';
-    outPath = '../src/foam/graphics/gl/shader/';
+    outPath = '../src/foam/gl/gl/shader/';
 
 /*
 function shader2String(shaderSource,dist)
@@ -40,12 +40,12 @@ shader2String([
     {src: inPath + '/temp/fRenderVertShader.glsl', dest: outPath + 'fRenderVertShader.js'},
     {src: inPath + '/temp/fRenderFragShader.glsl', dest: outPath + 'fRenderFragShader.js'},
 
-    {src: inPath + '/material/fColorFragShader.glsl',        dest: outPath + 'fColorFragShader.js'},
-    {src: inPath + '/material/fColorVertShader.glsl',        dest: outPath + 'fColorVertShader.js'},
-    {src: inPath + '/material/fColorSolidFragShader.glsl',   dest: outPath + 'fColorSolidFragShader.js'},
-    {src: inPath + '/material/fColorSolidVertShader.glsl',   dest: outPath + 'fColorSolidVertShader.js'},
-    {src: inPath + '/material/fNormalFragShader.glsl',       dest: outPath + 'fNormalFragShader.js'},
-    {src: inPath + '/material/fNormalVertShader.glsl',       dest: outPath + 'fNormalVertShader.js'},
+    {src: inPath + '/glsl/fColorFragShader.glsl',        dest: outPath + 'fColorFragShader.js'},
+    {src: inPath + '/glsl/fColorVertShader.glsl',        dest: outPath + 'fColorVertShader.js'},
+    {src: inPath + '/glsl/fColorSolidFragShader.glsl',   dest: outPath + 'fColorSolidFragShader.js'},
+    {src: inPath + '/glsl/fColorSolidVertShader.glsl',   dest: outPath + 'fColorSolidVertShader.js'},
+    {src: inPath + '/glsl/fNormalFragShader.glsl',       dest: outPath + 'fNormalFragShader.js'},
+    {src: inPath + '/glsl/fNormalVertShader.glsl',       dest: outPath + 'fNormalVertShader.js'},
 
     {src: inPath + '/render/fImageVertShader.glsl',     dest: outPath + 'fImageVertShader.js'},
     {src: inPath + '/render/fImageFragShader.glsl',     dest: outPath + 'fImageFragShader.js'},
