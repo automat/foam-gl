@@ -141,7 +141,7 @@ var Matrix44 = {
         return m;
     },
 
-    //temp from glMatrix
+    //temp from glTrans
     createRotationOnAxis: function (rot, x, y, z, out) {
         var len = Math.sqrt(x * x + y * y + z * z);
 

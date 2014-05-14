@@ -26,6 +26,31 @@ module.exports = {
 
     },
 
+    //http://www.songho.ca/opengl/gl_projectionmatrix.html#ortho
+    ortho : function(m, left, right, bottom, top , near, far) {
+        var lr = 1 / (left - right),
+            bt = 1 / (bottom - top),
+            nf = 1 / (near - far);
+        m[0] = -2 * lr;
+        m[1] = 0;
+        m[2] = 0;
+        m[3] = 0;
+        m[4] = 0;
+        m[5] = -2 * bt;
+        m[6] = 0;
+        m[7] = 0;
+        m[8] = 0;
+        m[9] = 0;
+        m[10] = 2 * nf;
+        m[11] = 0;
+        m[12] = (left + right) * lr;
+        m[13] = (top + bottom) * bt;
+        m[14] = (far + near) * nf;
+        m[15] = 1;
+
+        return m;
+    },
+
     frustum: function (m, left, right, bottom, top, near, far) {
         var rl = 1 / (right - left),
             tb = 1 / (top - bottom),

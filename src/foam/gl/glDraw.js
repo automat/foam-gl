@@ -3,6 +3,43 @@ var Vec3 = require('../math/Vec3'),
 
 var glDrawUtil = {};
 
+
+
+
+
+
+glDrawUtil.drawLine = function(start, end){
+};
+
+
+glDrawUtil.drawCube = function(center, size){};
+glDrawUtil.drawCubeStroked = function(center,size){};
+glDrawUtil.drawSphere = function(center, radius, numSegs){};
+glDrawUtil.drawCircle = function(center,radius,numSegs){};
+glDrawUtil.drawCircleStroked = function(center,radius,numSegs){};
+glDrawUtil.drawEllipse = function(center,radiusX,radiusY,numSegs){};
+glDrawUtil.drawEllipseStroked = function(center,radiusX,radiusY,numSegs){};
+glDrawUtil.drawRect = function(rect){};
+glDrawUtil.drawRectStroked = function(rect){};
+glDrawUtil.drawRectRounded = function(rect,radiusCorner,numSegsCorner){};
+glDrawUtil.drawRectRoundedStroked  =function(rect,radiusCorner,numSegsCorner){};
+glDrawUtil.drawTriangle = function(v0,v1,v2){};
+glDrawUtil.drawTriangleStroked = function(v0,v1,v2){};
+
+glDrawUtil.draw = function(obj){};
+glDrawUtil.drawRange = function(obj,begin,count){};
+
+glDrawUtil.drawPivot = function(length){};
+glDrawUtil.drawVector = function(vec){};
+glDrawUtil.drawFrustum = function(camera){};
+
+glDrawUtil.drawArraysSafe = function(){};
+
+glDrawUtil.drawString = function(string,pos,align){};
+
+
+glDrawUtil.color4f = function(r,g,b,a){};
+
 glDrawUtil.__bVertexGrid = [];
 glDrawUtil.__bVertexGridF32 = null;
 glDrawUtil.__bColorGridLast = Color.BLACK();

@@ -1,6 +1,8 @@
-var gl = require('./gl').gl;
+var _gl = require('./gl');
 
 function Program(vertexShader, fragmentShader) {
+    var gl = this._gl = _gl.get();
+
     var prefixVertexShader = '',
         prefixFragmentShader = '';
 
@@ -51,7 +53,7 @@ function Program(vertexShader, fragmentShader) {
 }
 
 Program.prototype.delete = function(){
-   gl.deleteProgram(this._program);
+   this._gl.deleteProgram(this._program);
 };
 
 Program.prototype.getNumUniforms = function () {
@@ -62,7 +64,10 @@ Program.prototype.getNumAttributes = function () {
     return this._numAttributes;
 };
 
+
+
 Program.prototype.bind = function () {
+    var gl = this._gl;
     gl.useProgram(this._program);
     var i  = -1,
         a  = this._attributes,
@@ -73,6 +78,8 @@ Program.prototype.bind = function () {
 };
 
 Program.prototype.unbind = function () {
+    var gl = this._gl;
+
     var i  = -1,
         a  = this._attributes,
         n  = this._numAttributes;
@@ -84,83 +91,79 @@ Program.prototype.unbind = function () {
 };
 
 Program.prototype.uniform1f = function(location,x) {
-    gl.uniform1f(location,x);
+    this._gl.uniform1f(location,x);
 };
 
 Program.prototype.uniform1fv = function(location,v) {
-    gl.uniform1fv(location,v);
+    this._gl.uniform1fv(location,v);
 };
 
 Program.prototype.uniform1i = function(location,x) {
-    gl.uniform1i(location,x);
+    this._gl.uniform1i(location,x);
 };
 
 Program.prototype.uniform1iv = function(location,v) {
-    gl.uniform1iv(location,v)
+    this._gl.uniform1iv(location,v)
 };
 
 Program.prototype.uniform2f = function(location,x,y) {
-    gl.uniform2f(location,x,y);
+    this._gl.uniform2f(location,x,y);
 };
 
 Program.prototype.uniform2fv = function(location,v) {
-    gl.uniform2fv(location,v);
+    this._gl.uniform2fv(location,v);
 };
 
 Program.prototype.uniform2i = function(location,x,y) {
-    gl.uniform2i(location,x,y);
+    this._gl.uniform2i(location,x,y);
 };
 
 Program.prototype.uniform2iv = function(location,v) {
-    gl.uniform2iv(location,v);
+    this._gl.uniform2iv(location,v);
 };
 
 Program.prototype.uniform3f = function(location,x,y,z) {
-    gl.uniform3f(location,x,y,z);
+    this._gl.uniform3f(location,x,y,z);
 };
 
 Program.prototype.uniform3fv = function(location,v) {
-    gl.uniform3fv(location,v);
-};
-
-Program.prototype.uniform3fv = function(location,v) {
-    gl.uniform3fv(location,v);
+    this._gl.uniform3fv(location,v);
 };
 
 Program.prototype.uniform3i = function(location,x,y,z) {
-    gl.uniform3i(location,x,y,z);
+    this._gl.uniform3i(location,x,y,z);
 };
 
 Program.prototype.uniform3iv = function(location,v) {
-    gl.uniform3iv(location,v);
+    this._gl.uniform3iv(location,v);
 };
 
 Program.prototype.uniform4f = function(location,x,y,z,w) {
-    gl.uniform4f(location,x,y,z,w);
+    this._gl.uniform4f(location,x,y,z,w);
 };
 
 Program.prototype.uniform4fv = function(location,v) {
-    gl.uniform4fv(location,v);
+    this._gl.uniform4fv(location,v);
 };
 
 Program.prototype.uniform4i = function(location,x,y,z,w) {
-    gl.uniform4i(location,x,y,z,w);
+    this._gl.uniform4i(location,x,y,z,w);
 };
 
 Program.prototype.uniform4iv = function(location,v) {
-    gl.uniform4iv(location,v);
+    this._gl.uniform4iv(location,v);
 };
 
 Program.prototype.uniformMatrix2fv = function(location,transpose,value) {
-    gl.uniformMatrix2fv(location,transpose,value);
+    this._gl.uniformMatrix2fv(location,transpose,value);
 };
 
 Program.prototype.uniformMatrix3fv = function(location,transpose,value) {
-    gl.uniformMatrix3fv(location,transpose,value);
+    this._gl.uniformMatrix3fv(location,transpose,value);
 };
 
 Program.prototype.uniformMatrix4fv = function(location,transpose,value) {
-    gl.uniformMatrix4fv(location,transpose,value);
+    this._gl.uniformMatrix4fv(location,transpose,value);
 };
 
 module.exports = Program;

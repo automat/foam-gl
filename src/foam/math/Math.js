@@ -104,7 +104,7 @@ var _Math = {
         return (value - start) / (end - start);
     },
     map: function (value, inStart, inEnd, outStart, outEnd) {
-        return outStart + (outEnd - outStart) * normalize(value, inStart, inEnd);
+        return outStart + (outEnd - outStart) * this.normalize(value, inStart, inEnd);
     },
     sin: function (value) {
         return Math.sin(value);

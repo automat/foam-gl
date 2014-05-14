@@ -65,11 +65,9 @@ function App() {
         canvas.setAttribute('tabindex','0');
         canvas.focus();
 
-    gl.context = canvas.getContext('webkit-3d') ||
-                 canvas.getContext("webgl") ||
-                 canvas.getContext("experimental-webgl");
-
-    graphics.matrix = new glMatrix();
+    gl._context = canvas.getContext('webkit-3d') ||
+                  canvas.getContext("webgl") ||
+                  canvas.getContext("experimental-webgl");
 
     document.body.appendChild(canvas);
 
