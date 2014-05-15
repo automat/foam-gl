@@ -22,12 +22,9 @@ App.prototype.setup = function () {
 
     gl = Foam.gl.get();
     gl.viewport(0,0,this.getWindowWidth(),this.getWindowHeight());
-    glTrans.setWindowMatrices(this.getWindowWidth(), this.getWindowHeight());
-
 
     var program = this._program = new Program(shaderSource);
     program.bind();
-    gl.uniform4f(program['uColor'], 1,1,1,1);
 
     this._vbo = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
@@ -130,7 +127,7 @@ App.prototype.drawGeom = function(){
 var app;
 
 window.addEventListener('load',function(){
-    System.loadFile('../examples/00_Basic_Application/program2d.glsl',function(data){
+    System.loadFile('../examples/00_Basic_Application/program.glsl',function(data){
         shaderSource = data;
         app = new App();
     });

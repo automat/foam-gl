@@ -7,14 +7,6 @@ var ObjectUtil = require('../util/ObjectUtil');
 var glTrans = {};
 
 
-glTrans.UNIFORM_MODELVIEW_MATRIX  = 'uModelViewMatrix';
-glTrans.UNIFORM_PROJECTION_MATRIX = 'uProjectionMatrix';
-
-glTrans.ATTRIB_VERTEX_POSITION = 'aVertexPosition';
-glTrans.ATTRIB_VERTEX_NORMAL   = 'aVertexNormal';
-glTrans.ATTRIB_VERTEX_COLOR    = 'aVertexColor';
-glTrans.ATTRIB_TEXCOORD        = 'aTexcoord';
-
 glTrans.MODELVIEW  = 0x1A0A;
 glTrans.PROJECTION = 0x1A0B;
 
@@ -22,7 +14,7 @@ glTrans.PROJECTION = 0x1A0B;
 //
 //
 
-glTrans._camera = null;
+glTrans._camera0 = null;
 
 //
 //  matrix stack
@@ -56,8 +48,8 @@ glTrans.setWindowMatrices = function(windowWidth,windowHeight,topleft){
 //
 
 glTrans.setMatricesCamera = function(camera){
-    this._matrixModelView  = camera.modelViewMatrix;
-    this._matrixProjection = camera.projectionMatrix;
+    Matrix44.set(this._matrixModelView, camera.modelViewMatrix);
+    Matrix44.set(this._matrixProjection,camera.projectionMatrix);
 };
 
 glTrans.setMatrixMode = function(mode){

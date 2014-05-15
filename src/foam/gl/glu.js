@@ -5,22 +5,13 @@ module.exports = {
         var f = 1.0 / Math.tan(fov * 0.5),
             nf = 1.0 / (near - far);
 
-        m[0] = f / aspect;
-        m[1] = 0;
-        m[2] = 0;
-        m[3] = 0;
-        m[4] = 0;
-        m[5] = f;
-        m[6] = 0;
-        m[7] = 0;
-        m[8] = 0;
-        m[9] = 0;
+        m[ 1] = m[ 2] = m[ 3] = m[ 4] = m[ 6] = m[ 7] = m[ 8] = m[ 9] = m[12] = m[13] = m[15] = 0;
+
+        m[ 0] = f / aspect;
+        m[ 5] = f;
         m[10] = (far + near) * nf;
         m[11] = -1;
-        m[12] = 0;
-        m[13] = 0;
         m[14] = (2 * far * near) * nf;
-        m[15] = 0;
 
         return m;
 
@@ -28,24 +19,19 @@ module.exports = {
 
     //http://www.songho.ca/opengl/gl_projectionmatrix.html#ortho
     ortho : function(m, left, right, bottom, top , near, far) {
-        var lr = 1 / (left - right),
-            bt = 1 / (bottom - top),
-            nf = 1 / (near - far);
-        m[0] = -2 * lr;
-        m[1] = 0;
-        m[2] = 0;
-        m[3] = 0;
-        m[4] = 0;
-        m[5] = -2 * bt;
-        m[6] = 0;
-        m[7] = 0;
-        m[8] = 0;
-        m[9] = 0;
-        m[10] = 2 * nf;
-        m[11] = 0;
-        m[12] = (left + right) * lr;
-        m[13] = (top + bottom) * bt;
-        m[14] = (far + near) * nf;
+        var lr = left - right,
+            bt = bottom - top,
+            nf = near - far;
+
+        m[ 1] = m[ 2] = m[ 3] = m[ 4] = m[ 6] = m[ 7] = m[ 8] = m[ 9] = m[11] = 0;
+
+        m[ 0] = -2 / lr;
+        m[ 5] = -2 / bt;
+        m[10] =  2 / nf;
+
+        m[12] = (left + right) / lr;
+        m[13] = (top + bottom) / bt;
+        m[14] = (far + near)  / nf;
         m[15] = 1;
 
         return m;

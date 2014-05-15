@@ -52,6 +52,15 @@ function Program(vertexShader, fragmentShader) {
     }
 }
 
+
+Program.UNIFORM_MODELVIEW_MATRIX  = 'uModelViewMatrix';
+Program.UNIFORM_PROJECTION_MATRIX = 'uProjectionMatrix';
+
+Program.ATTRIB_VERTEX_POSITION = 'aVertexPosition';
+Program.ATTRIB_VERTEX_NORMAL   = 'aVertexNormal';
+Program.ATTRIB_VERTEX_COLOR    = 'aVertexColor';
+Program.ATTRIB_TEXCOORD        = 'aTexcoord';
+
 Program.prototype.delete = function(){
    this._gl.deleteProgram(this._program);
 };

@@ -55,6 +55,7 @@ module.exports = {
 
       Program      : require('./gl/Program'),
       CameraPersp  : require('./gl/CameraPersp'),
+      CameraOrtho  : require('./gl/CameraOrtho'),
 //
 //    Light            : require('./gl/gl/light/fLight'),
 //    PointLight       : require('./gl/gl/light/fPointLight'),
@@ -65,7 +66,7 @@ module.exports = {
 //    Texture       : require('./gl/gl/texture/fTexture'),
 //    CanvasTexture : require('./gl/gl/texture/fCanvasTexture'),
 //
-//    glDrawUtil     : require('./gl/glDrawUtil'),
+//    glDraw     : require('./gl/glDraw'),
 //    glTrans         : require('./gl/glTrans'),
 //
 //    Mouse       : require('./util/fMouse'),
