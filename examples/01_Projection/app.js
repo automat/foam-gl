@@ -1,5 +1,4 @@
 var Foam        = require('../../src/foam/foam.js'),
-    fMath       = Foam.Math,
     glTrans     = Foam.glTrans,
     glDraw      = Foam.glDraw,
     System      = Foam.System,
@@ -7,8 +6,8 @@ var Foam        = require('../../src/foam/foam.js'),
     Matrix44    = Foam.Matrix44,
     Program     = Foam.Program,
     CameraPersp = Foam.CameraPersp,
-    CameraOrtho = Foam.CameraOrtho;
-
+    CameraOrtho = Foam.CameraOrtho,
+    Ease        = Foam.Ease;
 
 var gl;
 
@@ -248,11 +247,11 @@ App.prototype.update = function () {
 
     glTrans.pushMatrix();
     glTrans.translate3f(Math.sin(t),0,0);
-    glTrans.rotate3f(fMath.stepSmoothInvSquared(0.5 + Math.sin(t) * 0.5) * Math.PI * 2,0,0);
+    glTrans.rotate3f(Ease.stepSmoothInvSquared(0.5 + Math.sin(t) * 0.5) * Math.PI * 2,0,0);
     glDraw.drawPivot();
 
-    var scaleY  = fMath.stepInvCubed(0.5 + Math.sin(t * 4) * 0.5) * 1.75 + 0.25;
-    var scaleXZ = fMath.stepCubed(0.5 + Math.sin(t * 4)) * 0.125 + 0.15;
+    var scaleY  = Ease.stepInvCubed(0.5 + Math.sin(t * 4) * 0.5) * 1.75 + 0.25;
+    var scaleXZ = Ease.stepCubed(0.5 + Math.sin(t * 4)) * 0.125 + 0.15;
 
     glTrans.scale3f(scaleXZ, scaleY, scaleXZ);
     this.drawGeom();

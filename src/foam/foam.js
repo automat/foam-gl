@@ -43,6 +43,7 @@ module.exports = {
 //    Mat33       : require('./math/fMat33'),
       Matrix44    : require('./math/Matrix44'),
 //    Quaternion  : require('./math/fQuaternion'),
+      Ease        : require('./math/Ease'),
 
 
       Application : require('./app/App'),

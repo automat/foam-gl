@@ -190,33 +190,6 @@ var _Math = {
     exp: function (n) {
         return Math.exp(n);
     },
-    stepSmooth: function (n) {
-        return n * n * (3 - 2 * n);
-    },
-    stepSmoothSquared: function (n) {
-        return this.stepSmooth(n) * this.stepSmooth(n);
-    },
-    stepSmoothInvSquared: function (n) {
-        return 1 - (1 - this.stepSmooth(n)) * (1 - this.stepSmooth(n));
-    },
-    stepSmoothCubed: function (n) {
-        return this.stepSmooth(n) * this.stepSmooth(n) * this.stepSmooth(n) * this.stepSmooth(n);
-    },
-    stepSmoothInvCubed: function (n) {
-        return 1 - (1 - this.stepSmooth(n)) * (1 - this.stepSmooth(n)) * (1 - this.stepSmooth(n)) * (1 - this.stepSmooth(n));
-    },
-    stepSquared: function (n) {
-        return n * n;
-    },
-    stepInvSquared: function (n) {
-        return 1 - (1 - n) * (1 - n);
-    },
-    stepCubed: function (n) {
-        return n * n * n * n;
-    },
-    stepInvCubed: function (n) {
-        return 1 - (1 - n) * (1 - n) * (1 - n) * (1 - n);
-    },
     catmullrom: function (a, b, c, d, i) {
         return a * ((-i + 2) * i - 1) * i * 0.5 +
             b * (((3 * i - 5) * i) * i + 2) * 0.5 +
