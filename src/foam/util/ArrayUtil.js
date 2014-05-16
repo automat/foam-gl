@@ -1,3 +1,5 @@
+var ObjectUtil = require('./ObjectUtil');
+
 var ArrayUtil = {
     createArray: function (length) {
         var args = Array.prototype.slice.call(arguments, 1);
@@ -59,11 +61,30 @@ var ArrayUtil = {
         arr[index + 3] = obj4[3];
     },
 
-    forEachObj3 : function(arr,func){
-        var i = 0;
-        while(i < arr.length){
+    forEachObj2 : function(arr,func,offset,length){
+        var i = !offset ? 0 : offset,
+            l = ObjectUtil.isUndefined(length) ? arr.length : length < offset ? offset : length;
+        while(i < l){
+            func(arr,i);
+            i += 2;
+        }
+    },
+
+    forEachObj3 : function(arr,func,offset,length){
+        var i = !offset ? 0 : offset,
+            l = ObjectUtil.isUndefined(length) ? arr.length : length < offset ? offset : length;
+        while(i < l){
             func(arr,i);
             i += 3;
+        }
+    },
+
+    forEachObj4 : function(arr,func,offset,length){
+        var i = !offset ? 0 : offset,
+            l = ObjectUtil.isUndefined(length) ? arr.length : length < offset ? offset : length;
+        while(i < l){
+            func(arr,i);
+            i += 4;
         }
     }
 };
