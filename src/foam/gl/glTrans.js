@@ -11,12 +11,6 @@ glTrans.MODELVIEW  = 0x1A0A;
 glTrans.PROJECTION = 0x1A0B;
 
 //
-//
-//
-
-glTrans._camera0 = null;
-
-//
 //  matrix stack
 //
 

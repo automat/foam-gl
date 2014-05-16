@@ -28,8 +28,6 @@ App.prototype.setup = function () {
 
     gl.viewport(0,0,this.getWindowWidth(),this.getWindowHeight());
 
-
-
     var program = this._program = new Program(shaderSource);
     program.bind();
 
@@ -142,34 +140,29 @@ App.prototype.setup = function () {
     gl.bufferSubData(gl.ARRAY_BUFFER, vertices.byteLength, colorTriangles);
     gl.bufferSubData(gl.ARRAY_BUFFER, vertices.byteLength + colorTriangles.byteLength, colorPoints);
 
-
-    gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
-
     this._offsetColorTriangles = vertices.byteLength;
-    this._offsetColorPoints    = vertices.byteLength + colorPoints.byteLength;
+    this._offsetColorPoints    = vertices.byteLength + colorTriangles.byteLength;
 
     var windowAspectRatio = this.getWindowAspectRatio();
 
     this._camera0 = new CameraPersp();
-    this._camera0.setPerspective(45.0,windowAspectRatio,0.00125, 10.0);
+    this._camera0.setPerspective(45.0,windowAspectRatio,0.00125, 20.0);
     this._camera0.lookAt(Vec3.ONE(), Vec3.ZERO());
     this._camera0.updateMatrices();
 
     this._camera1 = new CameraPersp();
-    this._camera1.setPerspective(45.0,windowAspectRatio,0.00125, 10.0);
-    this._camera1.lookAt(Vec3.create(5,0,5), Vec3.ZERO());
-    this._camera1.updateMatrices();
+    this._camera1.setPerspective(45.0,windowAspectRatio,0.00125, 20.0);
 
     var zoom = 2;
 
     this._camera2 = new CameraOrtho();
-    this._camera2.setOrtho(-windowAspectRatio * zoom,windowAspectRatio * zoom,-zoom,zoom,-1,10);
+    this._camera2.setOrtho(-windowAspectRatio * zoom,windowAspectRatio * zoom,-zoom,zoom,-2,20);
     this._camera2.lookAt(Vec3.ONE(),Vec3.ZERO());
     this._camera2.updateMatrices();
 
     gl.enable(gl.SCISSOR_TEST);
     gl.enable(gl.DEPTH_TEST);
-    gl.uniform1f(program['uPointSize'],10.0);
+    gl.uniform1f(program['uPointSize'],4.0);
 };
 
 App.prototype.update = function () {
@@ -181,6 +174,9 @@ App.prototype.update = function () {
     var windowHeight   = this.getWindowHeight();
     var windowHeight_2 = windowHeight * 0.5;
 
+    var gridSize = 10;
+    var gridSubDivs = 20;
+
 
 
     //  tl
@@ -189,7 +185,7 @@ App.prototype.update = function () {
     gl.viewport(0,windowHeight_2, windowWidth_2, windowHeight_2);
 
 
-    gl.clearColor(0.15,0.15,0.15,1);
+    gl.clearColor(0.1,0.1,0.1,1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     var camera = this._camera0;
@@ -197,11 +193,13 @@ App.prototype.update = function () {
     camera.updateMatrices();
     glTrans.setMatricesCamera(camera);
 
+    glDraw.drawGrid(gridSize,gridSubDivs);
     glDraw.drawPivot();
 
+
     glTrans.pushMatrix();
-    glTrans.translate3f(Math.cos(-t) * 0.5, 0, Math.sin(-t) * 0.5);
-    glTrans.rotate3f(Math.sin(t),0,Math.sin(t));
+    glTrans.translate3f(Math.cos(-t) * 0.5, 0.5, Math.sin(-t) * 0.5);
+    glTrans.rotate3f(Math.sin(t) * Math.PI ,0,Math.sin(t));
     glDraw.drawPivot();
     glTrans.scale1f(0.75);
     this.drawGeom();
@@ -218,15 +216,16 @@ App.prototype.update = function () {
 
     camera = this._camera1;
 
-    camera.setEye3f(Math.cos(t)*3,0,Math.sin(t)*3);
+    camera.setEye3f(Math.cos(t)*3,Math.sin(t)*Math.PI,Math.sin(t)*3);
     camera.updateMatrices();
     glTrans.setMatricesCamera(camera);
 
+    glDraw.drawGrid(gridSize,gridSubDivs);
     glDraw.drawPivot();
 
     glTrans.pushMatrix();
     glTrans.rotate3f(t,0,0);
-    glDraw.drawPivot();
+    glDraw.drawPivot(1.5);
     glTrans.scale3f(2,0.05,2);
     this.drawGeom();
     glTrans.popMatrix();
@@ -243,12 +242,14 @@ App.prototype.update = function () {
     camera = this._camera2;
     glTrans.setMatricesCamera(camera);
 
+    glDraw.drawGrid(gridSize,gridSubDivs);
     glDraw.drawPivot();
 
     glTrans.pushMatrix();
     glTrans.translate3f(Math.sin(t),0,0);
     glTrans.rotate3f(Ease.stepSmoothInvSquared(0.5 + Math.sin(t) * 0.5) * Math.PI * 2,0,0);
-    glDraw.drawPivot();
+    glDraw.drawGrid(2,gridSubDivs);
+    glDraw.drawPivot(1.5);
 
     var scaleY  = Ease.stepInvCubed(0.5 + Math.sin(t * 4) * 0.5) * 1.75 + 0.25;
     var scaleXZ = Ease.stepCubed(0.5 + Math.sin(t * 4)) * 0.125 + 0.15;
@@ -264,17 +265,18 @@ App.prototype.update = function () {
     gl.viewport(windowWidth_2,0,windowWidth_2,windowHeight_2);
     glTrans.setWindowMatrices(windowWidth_2, windowHeight_2, true);
 
-    gl.clearColor(0.15,0.15,0.15,1);
+    gl.clearColor(0.1,0.1,0.1,1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     camera = this._camera2;
     glTrans.setMatricesCamera(camera);
 
-    glDraw.drawPivot();
+    glDraw.drawGrid(10,gridSubDivs);
+    glDraw.drawPivot(2.0);
 
     glTrans.pushMatrix();
-    glTrans.translate3f(Math.sin(t),0,0);
-    glDraw.drawPivot();
+    glTrans.translate3f(Math.sin(t),0.5,0);
+    glDraw.drawPivot(1.5);
     this.drawGeom();
     glTrans.popMatrix();
 };
@@ -287,10 +289,10 @@ App.prototype.drawGeom = function(){
 
     gl.vertexAttribPointer(program['aVertexPosition'],3,gl.FLOAT,false,0,0);
 
-    gl.vertexAttribPointer(program['aVertexColor'],   4,gl.FLOAT,false,0, this._vertices.byteLength);
+    gl.vertexAttribPointer(program['aVertexColor'],   4,gl.FLOAT,false,0, this._offsetColorTriangles);
     gl.drawElements(gl.TRIANGLES, this._indicesTriangles.length, gl.UNSIGNED_SHORT, 0);
 
-    gl.vertexAttribPointer(program['aVertexColor'],   4,gl.FLOAT,false,0, this._vertices.byteLength + this._colorTriangles.byteLength);
+    gl.vertexAttribPointer(program['aVertexColor'],   4,gl.FLOAT,false,0, this._offsetColorPoints);
     gl.drawElements(gl.POINTS, this._indicesPoints.length, gl.UNSIGNED_SHORT, this._indicesTriangles.byteLength);
 
 
