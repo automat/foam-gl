@@ -1,6 +1,6 @@
 var gl = {
     _obj: null,
-    init : function(gl){
+    set : function(gl){
         this._obj = gl;
     },
     get: function () {

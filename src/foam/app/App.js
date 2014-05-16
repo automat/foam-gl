@@ -65,11 +65,11 @@ function App() {
         canvas.setAttribute('tabindex','0');
         canvas.focus();
 
-    gl.init(canvas.getContext('webkit-3d') ||
+    gl.set(canvas.getContext('webkit-3d') ||
             canvas.getContext("webgl") ||
             canvas.getContext("experimental-webgl"));
 
-    glDraw.init(gl.get());
+    glDraw.set(gl.get());
 
     document.body.appendChild(canvas);
 
