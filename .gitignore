@@ -2,7 +2,7 @@
 .idea/
 .DS_STORE
 
-examples/.temp
+.temp
 
 sketch
 
@@ -11,4 +11,3 @@ sketch
 
 includes/fFragShader_Template.glsl
 
-.temp/bundle.js
