@@ -160,6 +160,13 @@ App.prototype.setup = function () {
     this._camera2.lookAt(Vec3.ONE(),Vec3.ZERO());
     this._camera2.updateMatrices();
 
+    this._camera3 = new CameraOrtho();
+    this._camera3.setOrtho(-windowAspectRatio * zoom,windowAspectRatio * zoom,-zoom,zoom,-2,20);
+    this._camera3.lookAt(Vec3.ONE(),Vec3.ZERO());
+    this._camera3.updateMatrices();
+
+
+
     gl.enable(gl.SCISSOR_TEST);
     gl.enable(gl.DEPTH_TEST);
     gl.uniform1f(program['uPointSize'],4.0);
@@ -268,15 +275,21 @@ App.prototype.update = function () {
     gl.clearColor(0.1,0.1,0.1,1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    camera = this._camera2;
+
+    var windowAspectRatio = this.getWindowAspectRatio();
+    var zoom = 2 + Ease.stepSmoothInvSquared(0.5 + Math.sin(t) * 0.5) * 8;
+
+    camera = this._camera3;
+    camera.setOrtho(-windowAspectRatio * zoom,windowAspectRatio * zoom,-zoom,zoom,-10,30);
+    camera.setEye3f(Math.cos(t),1,Math.sin(t));
+    camera.updateMatrices();
     glTrans.setMatricesCamera(camera);
 
-    glDraw.drawGrid(10,gridSubDivs);
+    glDraw.drawGrid(30,gridSubDivs);
     glDraw.drawPivot(2.0);
 
     glTrans.pushMatrix();
-    glTrans.translate3f(Math.sin(t),0.5,0);
-    glDraw.drawPivot(1.5);
+    glTrans.translate3f(0,0.5,0);
     this.drawGeom();
     glTrans.popMatrix();
 };

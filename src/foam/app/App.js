@@ -210,9 +210,11 @@ App.prototype.getFPS = function () {
 App.prototype.getFramesElapsed = function () {
     return this._framenum;
 };
+
 App.prototype.getSecondsElapsed = function () {
     return this._timeElapsed;
 };
+
 App.prototype.getTime = function () {
     return this._time
 };

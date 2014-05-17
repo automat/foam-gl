@@ -21,6 +21,7 @@ CameraOrtho.prototype.setOrtho = function(left, right, bottom, top, near, far){
     this._top = top;
     this._near = near;
     this._far = far;
+    this._projectionMatrixUpdated = false;
     this.updateProjectionMatrix();
 };
 

@@ -22,6 +22,8 @@ function glDraw_Internal(){
     //  program & attrib / uniform ref
     //
 
+    this._color4f = new Array(4);
+
     this._program = null;
     this._attribLocationVertexPos = null;
     this._attribLocationVertexColor = null;
@@ -103,8 +105,9 @@ function glDraw_Internal(){
     this._pivotVboOffsetColors = vertices.byteLength;
     this._pivotIboLength       = indices.length;
 
-
+    //
     //  grid
+    //
 
     this._gridVbo = gl.createBuffer();
     this._gridIbo = gl.createBuffer();
@@ -113,14 +116,90 @@ function glDraw_Internal(){
 
     this._gridVboOffsetColors = null;
     this._gridIboLength = null;
-    this._gridVboVertexLength = null;
 
+    //
+    //  cube
+    //
+
+    vbo = this._cubeVbo = gl.createBuffer();
+    ibo = this._gridIbo = gl.createBuffer();
+
+    this._cubeVboColor4f = null;
+
+    vertices = new Float32Array([
+        -0.5,-0.5,-0.5,
+        -0.5,-0.5, 0.5,
+        0.5,-0.5,-0.5,
+        0.5,-0.5, 0.5,
+
+        -0.5, 0.5,-0.5,
+        -0.5, 0.5, 0.5,
+        0.5, 0.5,-0.5,
+        0.5, 0.5, 0.5,
+
+        -0.5, 0.5,-0.5,
+        -0.5, 0.5, 0.5,
+        -0.5,-0.5,-0.5,
+        -0.5,-0.5, 0.5,
+
+        -0.5,-0.5,-0.5,
+        0.5,-0.5,-0.5,
+        -0.5, 0.5,-0.5,
+        0.5, 0.5,-0.5,
+
+        -0.5,-0.5, 0.5,
+        0.5,-0.5, 0.5,
+        -0.5, 0.5, 0.5,
+        0.5, 0.5, 0.5,
+
+        0.5, 0.5,-0.5,
+        0.5, 0.5, 0.5,
+        0.5,-0.5,-0.5,
+        0.5,-0.5, 0.5
+    ]);
+
+    colors = this._cubeVboColors = new Float32Array(24 * 4);
+
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices.byteLength + colors.byteLength, gl.STATIC_DRAW);
+
+    this._cubeVboOffsetColors = vertices.byteLength;
 
     //  init
 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 }
+
+
+/*--------------------------------------------------------------------------------------------*/
+//  Cube
+/*--------------------------------------------------------------------------------------------*/
+
+glDraw_Internal.prototype._updateCubeGeom = function(){
+    if(ArrayUtil.equalContent(this._color4f, this._cubeVboColor4f)){
+        return;
+    }
+    this._cubeVboColor4f[0] = this._color4f[0];
+    this._cubeVboColor4f[1] = this._color4f[1];
+    this._cubeVboColor4f[2] = this._color4f[2];
+    this._cubeVboColor4f[3] = this._color4f[3];
+
+    ArrayUtil.setArrayObj4(this._cubeVboColors,0,this._cubeVboColor4f);
+
+    var gl = this._gl;
+
+    gl.bufferSubData(gl.ARRAY_BUFFER,this._cubeVboOffsetColors,this._cubeVboColors);
+
+
+};
+
+glDraw_Internal.prototype.drawCube = function(size){
+
+};
+
+
 
 /*--------------------------------------------------------------------------------------------*/
 //  Grid
@@ -395,6 +474,21 @@ glDraw_Internal.prototype._updateProgramLocations = function(){
     this._uniformLocationProjectionMatrix = gl.getUniformLocation(program,Program.UNIFORM_PROJECTION_MATRIX);
 
     this._program = program;
+};
+
+glDraw_Internal.prototype.color4f = function(r,g,b,a){
+    this._color4f[0] = r;
+    this._color4f[1] = g;
+    this._color4f[2] = b;
+    this._color4f[3] = a;
+
+};
+
+glDraw_Internal.prototype.color3f = function(r,g,b){
+    this._color4f[0] = r;
+    this._color4f[1] = g;
+    this._color4f[2] = b;
+    this._color4f[3] = 1.0;
 };
 
 

@@ -86,7 +86,22 @@ var ArrayUtil = {
             func(arr,i);
             i += 4;
         }
-    }
+    },
+
+    //check for content not object equality, object is number
+    equalContent: function (a, b) {
+        if (!a || !b || (!a && !b)) {
+            return false;
+        } else if (a.length != b.length) {
+            return false
+        } else {
+            var i = -1, l = a.length;
+            while (++i < l) {
+                if (a[i] != b[i])return false;
+            }
+        }
+        return true;
+    },
 };
 
 module.exports = ArrayUtil;

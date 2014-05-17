@@ -47,21 +47,6 @@ var ObjectUtil = {
         }
     },
 
-    //check for content not object equality, object is number
-    equalArrContent: function (a, b) {
-        if (!a || !b || (!a && !b)) {
-            return false;
-        } else if (a.length != b.length) {
-            return false
-        } else {
-            var i = -1, l = a.length;
-            while (++i < l) {
-                if (a[i] != b[i])return false;
-            }
-        }
-        return true;
-    },
-
 
     getFunctionBody: function (func) {
         return (func).toString().match(/function[^{]+\{([\s\S]*)\}$/)[1];
