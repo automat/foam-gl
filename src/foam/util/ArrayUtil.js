@@ -61,6 +61,18 @@ var ArrayUtil = {
         arr[index + 3] = obj4[3];
     },
 
+    fillArrayObj4 : function(arr, index, obj4){
+        if(index >= arr.length){
+            return arr;
+        }
+        var i = 0;
+        var len = arr.length;
+        while(index < len){
+            arr[index++] = obj4[i++%4];
+        }
+        return arr;
+    },
+
     forEachObj2 : function(arr,func,offset,length){
         var i = !offset ? 0 : offset,
             l = ObjectUtil.isUndefined(length) ? arr.length : length < offset ? offset : length;

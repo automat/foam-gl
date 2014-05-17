@@ -11,6 +11,13 @@ var Vec3     = require('../math/Vec3'),
     Matrix44 = require('../math/Matrix44');
 
 
+var DrawMode = {
+    TRIANGLES : 0,
+    LINES : 1,
+    POINTS : 2,
+    COLORED : 3
+};
+
 /*--------------------------------------------------------------------------------------------*/
 //  Constructor
 /*--------------------------------------------------------------------------------------------*/
@@ -18,11 +25,11 @@ var Vec3     = require('../math/Vec3'),
 function glDraw_Internal(){
     var gl = this._gl = _gl.get();
 
-    //
+    /*--------------------------------------------------------------------------------------------*/
     //  program & attrib / uniform ref
-    //
+    /*--------------------------------------------------------------------------------------------*/
 
-    this._color4f = new Array(4);
+    this._color4f = [1,1,1,1];
 
     this._program = null;
     this._attribLocationVertexPos = null;
@@ -32,9 +39,10 @@ function glDraw_Internal(){
     this._uniformLocationModelViewMatrix = null;
     this._uniformLocationProjectionMatrix = null;
 
-    //
+
+    /*--------------------------------------------------------------------------------------------*/
     //  temps
-    //
+    /*--------------------------------------------------------------------------------------------*/
 
     this._matrixTemp0 = Matrix44.create();
     this._matrixTemp1 = Matrix44.create();
@@ -42,28 +50,40 @@ function glDraw_Internal(){
 
     var vertices,colors,indices;
     var numVertices, numColors;
-    var vbo, ibo;
+    var buffer, ibo;
 
-    //
+    var i;
+    var data, dataLen;
+
+
+    /*--------------------------------------------------------------------------------------------*/
     //  Pivot
-    //
-
-    vbo = this._pivotVbo = gl.createBuffer();
-    ibo = this._pivotIbo = gl.createBuffer();
+    /*--------------------------------------------------------------------------------------------*/
 
     this._pivotAxisLength = null;
     this._pivotHeadLength = null;
     this._pivotHeadRadius = null;
 
-    vertices = [
-        0,0,0,
-        1,0,0,
-        0,0,0,
-        0,1,0,
-        0,0,0,
-        0,0,1
-    ];
+    //  vertices
 
+    buffer = this._pivotVertexBuffer = gl.createBuffer();
+    numVertices = 16;
+
+    data = new Array(6 /*axes*/ * 3 + 3 * numVertices /*heads*/ * 3 );
+    i = 0;while(i < 18){
+        data[i++] = 0;
+    }
+    data[3] = data[10] = data[17] = 1;
+    data = this._pivotVertexBufferData = new Float32Array(data);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+
+    //  colors
+
+    buffer = this._pivotColorBuffer = gl.createBuffer();
+
+    /*
     colors = [
         1,0,0,1,
         1,0,0,1,
@@ -73,58 +93,58 @@ function glDraw_Internal(){
         0,0,1,1
     ];
 
-    numVertices = 16;   //  headVertices
-
-    ArrayUtil.appendArray(vertices, ArrayUtil.createArray(numVertices,0,0,0));
-    ArrayUtil.appendArray(vertices, ArrayUtil.createArray(numVertices,0,0,0));
-    ArrayUtil.appendArray(vertices, ArrayUtil.createArray(numVertices,0,0,0));
     ArrayUtil.appendArray(colors, ArrayUtil.createArray(numVertices, 1,0,0,1));
     ArrayUtil.appendArray(colors, ArrayUtil.createArray(numVertices, 0,1,0,1));
     ArrayUtil.appendArray(colors, ArrayUtil.createArray(numVertices, 0,0,1,1));
+     */
+    colors = ArrayUtil.createArray(numVertices * 3 + 6, 1,1,1,1);
+    console.log(colors);
+    colors = new Float32Array(colors);
 
-    vertices = this._pivotVboVertices = new Float32Array(vertices);
-    colors   = new Float32Array(colors);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
 
 
+    //  indices
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices.byteLength + colors.byteLength, gl.STATIC_DRAW);
-    gl.bufferSubData(gl.ARRAY_BUFFER, vertices.byteLength, colors);
+    buffer = this._pivotIndexBuffer = gl.createBuffer();
+
+    indices = [];
+    ArrayUtil.appendArray(indices,ElementArrayUtil.genTriangleFan( 6, 6 + numVertices));
+    ArrayUtil.appendArray(indices,ElementArrayUtil.genTriangleFan(22,22 + numVertices));
+    ArrayUtil.appendArray(indices,ElementArrayUtil.genTriangleFan(38,38 + numVertices));
+    indices = new Uint16Array(indices);
+
+    this._pivotBufferIndexLength   = indices.length;
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 
     this._updatePivotGeom(1.0,0.125,0.075);
 
-    indices = [];
-    ArrayUtil.appendArray(indices,ElementArrayUtil.genTriangleFan( 6, 6 + 16));
-    ArrayUtil.appendArray(indices,ElementArrayUtil.genTriangleFan(22,22 + 16));
-    ArrayUtil.appendArray(indices,ElementArrayUtil.genTriangleFan(38,38 + 16));
-    indices = new Uint16Array(indices);
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-
-    this._pivotVboOffsetColors = vertices.byteLength;
-    this._pivotIboLength       = indices.length;
-
-    //
+    /*--------------------------------------------------------------------------------------------*/
     //  grid
-    //
+    /*--------------------------------------------------------------------------------------------*/
 
-    this._gridVbo = gl.createBuffer();
-    this._gridIbo = gl.createBuffer();
+    this._gridBuffer = gl.createBuffer();
+    this._gridIndexBuffer = gl.createBuffer();
 
     this._gridSubdivs = null;
 
-    this._gridVboOffsetColors = null;
-    this._gridIboLength = null;
+    this._gridBufferOffsetColors = null;
+    this._gridIndexBufferLength = null;
 
-    //
+
+    /*--------------------------------------------------------------------------------------------*/
     //  cube
-    //
+    /*--------------------------------------------------------------------------------------------*/
 
-    vbo = this._cubeVbo = gl.createBuffer();
-    ibo = this._gridIbo = gl.createBuffer();
+    buffer = this._cubeBuffer = gl.createBuffer();
+    ibo = this._cubeIndexBuffer = gl.createBuffer();
 
-    this._cubeVboColor4f = null;
+    this._cubeBufferColor4f = new Array(4);
 
     vertices = new Float32Array([
         -0.5,-0.5,-0.5,
@@ -158,15 +178,91 @@ function glDraw_Internal(){
         0.5,-0.5, 0.5
     ]);
 
-    colors = this._cubeVboColors = new Float32Array(24 * 4);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices.byteLength , gl.STATIC_DRAW);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertices);
+
+    this._cubeBufferColors = gl.createBuffer();
+    this._cubeColors = new Float32Array(24 * 4);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._cubeBufferColors);
+    gl.bufferData(gl.ARRAY_BUFFER, this._cubeColors.byteLength, gl.DYNAMIC_DRAW);
+
+    colors = new Float32Array([
+        0, 0.5, 0, 1,
+        0, 0.5, 0, 1,
+        0, 0.5, 0, 1,
+        0, 0.5, 0, 1,
+
+        0, 1, 0, 1,
+        0, 1, 0, 1,
+        0, 1, 0, 1,
+        0, 1, 0, 1,
+
+        0.5, 0, 0, 1,
+        0.5, 0, 0, 1,
+        0.5, 0, 0, 1,
+        0.5, 0, 0, 1,
+
+        0, 0, 0.5, 1,
+        0, 0, 0.5, 1,
+        0, 0, 0.5, 1,
+        0, 0, 0.5, 1,
+
+        0, 0, 1, 1,
+        0, 0, 1, 1,
+        0, 0, 1, 1,
+        0, 0, 1, 1,
+
+        1, 0, 0, 1,
+        1, 0, 0, 1,
+        1, 0, 0, 1,
+        1, 0, 0, 1
+    ]);
+
+    this._cubeBufferColored = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._cubeBufferColored);
+    gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
 
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices.byteLength + colors.byteLength, gl.STATIC_DRAW);
+    var indicesTriangles = new Uint16Array([
+        0,1,2,1,2,3,
+        4,5,6,5,6,7,
+        8,9,10,9,10,11,
+        12,13,14,13,14,15,
+        16,17,18,17,18,19,
+        20,21,22,21,22,23
+    ]);
 
-    this._cubeVboOffsetColors = vertices.byteLength;
+    var indicesLines = new Uint16Array([
+        0,1,1,3,3,2,2,0,
+        4,5,5,7,7,6,6,4,
+        0,4,1,5,2,6,3,7
+    ]);
 
-    //  init
+    var indicesPoints = new Uint16Array([
+        0,1,2,3,4,5,6,7
+    ]);
+
+
+    this._cubeIndexBufferOffsetTriangles = 0;
+    this._cubeIndexBufferOffsetLines = indicesTriangles.byteLength;
+    this._cubeIndexBufferOffsetPoints = this._cubeIndexBufferOffsetLines + indicesLines.byteLength;
+    this._cubeIndicesTrianglesLength = indicesTriangles.length;
+    this._cubeIndicesLinesLength = indicesLines.length;
+    this._cubeIndicesPointsLength = indicesPoints.length;
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indicesTriangles.byteLength + indicesLines.byteLength + indicesPoints.byteLength, gl.STATIC_DRAW);
+    gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, this._cubeIndexBufferOffsetTriangles, indicesTriangles );
+    gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, this._cubeIndexBufferOffsetLines, indicesLines);
+    gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, this._cubeIndexBufferOffsetPoints, indicesPoints);
+
+
+
+    /*--------------------------------------------------------------------------------------------*/
+    //  Init
+    /*--------------------------------------------------------------------------------------------*/
 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
@@ -178,26 +274,93 @@ function glDraw_Internal(){
 /*--------------------------------------------------------------------------------------------*/
 
 glDraw_Internal.prototype._updateCubeGeom = function(){
-    if(ArrayUtil.equalContent(this._color4f, this._cubeVboColor4f)){
+    var color4f = this._color4f,
+        cubeVboColor4f = this._cubeBufferColor4f;
+
+    if( cubeVboColor4f[0] == color4f[0] &&
+        cubeVboColor4f[1] == color4f[1] &&
+        cubeVboColor4f[2] == color4f[2] &&
+        cubeVboColor4f[3] == color4f[3]){
         return;
     }
-    this._cubeVboColor4f[0] = this._color4f[0];
-    this._cubeVboColor4f[1] = this._color4f[1];
-    this._cubeVboColor4f[2] = this._color4f[2];
-    this._cubeVboColor4f[3] = this._color4f[3];
 
-    ArrayUtil.setArrayObj4(this._cubeVboColors,0,this._cubeVboColor4f);
+    cubeVboColor4f[0] = color4f[0];
+    cubeVboColor4f[1] = color4f[1];
+    cubeVboColor4f[2] = color4f[2];
+    cubeVboColor4f[3] = color4f[3];
+
+    ArrayUtil.fillArrayObj4(this._cubeColors,0,this._cubeBufferColor4f);
 
     var gl = this._gl;
+    gl.bufferSubData(gl.ARRAY_BUFFER,0,this._cubeColors);
+};
 
-    gl.bufferSubData(gl.ARRAY_BUFFER,this._cubeVboOffsetColors,this._cubeVboColors);
+glDraw_Internal.prototype._drawCube_Internal = function(size,drawMode){
+    size = ObjectUtil.isUndefined(size) ? 1.0 : size < 0 ? 0 : size;
+
+    this._updateProgramLocations();
+
+    var gl = this._gl;
+    var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+    var prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
 
 
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._cubeBuffer);
+    gl.vertexAttribPointer(this._attribLocationVertexPos , 3, gl.FLOAT, false, 0, 0);
+
+    if(drawMode != DrawMode.COLORED){
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._cubeBufferColors);
+        this._updateCubeGeom();
+    } else {
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._cubeBufferColored);
+    }
+    gl.vertexAttribPointer(this._attribLocationVertexColor, 4, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,this._cubeIndexBuffer);
+
+    glTrans.pushMatrix();
+    glTrans.scale3f(size,size,size);
+
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrix());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrix());
+
+    switch(drawMode){
+        case DrawMode.TRIANGLES:
+            gl.drawElements(gl.TRIANGLES,this._cubeIndicesTrianglesLength,gl.UNSIGNED_SHORT,0);
+            break;
+        case DrawMode.LINES:
+            gl.drawElements(gl.LINES,this._cubeIndicesLinesLength,gl.UNSIGNED_SHORT,this._cubeIndexBufferOffsetLines);
+            break;
+        case DrawMode.POINTS:
+            gl.drawElements(gl.POINTS,this._cubeIndicesPointsLength,gl.UNSIGNED_SHORT,this._cubeIndexBufferOffsetPoints);
+            break;
+        case DrawMode.COLORED:
+            gl.drawElements(gl.TRIANGLES,this._cubeIndicesTrianglesLength,gl.UNSIGNED_SHORT,0);
+            break;
+    }
+
+    glTrans.popMatrix();
+
+    gl.bindBuffer(gl.ARRAY_BUFFER,prevVbo);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,prevIbo);
 };
 
 glDraw_Internal.prototype.drawCube = function(size){
-
+    this._drawCube_Internal(size, DrawMode.TRIANGLES);
 };
+
+glDraw_Internal.prototype.drawCubePoints = function(size){
+    this._drawCube_Internal(size, DrawMode.POINTS);
+};
+
+glDraw_Internal.prototype.drawCubeStroked = function(size){
+    this._drawCube_Internal(size, DrawMode.LINES);
+};
+
+glDraw_Internal.prototype.drawCubeColored = function(size){
+    this._drawCube_Internal(size, DrawMode.COLORED);
+};
+
 
 
 
@@ -257,12 +420,12 @@ glDraw_Internal.prototype._updateGridGeom = function(subdivs){
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertices);
     gl.bufferSubData(gl.ARRAY_BUFFER, vertices.byteLength, colors);
 
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
 
-    this._gridVboOffsetColors = vertices.byteLength;
+    this._gridBufferOffsetColors = vertices.byteLength;
     this._gridSubdivs = subdivs;
 
-    this._gridIboLength = indices.length;
+    this._gridIndexBufferLength = indices.length;
 };
 
 
@@ -275,8 +438,8 @@ glDraw_Internal.prototype.drawGrid = function(size, subdivs){
     var gl = this._gl;
     var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
     var prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
-    var vbo = this._gridVbo;
-    var ibo = this._gridIbo;
+    var vbo = this._gridBuffer;
+    var ibo = this._gridIndexBuffer;
 
     glTrans.pushMatrix();
     glTrans.scale3f(size,1.0,size);
@@ -287,11 +450,11 @@ glDraw_Internal.prototype.drawGrid = function(size, subdivs){
     this._updateGridGeom(subdivs);
 
     gl.vertexAttribPointer(this._attribLocationVertexPos , 3, gl.FLOAT, false, 0, 0);
-    gl.vertexAttribPointer(this._attribLocationVertexColor, 4, gl.FLOAT, false, 0, this._gridVboOffsetColors);
+    gl.vertexAttribPointer(this._attribLocationVertexColor, 4, gl.FLOAT, false, 0, this._gridBufferOffsetColors);
     gl.uniformMatrix4fv(   this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrix());
     gl.uniformMatrix4fv(   this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrix());
 
-    gl.drawElements(gl.LINES,this._gridIboLength,gl.UNSIGNED_SHORT,0);
+    gl.drawElements(gl.LINES,this._gridIndexBufferLength,gl.UNSIGNED_SHORT,0);
 
     glTrans.popMatrix();
 
@@ -314,7 +477,7 @@ glDraw_Internal.prototype._updatePivotGeom = function(axisLength, headLength, he
     var axis_head_length = axisLength - headLength;
 
     var gl       = this._gl;
-    var vertices = this._pivotVboVertices;
+    var vertices = this._pivotVertexBufferData;
 
     var i,l;
 
@@ -386,7 +549,6 @@ glDraw_Internal.prototype._updatePivotGeom = function(axisLength, headLength, he
     }
 
     //  push
-
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertices);
 
     this._pivotAxisLength = axisLength;
@@ -403,27 +565,26 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
     this._updateProgramLocations();
 
     var gl = this._gl;
-    var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
-    var prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
-    var vbo = this._pivotVbo;
-    var ibo = this._pivotIbo;
+    var prevABuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+    var prevEBuffer = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ibo);
-
+    gl.bindBuffer(gl.ARRAY_BUFFER,this._pivotVertexBuffer);
     this._updatePivotGeom(axisLength,headLength,headRadius);
-
     gl.vertexAttribPointer(this._attribLocationVertexPos , 3, gl.FLOAT, false, 0, 0);
-    gl.vertexAttribPointer(this._attribLocationVertexColor, 4, gl.FLOAT, false, 0, this._pivotVboOffsetColors);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER,this._pivotColorBuffer);
+    gl.vertexAttribPointer(this._attribLocationVertexColor, 4, gl.FLOAT, false, 0, 0);
+
     gl.uniformMatrix4fv(   this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrix());
     gl.uniformMatrix4fv(   this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrix());
 
     gl.drawArrays(gl.LINES,0,6);
-    gl.drawElements(gl.TRIANGLES,this._pivotIboLength,gl.UNSIGNED_SHORT,0);
 
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,this._pivotIndexBuffer);
+    gl.drawElements(gl.TRIANGLES,this._pivotBufferIndexLength,gl.UNSIGNED_SHORT,0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER,prevVbo);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, prevIbo);
+    gl.bindBuffer(gl.ARRAY_BUFFER,prevABuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, prevEBuffer);
 };
 
 
