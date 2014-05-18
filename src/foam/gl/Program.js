@@ -1,5 +1,8 @@
 var _gl = require('./gl');
 
+var bound_0 = false;
+
+
 function Program(vertexShader, fragmentShader) {
     var gl = this._gl = _gl.get();
 
@@ -15,6 +18,11 @@ function Program(vertexShader, fragmentShader) {
     var program    = this._program = gl.createProgram(),
         vertShader = gl.createShader(gl.VERTEX_SHADER),
         fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+
+    if(!bound_0){
+        gl.bindAttribLocation(program, 0, Program.ATTRIB_VERTEX_POSITION);
+        bound_0 = true;
+    }
 
     gl.shaderSource(vertShader, prefixVertexShader + vertexShader);
     gl.compileShader(vertShader);
@@ -51,7 +59,6 @@ function Program(vertexShader, fragmentShader) {
         attributes[i] = this[paramName] = gl.getAttribLocation(program, paramName);
     }
 }
-
 
 Program.UNIFORM_MODELVIEW_MATRIX  = 'uModelViewMatrix';
 Program.UNIFORM_PROJECTION_MATRIX = 'uProjectionMatrix';

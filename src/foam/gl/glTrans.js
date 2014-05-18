@@ -123,7 +123,7 @@ glTrans.multMatrix = function(matrix){
 };
 
 glTrans.translate = function (v) {
-    this._mModelView = Matrix44.multPost(this._mModelView, Matrix44.createTranslation(v[0], v[1], v[2], Matrix44.identity(this._matrixTemp0), Matrix44.identity(this._matrixTemp1)));
+    this.translate3f(v[0],v[1],v[2]);
 };
 
 glTrans.translate3f = function (x, y, z) {
@@ -133,15 +133,11 @@ glTrans.translate3f = function (x, y, z) {
 };
 
 glTrans.scale = function (v) {
-    Matrix44.identity(this._matrixTemp0);
-    Matrix44.createScale(v[0],v[1],v[2],this._matrixTemp0);
-    Matrix44.multPost(this._matrixModelView, this._matrixTemp0, this._matrixModelView);
+    this.scale3f(v[0],v[1],v[2]);
 };
 
 glTrans.scale1f = function (x) {
-    Matrix44.identity(this._matrixTemp0);
-    Matrix44.createScale(x,x,x,this._matrixTemp0);
-    Matrix44.multPost(this._matrixModelView, this._matrixTemp0, this._matrixModelView);
+    this.scale3f(x,x,x);
 };
 
 glTrans.scale3f = function (x, y, z) {
@@ -161,7 +157,6 @@ glTrans.rotate3f = function (x, y, z) {
     Matrix44.createRotation(x,y,z,this._matrixTemp0);
     Matrix44.multPost(this._matrixModelView, this._matrixTemp0, this._matrixModelView);
 };
-
 
 glTrans.rotateAxis = function (angle, v) {
     Matrix44.identity(this._matrixTemp0);

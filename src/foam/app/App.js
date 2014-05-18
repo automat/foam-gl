@@ -6,6 +6,8 @@ var fError = require('../system/common/Error'),
 var gl     = require('../gl/gl'),
     glDraw = require('../gl/glDraw');
 
+var Program = require('../gl/Program');
+
 var Default     = require('../system/common/Default');
 
 function App() {
@@ -65,11 +67,15 @@ function App() {
         canvas.setAttribute('tabindex','0');
         canvas.focus();
 
-    gl.set(canvas.getContext('webkit-3d') ||
-            canvas.getContext("webgl") ||
-            canvas.getContext("experimental-webgl"));
+    var _gl =  canvas.getContext('webkit-3d') ||
+               canvas.getContext("webgl") ||
+               canvas.getContext("experimental-webgl")
 
-    glDraw.set(gl.get());
+    _gl.activeTexture(_gl.TEXTURE0);
+
+    gl.set(_gl);
+    glDraw.init();
+
 
     document.body.appendChild(canvas);
 

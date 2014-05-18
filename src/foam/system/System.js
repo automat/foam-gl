@@ -18,6 +18,12 @@ var System = {
             }
         };
         client.send();
+    },
+
+    loadImage : function(file, callback){
+        var image = new Image();
+        image.src = file;
+        image.addEventListener('load',callback(image));
     }
 };
 
