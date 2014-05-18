@@ -57,6 +57,8 @@ module.exports = {
       Program      : require('./gl/Program'),
       CameraPersp  : require('./gl/CameraPersp'),
       CameraOrtho  : require('./gl/CameraOrtho'),
+
+      Texture : require('./gl/Texture'),
 //
 //    Light            : require('./gl/gl/light/fLight'),
 //    PointLight       : require('./gl/gl/light/fPointLight'),
