@@ -22,8 +22,8 @@ var System = {
 
     loadImage : function(file, callback){
         var image = new Image();
-        image.src = file;
         image.addEventListener('load',callback(image));
+        image.src = file;
     }
 };
 

@@ -290,16 +290,16 @@ function glDraw_Internal(){
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, (4 * 3 * 3 + 4 * 2) * 4, gl.STATIC_DRAW);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array([
-        -0.5,-0.5,0,
-        0.5,-0.5,0,
-        -0.5,0.5,0,
-        0.5,0.5,0
+        0,0,0,
+        1,0,0,
+        0,1,0,
+        1,1,0
     ]));
     gl.bufferSubData(gl.ARRAY_BUFFER, 48, new Float32Array([
-        -0.5,-0.5,0,
-        0.5,-0.5,0,
-        0.5,0.5,0,
-        -0.5,0.5,0
+        0,0,0,
+        1,0,0,
+        1,1,0,
+        0,1,0
     ]));
     gl.bufferSubData(gl.ARRAY_BUFFER, 96, new Float32Array([
         1,0,0,
@@ -481,10 +481,12 @@ glDraw_Internal.prototype._drawCube_Internal = function(size,drawMode){
         gl.vertexAttribPointer(attribLocationVertexNormal , 3, gl.FLOAT, false, 0, this._cubeVertexBufferNormalOffset);
     }
 
-    if(attribLocationTexcoord != -1 && drawMode == DrawMode.TRIANGLES){
-        gl.vertexAttribPointer(attribLocationTexcoord, 2, gl.FLOAT, false, 0, this._cubeVertexBufferNormalTexcoord);
-    } else {
-        gl.disableVertexAttribArray(attribLocationTexcoord);
+    if(attribLocationTexcoord != -1){
+        if(drawMode == DrawMode.TRIANGLES){
+            gl.vertexAttribPointer(attribLocationTexcoord, 2, gl.FLOAT, false, 0, this._cubeVertexBufferNormalTexcoord);
+        } else {
+            gl.disableVertexAttribArray(attribLocationTexcoord);
+        }
     }
 
 
@@ -501,7 +503,9 @@ glDraw_Internal.prototype._drawCube_Internal = function(size,drawMode){
     }
 
     glTrans.pushMatrix();
-    glTrans.scale3f(size,size,size);
+    if(size != 1){
+        glTrans.scale3f(size,size,size);
+    }
 
     gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrix());
     gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrix());
@@ -520,6 +524,10 @@ glDraw_Internal.prototype._drawCube_Internal = function(size,drawMode){
         case DrawMode.COLORED:
             gl.drawElements(gl.TRIANGLES,this._cubeIndicesTrianglesLength,gl.UNSIGNED_SHORT,0);
             break;
+    }
+
+    if(attribLocationTexcoord != -1 && drawMode != DrawMode.TRIANGLES){
+        gl.enableVertexAttribArray(attribLocationTexcoord);
     }
 
     glTrans.popMatrix();
@@ -877,6 +885,10 @@ glDraw_Internal.prototype.color = function(color){
     this._color4f[3] = color.a;
 };
 
+
+glDraw_Internal.prototype.drawTexture = function(x0,y0,x1,y1){
+
+}
 
 
 /*

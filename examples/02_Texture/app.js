@@ -54,15 +54,15 @@ App.prototype.update = function () {
     glTrans.setMatricesCamera(camera);
 
     glDraw.drawPivot();
-    this.drawGeom();
-};
 
-App.prototype.drawGeom = function(){
-    //glDraw.drawCubeColored();
-    //glDraw.drawCubePoints();
     var program = this._program;
-    gl.uniform1f(program['uUseTexture'],1.0);
-    glDraw.drawCube();
+
+    gl.uniform1f(program['uUseTexture'],0.5 + Math.sin(t*4) * 0.5);
+    glDraw.color3f(1,0,0.25);
+    glTrans.pushMatrix();
+    glTrans.translate3f(-0.5,-0.5,0);
+    glDraw.drawRect();
+    glTrans.popMatrix();
     gl.uniform1f(program['uUseTexture'],0.0);
 };
 

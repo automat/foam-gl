@@ -1,7 +1,6 @@
 var _gl = require('./gl'),
     ObjectUtil = require('../util/ObjectUtil'),
-    fMath = require('../math/Math'),
-    Program = require('./Program');
+    fMath = require('../math/Math');
 
 function Texture(data,width,height,format){
     if(!data){
@@ -22,7 +21,7 @@ function Texture(data,width,height,format){
     gl.bindTexture(gl.TEXTURE_2D, obj);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
 
-    if(format.mipMapping){
+    if(format.mipmapping){
         if(pot){
             gl.generateMipmap(gl.TEXTURE_2D);
         } else {
@@ -54,7 +53,7 @@ Texture.Format = function(){
     var gl = _gl.get();
     this.wrapS = this.wrapT = gl.CLAMP_TO_EDGE;
     this.minFilter = this.magFilter = gl.LINEAR;
-    this.mipMapping = false;
+    this.mipmapping = false;
     this.dataFormat = gl.RGBA;
     this.dataType = gl.UNSIGNED_BYTE;
 };
@@ -89,18 +88,21 @@ Texture.prototype.delete = function(){
     this._gl.deleteTexture(this._obj);
 };
 
-
 Texture.createBlank = function(){
     var format = new Texture.Format();
     format.dataType = _gl.get().UNSIGNED_BYTE;
     return new Texture(new Uint8Array([1,1,1,1]),1,1,format);
 };
 
-Texture.createFromImage = function(image){
-    return new Texture(image,image.width,image.height);
+Texture.createFromImage = function(image,format){
+    return new Texture(image,image.width,image.height,format);
 };
 
 Texture.createFromCanvas = function(canvas){
+
+};
+
+Texture.createFromGLObj = function(obj){
 
 };
 

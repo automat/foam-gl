@@ -76,7 +76,6 @@ function App() {
     gl.set(_gl);
     glDraw.init();
 
-
     document.body.appendChild(canvas);
 
     window.requestAnimationFrame = window.requestAnimationFrame ||

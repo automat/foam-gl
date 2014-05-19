@@ -30,6 +30,8 @@ glTrans._viewportRectArr = new Array(4);
 /*---------------------------------------------------------------------------------------------------------*/
 
 glTrans.setWindowMatrices = function(windowWidth,windowHeight,topleft){
+    Matrix44.identity(this._matrixProjection);
+    Matrix44.identity(this._matrixModelView);
     if(ObjectUtil.isUndefined(topleft) || topleft){
         this._matrixProjection = glu.ortho(this._matrixProjection,0,windowWidth,windowHeight,0,-1,1);
     } else {
@@ -119,7 +121,7 @@ glTrans.popMatrices = function(){
 
 glTrans.multMatrix = function(matrix){
     var _matrix = this._matrixMode == glTrans.MODELVIEW ? this._matrixModelView : this._matrixProjection;
-    Matrix44.multPost(_matrix, matrix, _matrix);
+    Matrix44.mult(matrix, _matrix, _matrix);
 };
 
 glTrans.translate = function (v) {
@@ -129,7 +131,7 @@ glTrans.translate = function (v) {
 glTrans.translate3f = function (x, y, z) {
     Matrix44.identity(this._matrixTemp0);
     Matrix44.createTranslation(x,y,z,this._matrixTemp0);
-    Matrix44.multPost(this._matrixModelView, this._matrixTemp0, this._matrixModelView);
+    Matrix44.mult(this._matrixTemp0,this._matrixModelView, this._matrixModelView);
 };
 
 glTrans.scale = function (v) {
@@ -143,31 +145,31 @@ glTrans.scale1f = function (x) {
 glTrans.scale3f = function (x, y, z) {
     Matrix44.identity(this._matrixTemp0);
     Matrix44.createScale(x,y,z,this._matrixTemp0);
-    Matrix44.multPost(this._matrixModelView, this._matrixTemp0, this._matrixModelView);
+    Matrix44.mult(this._matrixTemp0,this._matrixModelView, this._matrixModelView);
 };
 
 glTrans.rotate = function (v) {
     Matrix44.identity(this._matrixTemp0);
     Matrix44.createRotation(v[0],v[1],v[2], this._matrixTemp0);
-    Matrix44.multPost(this._mModelView, this._matrixTemp0, this._matrixModelView);
+    Matrix44.mult(this._matrixTemp0,this._matrixModelView, this._matrixModelView);
 };
 
 glTrans.rotate3f = function (x, y, z) {
     Matrix44.identity(this._matrixTemp0);
     Matrix44.createRotation(x,y,z,this._matrixTemp0);
-    Matrix44.multPost(this._matrixModelView, this._matrixTemp0, this._matrixModelView);
+    Matrix44.mult(this._matrixTemp0,this._matrixModelView, this._matrixModelView);
 };
 
 glTrans.rotateAxis = function (angle, v) {
     Matrix44.identity(this._matrixTemp0);
     Matrix44.createRotationOnAxis(angle, v[0], v[1], v[2], this._matrixTemp0);
-    Matrix44.multPost(this._matrixModelView, this._matrixTemp0);
+    Matrix44.mult(this._matrixTemp0,this._matrixModelView, this._matrixModelView);
 };
 
 glTrans.rotateAxis3f = function (angle, x, y, z) {
     Matrix44.identity(this._matrixTemp0);
     Matrix44.createRotationOnAxis(angle, x, y, z, this._matrixTemp0);
-    Matrix44.multPost(this._matrixModelView, this._matrixTemp0);
+    Matrix44.mult(this._matrixTemp0,this._matrixModelView, this._matrixModelView);
 };
 
 

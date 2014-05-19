@@ -145,7 +145,7 @@ var Matrix44 = {
     createRotationOnAxis: function (rot, x, y, z, out) {
         var len = Math.sqrt(x * x + y * y + z * z);
 
-        if (Math.sqrt(x * x + y * y + z * z) < _Math.EPSILON) {
+        if (Math.sqrt(x * x + y * y + z * z) < fMath.EPSILON) {
             return null;
         }
 
@@ -208,7 +208,7 @@ var Matrix44 = {
         return out;
     },
 
-    multPre: function (m0, m1, m) {
+    mult: function (m0, m1, m) {
         m = m || this.create();
 
         var m000 = m0[ 0], m001 = m0[ 1], m002 = m0[ 2], m003 = m0[ 3],
@@ -243,14 +243,6 @@ var Matrix44 = {
 
 
         return m;
-    },
-
-    mult: function (m0, m1, m) {
-        return this.multPre(m0, m1, m);
-    },
-
-    multPost: function (m0, m1, m) {
-        return this.multPre(m1, m0, m);
     },
 
     invert: function (m, o) {
