@@ -98,6 +98,10 @@ Fbo.prototype.getHeight = function(){
     return this._height;
 };
 
+Fbo.prototype.getSize = function(){
+    return [this._width,this._height];
+};
+
 Fbo.prototype.bind = function(){
     var gl = this._gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
@@ -132,7 +136,7 @@ Fbo.prototype.bindTexture = function(unit){
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
 };
 
-Fbo.prototype.unbindTexture = function(attachment, unit){
+Fbo.prototype.unbindTexture = function(unit){
     var gl = this._gl;
     if(!ObjectUtil.isUndefined(unit)){
         gl.activeTexture(gl.TEXTURE0 + unit);
