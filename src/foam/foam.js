@@ -59,6 +59,7 @@ module.exports = {
       CameraOrtho  : require('./gl/CameraOrtho'),
 
       Texture : require('./gl/Texture'),
+      Fbo : require('./gl/Fbo'),
 //
 //    Light            : require('./gl/gl/light/fLight'),
 //    PointLight       : require('./gl/gl/light/fPointLight'),
