@@ -3,6 +3,7 @@
 .DS_STORE
 
 .temp
+.tests
 
 sketch
 
