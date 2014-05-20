@@ -1,8 +1,8 @@
 var Quaternion = {
-    make: function (n, v) {
+    create: function (n, v) {
         return new Float32Array([n, v[0], v[1], v[2]]);
     },
-    make4f: function (n, x, y, z) {
+    create4f: function (n, x, y, z) {
         return new Float32Array([n, x, y, z]);
     },
     zero: function () {
@@ -99,7 +99,7 @@ var Quaternion = {
     },
 
     angle: function (q) {
-        return 2 * acos(q[0]);
+        return 2 * Math.acos(q[0]);
     },
 
     axis: function (q) {

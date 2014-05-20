@@ -82,7 +82,7 @@ var Vec3 = {
             y1 = v1[1],
             z1 = v1[2];
 
-        vo = vo || this.make();
+        vo = vo || this.create();
 
         vo[0] = y0 * z1 - y1 * z0;
         vo[1] = z0 * x1 - z1 * x0;
@@ -126,7 +126,7 @@ var Vec3 = {
     },
 
     lerped3f: function (v, x, y, z, f, vo) {
-        vo = vo || this.make();
+        vo = vo || this.create();
 
         vo[0] = v[0];
         vo[1] = v[1];
@@ -235,7 +235,7 @@ var Vec3 = {
     },
 
     added: function (v0, v1, vo) {
-        vo = vo || this.make();
+        vo = vo || this.create();
 
         vo[0] = v0[0] + v1[0];
         vo[1] = v0[1] + v1[1];
@@ -245,7 +245,7 @@ var Vec3 = {
     },
 
     subbed: function (v0, v1, vo) {
-        vo = vo || this.make();
+        vo = vo || this.create();
 
         vo[0] = v0[0] - v1[0];
         vo[1] = v0[1] - v1[1];
@@ -255,7 +255,7 @@ var Vec3 = {
     },
 
     scaled: function (v, n, vo) {
-        vo = vo || this.make();
+        vo = vo || this.create();
 
         vo[0] = v[0] * n;
         vo[1] = v[1] * n;
