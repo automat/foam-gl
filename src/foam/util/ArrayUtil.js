@@ -18,6 +18,22 @@ var ArrayUtil = {
         return arr;
     },
 
+    createObjArray : function(length,classObj){
+        var arr = new Array(length);
+        var i = -1;while(++i < length){
+            arr[i] = new classObj();
+        }
+        return arr;
+    },
+
+    createFactObjArray : function(length,factMethod){
+        var arr = new Array(length);
+        var i = -1;while(++i < length){
+            arr[i] = factMethod();
+        }
+        return arr;
+    },
+
     appendArray: function (a, b) {
         a.push.apply(a, b);
     },
@@ -113,7 +129,7 @@ var ArrayUtil = {
             }
         }
         return true;
-    },
+    }
 };
 
 module.exports = ArrayUtil;
