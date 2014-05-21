@@ -1,5 +1,7 @@
 var Vec2 = require('./Vec2');
 
+
+
 var Vec3 = {
     SIZE: 3,
     ZERO: function () {
@@ -307,6 +309,7 @@ var Vec3 = {
     }
 
 };
+
 
 module.exports = Vec3;
 
