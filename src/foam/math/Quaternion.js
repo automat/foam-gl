@@ -59,16 +59,12 @@ var Quaternion = {
         return this.set4f(q,v[0],v[1],v[2],w);
     },
 
+    /*
     setFromTo : function(q,v0,v1){
         var v0x = v0[0],
             v0y = v0[1],
             v0z = v0[2];
-        var v0length = Math.sqrt(v0x * v0x + v0y * v0y + v0z * v0z);
-        var v1x = v1[0],
-            v1y = v1[1],
-            v1z = v1[2];
-        var v1length = Math.sqrt(v1x * v1x + v1y * v1y + v1z * v1z);
-        var ax,ay,az,angle;
+        var v0length =  Math.sqrt(v0x * v0x + v0y * v0y + v0z * v0z);
 
         if(v0length){
             v0length = 1.0 / v0length;
@@ -77,12 +73,20 @@ var Quaternion = {
             v0z *= v0length;
         }
 
+        var v1x = v1[0],
+            v1y = v1[1],
+            v1z = v1[2];
+        var v1length = Math.sqrt(v1x * v1x + v1y * v1y + v1z * v1z);
+
         if(v1length){
-            v1length = 1.0/ v1length;
+            v1length = 1.0 / v1length;
             v1x *= v1length;
             v1y *= v1length;
             v1z *= v1length;
         }
+
+
+        var ax,ay,az,angle;
 
         if(v0x == -v1x &&
            v0y == -v1y &&
@@ -99,10 +103,7 @@ var Quaternion = {
                 y = 1;
                 z = 0;
             }
-                                      /*
-            vo[0] = y0 * z1 - y1 * z0;
-            vo[1] = z0 * x1 - z1 * x0;
-            vo[2] = x0 * y1 - x1 * y0;  */
+
 
             ax = v0y * z - y * v0z;
             ay = v0z * x - z * v0x;
@@ -139,6 +140,8 @@ var Quaternion = {
         return this.setFromAxis3f(q,ax,ay,az,angle);
     },
 
+     */
+
     setFromAxis3f : function(q,x,y,z,angle){
         angle *= 0.5;
 
@@ -157,6 +160,13 @@ var Quaternion = {
         q[2] = z * sin;
         q[3] = Math.cos(angle);
 
+        return q;
+    },
+
+    setFromTo : function(q,v0,v1){
+        var w = Vec3.cross(v0,v1);
+        var q = Quaternion.create4f(1 + Vec3.dot(v0,v1), w[0], w[1], w[2]);
+        this.normalize(q);
         return q;
     },
 
@@ -199,6 +209,17 @@ var Quaternion = {
         return x * x + y * y + z * z + w * w;
     },
 
+    normalize : function(q){
+        var length = this.length(q);
+        if(length){
+            length = 1.0 / length;
+            q[0] *= length;
+            q[1] *= length;
+            q[2] *= length;
+            q[3] *= length;
+        }
+        return q;
+    },
 
     conjugate : function(q){
         q[0] *= -1;

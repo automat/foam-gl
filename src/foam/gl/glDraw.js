@@ -6,9 +6,10 @@ var ArrayUtil        = require('../util/ArrayUtil'),
     ElementArrayUtil = require('../util/ElementArrayUtil');
 var ObjectUtil = require('../util/ObjectUtil');
 
-var Vec3     = require('../math/Vec3'),
-    Color    = require('../util/Color'),
-    Matrix44 = require('../math/Matrix44');
+var Vec3       = require('../math/Vec3'),
+    Color      = require('../util/Color'),
+    Matrix44   = require('../math/Matrix44'),
+    Quaternoun = require('../math/Quaternion');
 
 
 var DrawMode = {
@@ -329,9 +330,9 @@ function glDraw_Internal(){
     this._bufferLineVertex = new Float32Array(6);
     this._bufferLineColor = new Float32Array(8);
     gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-    gl.bufferData(gl.ARRAY_BUFFER,(6 + 8) * 4, gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER,this._bufferLineVertex.byteLength + this._bufferLineColor.byteLength, gl.DYNAMIC_DRAW);
     gl.bufferSubData(gl.ARRAY_BUFFER,0,this._bufferLineVertex);
-    gl.bufferSubData(gl.ARRAY_BUFFER,24,this._bufferLineColor);
+    gl.bufferSubData(gl.ARRAY_BUFFER,this._bufferLineVertex.byteLength,this._bufferLineColor);
 
     /*--------------------------------------------------------------------------------------------*/
     //  Lines / Line strip
@@ -347,6 +348,12 @@ function glDraw_Internal(){
     this._bufferLinesColor = new Float32Array(0);
     this._linesColor4f = new Array(4);
 
+    /*--------------------------------------------------------------------------------------------*/
+    //  Vector
+    /*--------------------------------------------------------------------------------------------*/
+
+    this._vectorDirection = Vec3.create();
+    this._vectorLength = 0;
 
 
     /*--------------------------------------------------------------------------------------------*/
@@ -356,6 +363,20 @@ function glDraw_Internal(){
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 }
+
+/*--------------------------------------------------------------------------------------------*/
+//  Line strip
+/*--------------------------------------------------------------------------------------------*/
+
+glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1){
+    var direction = Vec3.set3f(this._vectorDirection,x1-x0,y1-y0,z1-z0);
+    var length = Vec3.length(direction);
+    Vec3.normalize(direction);
+
+
+
+
+};
 
 /*--------------------------------------------------------------------------------------------*/
 //  Line strip
@@ -583,18 +604,23 @@ glDraw_Internal.prototype.drawLinef = function(x0,y0,z0,x1,y1,z1){
     if(vertex[0] != x0 ||
        vertex[1] != y0 ||
        vertex[2] != z0 ||
-       vertex[4] != x1 )
+       vertex[3] != x1 ||
+       vertex[4] != y1 ||
+       vertex[5] != z1){
 
-    vertex[0] = x0;
-    vertex[1] = y0;
-    vertex[2] = z0;
+        vertex[0] = x0;
+        vertex[1] = y0;
+        vertex[2] = z0;
 
-    vertex[3] = x1;
-    vertex[4] = y1;
-    vertex[5] = z1;
+        vertex[3] = x1;
+        vertex[4] = y1;
+        vertex[5] = z1;
 
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertex);
-    gl.vertexAttribPointer(attribLocationVertexPos,4,gl.FLOAT,false,0,0);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertex);
+    }
+
+
+    gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,0);
 
     gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrix());
     gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrix());
@@ -1101,6 +1127,9 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, prevIbo);
 };
 
+/*--------------------------------------------------------------------------------------------*/
+//  Helper
+/*--------------------------------------------------------------------------------------------*/
 
 glDraw_Internal.prototype._genHead = function(length, radius, arr, offset){
     offset = !offset ? 0 : offset;
@@ -1128,10 +1157,27 @@ glDraw_Internal.prototype._genHead = function(length, radius, arr, offset){
     }
 };
 
+glDraw_Internal.prototype._genTube = function(length, radius, arr, offset){
+    offset = offset || 0;
 
-/*--------------------------------------------------------------------------------------------*/
-//  Helper
-/*--------------------------------------------------------------------------------------------*/
+    var numSteps = 15;
+    var step = (Math.PI * 2) / (numSteps - 1);
+    var angle;
+
+    numSteps  = offset + numSteps;
+    var i = offset;
+    var j = 0;
+    while(i < numSteps){
+        angle = step * j++;
+
+        arr[i  ] = arr[i+3] = Math.cos(angle) * radius;
+        arr[i+1] = arr[i+4] = Math.sin(angle) * radius;
+        arr[i+2] = 0;
+        arr[i+5] = length;
+
+        i += 6;
+    }
+};
 
 glDraw_Internal.prototype._updateProgramLocations = function(){
     var gl = this._gl;
