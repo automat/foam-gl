@@ -63,17 +63,8 @@ module.exports = {
         return m;
     },
 
-    lookAt: function (m, eye, target, up) {
-        var x0, x1, x2, y0, y1, y2, z0, z1, z2, len,
-            eyex = eye[0],
-            eyey = eye[1],
-            eyez = eye[2],
-            upx = up[0],
-            upy = up[1],
-            upz = up[2],
-            targetx = target[0],
-            tartety = target[1],
-            targetz = target[2];
+    lookAt : function (m, eyex, eyey, eyez, targetx, targety, targetz, upx, upy, upz) {
+        var x0, x1, x2, y0, y1, y2, z0, z1, z2, len;
 
         if (Math.abs(eyex - targetx) < 0.000001 &&
             Math.abs(eyey - tartety) < 0.000001 &&
@@ -82,7 +73,7 @@ module.exports = {
         }
 
         z0 = eyex - targetx;
-        z1 = eyey - tartety;
+        z1 = eyey - targety;
         z2 = eyez - targetz;
 
         len = 1 / Math.sqrt(z0 * z0 + z1 * z1 + z2 * z2);
@@ -95,23 +86,26 @@ module.exports = {
         x2 = upx * z1 - upy * z0;
 
         len = Math.sqrt(x0 * x0 + x1 * x1 + x2 * x2);
-        len = !len ? 0 : 1 / len;
 
-        x0 *= len;
-        x1 *= len;
-        x2 *= len;
+        if(len){
+            len = 1.0 / len;
+            x0 *= len;
+            x1 *= len;
+            x2 *= len;
+        }
 
         y0 = z1 * x2 - z2 * x1;
         y1 = z2 * x0 - z0 * x2;
         y2 = z0 * x1 - z1 * x0;
 
         len = Math.sqrt(y0 * y0 + y1 * y1 + y2 * y2);
-        len = !len ? 0 : 1 / len;
 
-        y0 *= len;
-        y1 *= len;
-        y2 *= len;
-
+        if(len){
+            len = 1.0 / len;
+            x0 *= len;
+            x1 *= len;
+            x2 *= len;
+        }
 
         m[ 0] = x0;
         m[ 1] = y0;
