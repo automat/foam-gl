@@ -94,7 +94,7 @@ Float32Vec3.prototype.invert = function(){
 };
 
 /*-------------------------------------*/
-//  Vec3
+//  Float32Vec3
 /*-------------------------------------*/
 
 function Vec3(x,y,z) {
