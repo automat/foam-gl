@@ -8,8 +8,7 @@ var ObjectUtil = require('../util/ObjectUtil');
 
 var Vec3       = require('../math/Vec3'),
     Color      = require('../util/Color'),
-    Matrix44   = require('../math/Matrix44'),
-    Quaternoun = require('../math/Quaternion');
+    Matrix44   = require('../math/Matrix44');
 
 
 var DrawMode = {
@@ -352,7 +351,7 @@ function glDraw_Internal(){
     //  Vector
     /*--------------------------------------------------------------------------------------------*/
 
-    this._vectorDirection = Vec3.create();
+    this._vectorDirection = new Vec3();
     this._vectorLength = 0;
 
 
@@ -369,9 +368,7 @@ function glDraw_Internal(){
 /*--------------------------------------------------------------------------------------------*/
 
 glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1){
-    var direction = Vec3.set3f(this._vectorDirection,x1-x0,y1-y0,z1-z0);
-    var length = Vec3.length(direction);
-    Vec3.normalize(direction);
+
 
 
 

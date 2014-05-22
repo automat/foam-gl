@@ -1,10 +1,6 @@
-var Vec2 =
-{
-    SIZE : 2,
-
-    create : function(){
-        return new Float32Array([0,0]);
-    }
-};
+function Vec2(x,y){
+    this.x = x || 0;
+    this.y = y || 0;
+}
 
 module.exports = Vec2;

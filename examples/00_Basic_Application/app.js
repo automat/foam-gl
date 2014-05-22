@@ -1,5 +1,5 @@
 var Foam     = require('../../src/foam/foam.js'),
-    fMath    = Foam.Math,
+    Ease     = Foam.Ease,
     glTrans  = Foam.glTrans,
     System   = Foam.System,
     Matrix44 = Foam.Matrix44,
@@ -107,7 +107,7 @@ App.prototype.update = function () {
     gl.clearColor(1,1,0,1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    var offset = fMath.stepCubed(Math.sin(t * 2)) * Math.round(Math.sin(t*2));
+    var offset = Ease.stepCubed(Math.sin(t * 2)) * Math.round(Math.sin(t*2));
 
     glTrans.pushMatrix();
     glTrans.translate3f(windowWidth_4 - 50,windowHeight_4,0);

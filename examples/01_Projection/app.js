@@ -35,7 +35,7 @@ App.prototype.setup = function () {
 
     this._camera0 = new CameraPersp();
     this._camera0.setPerspective(45.0,windowAspectRatio,0.00125, 20.0);
-    this._camera0.lookAt(Vec3.ONE(), Vec3.ZERO());
+    this._camera0.lookAt(Vec3.one(), Vec3.zero());
     this._camera0.updateMatrices();
 
     this._camera1 = new CameraPersp();
@@ -45,12 +45,12 @@ App.prototype.setup = function () {
 
     this._camera2 = new CameraOrtho();
     this._camera2.setOrtho(-windowAspectRatio * zoom,windowAspectRatio * zoom,-zoom,zoom,-2,20);
-    this._camera2.lookAt(Vec3.ONE(),Vec3.ZERO());
+    this._camera2.lookAt(Vec3.one(),Vec3.zero());
     this._camera2.updateMatrices();
 
     this._camera3 = new CameraOrtho();
     this._camera3.setOrtho(-windowAspectRatio * zoom,windowAspectRatio * zoom,-zoom,zoom,-20,20);
-    this._camera3.lookAt(Vec3.ONE(),Vec3.ZERO());
+    this._camera3.lookAt(Vec3.one(),Vec3.zero());
     this._camera3.updateMatrices();
 
     gl.enable(gl.SCISSOR_TEST);

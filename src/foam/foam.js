@@ -42,7 +42,6 @@ module.exports = {
     Vec4: require('./math/Vec4'),
 //    Mat33       : require('./math/fMat33'),
     Matrix44: require('./math/Matrix44'),
-    Quaternion : require('./math/Quaternion'),
     Ease: require('./math/Ease'),
 
 

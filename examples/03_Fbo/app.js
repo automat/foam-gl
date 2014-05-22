@@ -38,7 +38,7 @@ App.prototype.setup = function () {
 
     this._camera = new CameraPersp();
     this._camera.setPerspective(45.0,windowAspectRatio,0.00125, 20.0);
-    this._camera.lookAt(Vec3.create(5,5,5), Vec3.ZERO());
+    this._camera.lookAt(new Vec3(5,5,5), Vec3.zero());
     this._camera.updateMatrices();
 
     var format = new Fbo.Format();

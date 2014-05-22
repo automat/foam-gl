@@ -1,20 +1,19 @@
 var Vec3 = require('../math/Vec3'),
     Matrix44 = require('../math/Matrix44'),
-    Quaternion = require('../math/Quaternion'),
     ObjectUtil = require('../util/ObjectUtil');
 
 
 
 function CameraAbstract() {
-    this._eye = Vec3.create();
-    this._target = Vec3.create();
-    this._up = Vec3.AXIS_Y();
+    this._eye = new Vec3();
+    this._target = new Vec3();
+    this._up = Vec3.yAxis();
 
     this._fov = 0;
     this._near = 0;
     this._far = 0;
 
-    this._direction = Vec3.create();
+    this._direction = new Vec3();
 
 
     this._frustumLeft = this._frustumRight = this._frustumBottom = this._frustumTop = 0;
@@ -24,7 +23,6 @@ function CameraAbstract() {
 
     this.projectionMatrix = Matrix44.create();
     this.modelViewMatrix = Matrix44.create();
-
 }
 
 
@@ -41,43 +39,38 @@ CameraAbstract.prototype.setTarget3f = function (x, y, z) {
 };
 
 CameraAbstract.prototype.getTarget = function(v){
-    if(ObjectUtil.isUndefined(v)){
-        return Vec3.copy(this._target);
-    }
-    return Vec3.set(v,this._target);
+    return this._target.copy(v);
 };
 
 CameraAbstract.prototype.setEye = function (v) {
-    Vec3.set(this._eye, v);
+    this._eye.set(v);
     this._updateDirection();
     this._modelViewMatrixUpdated = false;
 };
 
 CameraAbstract.prototype.setEye3f = function (x, y, z) {
-    Vec3.set3f(this._eye, x, y, z);
+    this._eye.set3f(x,y,z);
     this._updateDirection();
     this._modelViewMatrixUpdated = false;
 };
 
 CameraAbstract.prototype.getEye = function(v){
-    if(ObjectUtil.isUndefined(v)){
-        return Vec3.copy(this._eye);
-    }
-    return Vec3.set(v,this._eye);
+    return this._eye.copy(v);
 };
 
 CameraAbstract.prototype.lookAt = function(eye,target){
-    Vec3.set(this._eye,eye);
-    Vec3.set(this._target,target);
+    this._eye.set(eye);
+    this._target.set(target);
     this._updateDirection();
     this._modelViewMatrixUpdated = false;
 };
 
 CameraAbstract.prototype.setUp = function (v) {
-    Vec3.set(this._up, v);
+    this._up.set(v);
     this._modelViewMatrixUpdated = false;
 };
 CameraAbstract.prototype.setUp3f = function (x, y, z) {
+    this._up.set3f(x,y,z);
     Vec3.set3f(this._up, x, y, z);
     this._modelViewMatrixUpdated = false;
 };
@@ -114,12 +107,11 @@ CameraAbstract.prototype.getFrustum = function(frustum){
 };
 
 CameraAbstract.prototype._updateDirection = function(){
-   Vec3.safeNormalize(Vec3.subbed(this._target,this._eye,this._direction));
+    this._target.subbed(this._eye, this._direction).normalize();
 };
 
 CameraAbstract.prototype.getDirection = function(v){
-    v = v || Vec3.create();
-    return Vec3.set(v,this._direction);
+    return this._direction.copy(v);
 };
 
 

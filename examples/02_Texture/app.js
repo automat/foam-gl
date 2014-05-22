@@ -32,7 +32,7 @@ App.prototype.setup = function () {
 
     var camera = this._camera = new CameraPersp();
     camera.setPerspective(45.0,this.getWindowAspectRatio(),0.00125, 20.0);
-    camera.lookAt(Vec3.ONE(), Vec3.ZERO());
+    camera.lookAt(Vec3.one(), Vec3.zero());
     camera.updateMatrices();
 
     var texture = Texture.createFromImage(textureSource);
