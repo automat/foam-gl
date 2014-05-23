@@ -119,8 +119,8 @@ App.prototype.update = function () {
 
 
 App.prototype.drawGeom = function(){
-    gl.uniformMatrix4fv(this._program['uProjectionMatrix'], false, glTrans.getProjectionMatrix());
-    gl.uniformMatrix4fv(this._program['uModelViewMatrix'], false, glTrans.getModelViewMatrix());
+    gl.uniformMatrix4fv(this._program['uProjectionMatrix'], false, glTrans.getProjectionMatrixF32());
+    gl.uniformMatrix4fv(this._program['uModelViewMatrix'], false, glTrans.getModelViewMatrixF32());
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 };
 

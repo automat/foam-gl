@@ -227,7 +227,7 @@ var Quaternion = {
         q[2] *= -1;
     },
 
-    getMatrix : function(q,m){
+    getMatrixF32 : function(q,m){
         m = m || new Float32Array(16);
 
         var x = q[0], y = q[1], z = q[2], w = q[3];

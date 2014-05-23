@@ -71,6 +71,7 @@ App.prototype.update = function () {
 
     glDraw.drawPivot();
 
+
     var num = 5;
     var step = 1 / (num-1);
     var i, j, k;
@@ -89,6 +90,7 @@ App.prototype.update = function () {
         }
 
     }
+
     fbo.unbind();
 
     gl.viewport(0,0,windowWidth,windowHeight);

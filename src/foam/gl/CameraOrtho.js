@@ -31,7 +31,7 @@ CameraOrtho.prototype.updateModelViewMatrix = function () {
         target = this._target,
         up = this._up;
 
-    glu.lookAt(this.modelViewMatrix, eye.x, eye.y, eye.z, target.x, target.y, target.z, up.x, up.y, up.z);
+    glu.lookAt(this.modelViewMatrix.m, eye.x, eye.y, eye.z, target.x, target.y, target.z, up.x, up.y, up.z);
     this._modelViewMatrixUpdated = true;
 };
 
@@ -39,7 +39,7 @@ CameraOrtho.prototype.updateProjectionMatrix = function () {
     if (this._projectionMatrixUpdated) {
         return;
     }
-    glu.ortho(this.projectionMatrix, this._frustumLeft, this._frustumRight, this._frustumBottom, this._frustumTop, this._near, this._far);
+    glu.ortho(this.projectionMatrix.m, this._frustumLeft, this._frustumRight, this._frustumBottom, this._frustumTop, this._near, this._far);
     this._projectionMatrixUpdated = true;
 };
 

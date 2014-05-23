@@ -21,8 +21,8 @@ function CameraAbstract() {
     this._modelViewMatrixUpdated = false;
     this._projectionMatrixUpdated = false;
 
-    this.projectionMatrix = Matrix44.create();
-    this.modelViewMatrix = Matrix44.create();
+    this.projectionMatrix = new Matrix44();
+    this.modelViewMatrix = new Matrix44();
 }
 
 
@@ -71,7 +71,6 @@ CameraAbstract.prototype.setUp = function (v) {
 };
 CameraAbstract.prototype.setUp3f = function (x, y, z) {
     this._up.set3f(x,y,z);
-    Vec3.set3f(this._up, x, y, z);
     this._modelViewMatrixUpdated = false;
 };
 

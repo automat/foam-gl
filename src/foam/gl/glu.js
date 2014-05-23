@@ -67,9 +67,9 @@ module.exports = {
         var x0, x1, x2, y0, y1, y2, z0, z1, z2, len;
 
         if (Math.abs(eyex - targetx) < 0.000001 &&
-            Math.abs(eyey - tartety) < 0.000001 &&
+            Math.abs(eyey - targety) < 0.000001 &&
             Math.abs(eyez - targetz) < 0.000001) {
-            return Matrix44.identity(m);
+            return m.identity();
         }
 
         z0 = eyex - targetx;

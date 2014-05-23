@@ -30,14 +30,14 @@ CameraPersp.prototype.updateModelViewMatrix = function () {
         target = this._target,
         up = this._up;
 
-    glu.lookAt(this.modelViewMatrix, eye.x, eye.y, eye.z, target.x, target.y, target.z, up.x, up.y, up.z);
+    glu.lookAt(this.modelViewMatrix.m, eye.x, eye.y, eye.z, target.x, target.y, target.z, up.x, up.y, up.z);
     this._modelViewMatrixUpdated = true;
 };
 CameraPersp.prototype.updateProjectionMatrix = function () {
     if (this._projectionMatrixUpdated){
         return;
     }
-    glu.perspective(this.projectionMatrix, this._fov, this._aspectRatioLast, this._near, this._far);
+    glu.perspective(this.projectionMatrix.m, this._fov, this._aspectRatioLast, this._near, this._far);
     this._projectionMatrixUpdated = true;
 };
 

@@ -43,9 +43,11 @@ function glDraw_Internal(){
     //  temps
     /*--------------------------------------------------------------------------------------------*/
 
-    this._matrixTemp0 = Matrix44.create();
-    this._matrixTemp1 = Matrix44.create();
-    this._matrixTemp2 = Matrix44.create();
+    this._matrixTemp0 = new Matrix44();
+    this._matrixTemp1 = new Matrix44();
+    this._matrixTemp2 = new Matrix44();
+    this._matrixF32   = new Float32Array(16);
+
 
     var buffer, data, num;
 
@@ -619,8 +621,8 @@ glDraw_Internal.prototype.drawLinef = function(x0,y0,z0,x1,y1,z1){
 
     gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,0);
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrix());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrix());
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
 
     gl.drawArrays(gl.LINES,0,2);
 
@@ -709,8 +711,8 @@ glDraw_Internal.prototype._drawRect_Internal = function(width,height,drawMode){
     glTrans.pushMatrix();
     glTrans.scale3f(width,height,1.0);
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrix());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrix());
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
 
     gl.drawArrays(drawMode == DrawMode.TRIANGLES ? gl.TRIANGLE_STRIP :
                   drawMode == DrawMode.LINES ? gl.LINE_LOOP : gl.POINTS,0,4);
@@ -818,8 +820,8 @@ glDraw_Internal.prototype._drawCube_Internal = function(size,drawMode){
         glTrans.scale3f(size,size,size);
     }
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrix());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrix());
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,this._cubeIndexBuffer);
     switch(drawMode){
@@ -964,8 +966,8 @@ glDraw_Internal.prototype.drawGrid = function(size, subdivs){
     if(attribLocationVertexColor != -1){
         gl.vertexAttribPointer(this._attribLocationVertexColor, 4, gl.FLOAT, false, 0, this._gridVboOffsetColors);
     }
-    gl.uniformMatrix4fv(   this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrix());
-    gl.uniformMatrix4fv(   this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrix());
+    gl.uniformMatrix4fv(   this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(   this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
 
     gl.drawElements(gl.LINES,this._gridIboLength,gl.UNSIGNED_SHORT,0);
 
@@ -1020,48 +1022,48 @@ glDraw_Internal.prototype._updatePivotGeom = function(axisLength, headLength, he
 
     //  x
 
-    Matrix44.identity(matrix0);
-    Matrix44.identity(matrix1);
-    Matrix44.identity(matrix2);
+    matrix0.identity();
+    matrix1.identity();
+    matrix2.identity();
 
-    var transX = Matrix44.mult(Matrix44.createRotation(0,-pi_2,0,matrix0),
-        Matrix44.createTranslation(axis_head_length,0,0,matrix1),
-        matrix2);
+    var transX = Matrix44.createRotation(0,-pi_2,0,matrix0).multiplied(
+                 Matrix44.createTranslation(axis_head_length,0,0,matrix1),
+                 matrix2);
 
     i = offsetHeadX;
     l = i + numVertices;
     while(i < l){
-        Matrix44.multVec3AI(transX,vertices,i);
+        transX.multVec3AI(vertices,i);
         i += 3;
     }
 
     //  y
 
-    Matrix44.identity(matrix0);
-    Matrix44.identity(matrix1);
-    Matrix44.identity(matrix2);
+    matrix0.identity();
+    matrix1.identity();
+    matrix2.identity();
 
-    var transY = Matrix44.mult(Matrix44.createRotation( pi_2, 0, 0, matrix0),
-        Matrix44.createTranslation(0,axis_head_length,0, matrix1),
-        matrix2);
+    var transY = Matrix44.createRotation( pi_2, 0, 0, matrix0).multiplied(
+                 Matrix44.createTranslation(0,axis_head_length,0, matrix1),
+                 matrix2);
 
     i = offsetHeadY;
     l = i + numVertices;
     while(i < l){
-        Matrix44.multVec3AI(transY,vertices,i);
+        transY.multVec3AI(vertices,i);
         i += 3;
     }
 
     //  z
 
-    Matrix44.identity(matrix0);
+    matrix0.identity();
 
     var transZ = Matrix44.createTranslation(0,0,axis_head_length,matrix0);
 
     i = offsetHeadZ;
     l = i + numVertices;
     while(i < l){
-        Matrix44.multVec3AI(transZ,vertices,i);
+        transZ.multVec3AI(vertices,i);
         i += 3;
     }
 
@@ -1110,8 +1112,8 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
         gl.vertexAttribPointer(this._attribLocationVertexColor, 4, gl.FLOAT, false, 0,0);
     }
 
-    gl.uniformMatrix4fv(   this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrix());
-    gl.uniformMatrix4fv(   this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrix());
+    gl.uniformMatrix4fv(   this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(   this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
 
     gl.drawArrays(gl.LINES,0,6);
     gl.drawElements(gl.TRIANGLES,this._pivotIndexBufferLength,gl.UNSIGNED_SHORT,0);
