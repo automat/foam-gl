@@ -205,6 +205,30 @@ Matrix44.createRotationOnAxis = function (rot, x, y, z, mat44) {
     return mat44;
 };
 
+Matrix44.createRotationOnB = function(u,v,w,m){
+    if(m){
+        m.identity();
+    } else {
+        m = new Matrix44();
+    }
+
+    var m_m = m.m;
+
+    m_m[ 0] = u.x;
+    m_m[ 1] = u.y;
+    m_m[ 2] = u.z;
+
+    m_m[ 4] = v.x;
+    m_m[ 5] = v.y;
+    m_m[ 6] = v.z;
+
+    m_m[ 8] = w.x;
+    m_m[ 9] = w.y;
+    m_m[10] = w.z;
+
+    return m;
+};
+
 function mult(m0,m1,m){
     m = m || new Matrix44();
     m0 = m0.m;
