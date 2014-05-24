@@ -32,6 +32,7 @@ CameraOrtho.prototype.updateModelViewMatrix = function () {
         up = this._up;
 
     glu.lookAt(this.modelViewMatrix.m, eye.x, eye.y, eye.z, target.x, target.y, target.z, up.x, up.y, up.z);
+    this._updateOnB();
     this._modelViewMatrixUpdated = true;
 };
 

@@ -1,4 +1,5 @@
 var CameraAbstract = require('./CameraAbstract'),
+    Vec3 = require('../math/Vec3'),
     glu = require('./glu');
 
 
@@ -20,8 +21,6 @@ CameraPersp.prototype.setPerspective = function (fov, windowAspectRatio, near, f
     this.updateProjectionMatrix();
 };
 
-
-
 CameraPersp.prototype.updateModelViewMatrix = function () {
     if (this._modelViewMatrixUpdated){
         return;
@@ -31,8 +30,12 @@ CameraPersp.prototype.updateModelViewMatrix = function () {
         up = this._up;
 
     glu.lookAt(this.modelViewMatrix.m, eye.x, eye.y, eye.z, target.x, target.y, target.z, up.x, up.y, up.z);
+
+    this._updateOnB();
     this._modelViewMatrixUpdated = true;
 };
+
+
 CameraPersp.prototype.updateProjectionMatrix = function () {
     if (this._projectionMatrixUpdated){
         return;
