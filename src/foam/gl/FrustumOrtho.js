@@ -1,46 +1,151 @@
-var ArrayUtil = require('../util/ArrayUtil'),
-    Vec3 = require('../math/Vec3'),
-    _gl = require('./gl');
+var Vec3 = require('../math/Vec3'),
+    Program = require('./Program');
+
+var glDraw, _glDraw = require('./glDraw');
+var glTrans = require('./glTrans');
 
 function FrustumOrtho(){
-    this._gl = _gl.get();
+    var planeNormals = this._planeNormals = new Array(6),
+        planePoints = this._planePoints  = new Array(6),
+        planeDists  = this._planeDists   = new Array(6);
 
-    this._mPlaneNormals = ArrayUtil.createFactObjArray(6,Vec3);
-    this._mPlanePoints  = ArrayUtil.createFactObjArray(6,Vec3);
-    this._mPlaneDists   = ArrayUtil.createFactObjArray(6,Vec3);
+    var i = -1, l = 6;
+    while(++i < l){
+        planeNormals[i] = new Vec3();
+        planePoints[i] = new Vec3();
+        planeDists[i] = new Vec3();
+    }
 
-    this._eye = Vec3.create();
-    this._near = ArrayUtil.createFactObjArray(4,Vec3);
-    this._far  = ArrayUtil.createFactObjArray(4,Vec3);
+    this._vec3Temp0 = new Vec3();
+    this._vec3Temp1 = new Vec3();
+    this._vec3Temp2 = new Vec3();
+    this._frustumTemp = new Array(6);
+
+    this._eye = new Vec3();
+
+    var near = this._near = new Array(4),
+        far  = this._far = new Array(4);
+
+    i = -1; l = 4;
+    while(++i < l){
+        near[i] = new Vec3();
+        far[i] = new Vec3();
+    }
+
+
+    glDraw = glDraw || _glDraw.get();
 }
 
+FrustumOrtho.prototype.draw = function(){
+    var n = this._near,
+        n0 = n[0],
+        n1 = n[1],
+        n2 = n[2],
+        n3 = n[3];
+    var f = this._far,
+        f0 = f[0],
+        f1 = f[1],
+        f2 = f[2],
+        f3 = f[3];
+    var eye = this._eye;
+
+    var prevColor = glDraw.getColor();
+
+    glDraw.colorf(0,1,0,1);
+    glDraw.drawLines(n0,n1,n1,n2,n2,n3,n3,n0,
+                     n0,f0,n1,f1,n2,f2,n3,f3,
+                     f0,f1,f1,f2,f2,f3,f3,f0);
+    glDraw.colorf(1,0,0,1);
+    glDraw.drawLines(eye,n0,eye,n1,eye,n2,eye,n3);
+    glDraw.color(prevColor);
+};
+
+
 FrustumOrtho.prototype._calcPlane = function(index,v0,v1,v2){
-    /*
-    var aux0 = Vec3.subbed(v0,v1);
-    var aux1 = Vec3.subbed(v2,v1);
+    var aux0 = v0.subbed(v1),
+        aux1 = v2.subbed(v1);
 
-    var normal = this._mPlaneNormals[index] = Vec3.safeNormalized(Vec3.cross(aux1,aux0));
-    var point  = this._mPlanePoints[index] = Vec3.copy(v1);
-    this._mPlaneDists[index] = Vec3.scaled(Vec3.dot(normal,point), -1);
-    */
+    var normal = this._planeNormals[index] = aux1.cross(aux0).normalize(),
+        point = this._planePoints[index] = v1.copy();
+
+    this._planeDists[index] = normal.dot(point) * -1;
 };
 
-FrustumOrtho.prototype.set = function(camera){
+FrustumOrtho.prototype.set = function(camera, frustumScale){
+    frustumScale = frustumScale || 1.0;
+
+    var eye = camera.getEye(this._eye);
+    var frustum = camera.getFrustum(this._frustumTemp);
+    var frustumLeft = frustum[0],
+        frustumTop = frustum[1],
+        frustumRight = frustum[2],
+        frustumBottom = frustum[3],
+        frustumNear = frustum[4] * frustumScale,
+        frustumFar = frustum[5] * frustumScale;
+
+    var u = camera.getU(this._vec3Temp0).scale(frustumScale),
+        v = camera.getV(this._vec3Temp1).scale(frustumScale),
+        w = camera.getW(this._vec3Temp2);
+
+    var frustumNearDir = w.scaled(frustumNear),
+        frustumFarDir = w.scaled(frustumFar),
+        frustumTopV = v.scaled(frustumTop),
+        frustumBottomV = v.scaled(frustumBottom),
+        frustumLeftU = u.scaled(frustumLeft),
+        frustumRightU = u.scaled(frustumRight);
+
+    var n = this._near, f = this._far;
+    var fb = eye.added(frustumFarDir),
+        nb = eye.added(frustumNearDir);
+
+    var f0 = f[0],
+        f1 = f[1],
+        f2 = f[2],
+        f3 = f[3];
+    var n0 = n[0],
+        n1 = n[1],
+        n2 = n[2],
+        n3 = n[3];
+
+    f0.set(fb).add(frustumTopV).add(frustumLeftU);
+    f1.set(fb).add(frustumTopV).add(frustumRightU);
+    f2.set(fb).add(frustumBottomV).add(frustumRightU);
+    f3.set(fb).add(frustumBottomV).add(frustumLeftU);
+
+    n0.set(nb).add(frustumTopV).add(frustumLeftU);
+    n1.set(nb).add(frustumTopV).add(frustumRightU);
+    n2.set(nb).add(frustumBottomV).add(frustumRightU);
+    n3.set(nb).add(frustumBottomV).add(frustumLeftU);
+
+    this._calcPlane(0,n1,n0,f0);
+    this._calcPlane(1,n3,n2,f2);
+    this._calcPlane(2,n0,n3,f3);
+    this._calcPlane(3,f1,f2,n2);
+    this._calcPlane(4,n0,n1,n2);
+    this._calcPlane(5,f1,f0,f3);
 
 };
 
-FrustumOrtho.prototype.contains = function(points){
-
+FrustumOrtho.prototype.contains = function(point){
+    var planeDists = this._planeDists,
+        planeNormals = this._planeNormals;
+    var i = -1;
+    while(++i < 6){
+        if(planeDists[i] + planeNormals[i].dot(point) < 0){
+            return false;
+        }
+    }
+    return true;
 };
 
 FrustumOrtho.prototype.getNearPlane = function(){
-
+    return this._near;
 };
 
 FrustumOrtho.prototype.getFarPlane =function(){
-
+    return this._far;
 };
 
-FrustumOrtho.prototype.draw = function(){
 
-}
+
+module.exports = FrustumOrtho;
