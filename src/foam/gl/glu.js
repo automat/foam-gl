@@ -69,7 +69,17 @@ module.exports = {
         if (Math.abs(eyex - targetx) < 0.000001 &&
             Math.abs(eyey - targety) < 0.000001 &&
             Math.abs(eyez - targetz) < 0.000001) {
-            return m.identity();
+
+            m[ 0] = 1;
+            m[ 1] = m[ 2] = m[ 3] = 0;
+            m[ 5] = 1;
+            m[ 4] = m[ 6] = m[ 7] = 0;
+            m[10] = 1;
+            m[ 8] = m[ 9] = m[11] = 0;
+            m[15] = 1;
+            m[12] = m[13] = m[14] = 0;
+
+            return;
         }
 
         z0 = eyex - targetx;
@@ -123,7 +133,5 @@ module.exports = {
         m[13] = -(y0 * eyex + y1 * eyey + y2 * eyez);
         m[14] = -(z0 * eyex + z1 * eyey + z2 * eyez);
         m[15] = 1;
-
-        return m;
     }
 };
