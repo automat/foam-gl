@@ -21,8 +21,7 @@ Vec3.prototype.set3f = function(x,y,z){
 };
 
 Vec3.prototype.copy = function(v){
-    v = v || new Vec3();
-    return v.set3f(this.x,this.y,this.z);
+    return (v || new Vec3()).set3f(this.x,this.y,this.z);
 };
 
 Vec3.prototype.add = function(v){
@@ -185,6 +184,17 @@ Vec3.prototype.yz = function(){
     return new Vec2(this.y,this.x);
 };
 
+Vec3.prototype.toFloat32Array = function(arr,offset){
+    if(!arr && !offset){
+        return new Float32Array([this.x,this.y,this.z]);
+    }
+    offset = offset || 0;
+    arr[offset  ] = this.x;
+    arr[offset+1] = this.y;
+    arr[offset+2] = this.z;
+    return arr;
+};
+
 Vec3.xAxis = function(){
     return new Vec3(1,0,0);
 };
@@ -204,6 +214,8 @@ Vec3.zero = function(){
 Vec3.one = function(){
     return new Vec3(1,1,1);
 };
+
+
 
 
 module.exports = Vec3;
