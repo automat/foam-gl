@@ -89,16 +89,6 @@ App.prototype.update = function () {
     glDraw.drawGrid(gridSize,gridSubDivs);
     glDraw.drawPivot();
 
-    /*
-    // test begin
-    glTrans.pushMatrix();
-    glTrans.rotate3f(t,0,0);
-    glTrans.translate3f(Math.sin(t),0,0);
-    glTrans.scale1f(0.45);
-    glDraw.drawCubeColored(0.35);
-    glTrans.popMatrix();
-    // test end
-    */
     glTrans.pushMatrix();
     glTrans.translate3f(Math.cos(-t) * 0.5, 0.5, Math.sin(-t) * 0.5);
     glTrans.rotate3f(Math.sin(t) * Math.PI ,0,Math.sin(t));

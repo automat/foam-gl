@@ -2,7 +2,6 @@ var _gl = require('./gl');
 
 var bound_0 = false;
 
-
 function Program(vertexShader, fragmentShader) {
     var gl = this._gl = _gl.get();
 
