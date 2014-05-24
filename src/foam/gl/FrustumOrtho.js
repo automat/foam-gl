@@ -13,7 +13,7 @@ function FrustumOrtho(){
     while(++i < l){
         planeNormals[i] = new Vec3();
         planePoints[i] = new Vec3();
-        planeDists[i] = new Vec3();
+        planeDists[i] = 0.0;
     }
 
     this._vec3Temp0 = new Vec3();
@@ -31,7 +31,6 @@ function FrustumOrtho(){
         near[i] = new Vec3();
         far[i] = new Vec3();
     }
-
 
     glDraw = glDraw || _glDraw.get();
 }
@@ -65,8 +64,8 @@ FrustumOrtho.prototype._calcPlane = function(index,v0,v1,v2){
     var aux0 = v0.subbed(v1),
         aux1 = v2.subbed(v1);
 
-    var normal = this._planeNormals[index] = aux1.cross(aux0).normalize(),
-        point = this._planePoints[index] = v1.copy();
+    var normal = this._planeNormals[index].set(aux1.cross(aux0).normalize()),
+        point = this._planePoints[index].set(v1);
 
     this._planeDists[index] = normal.dot(point) * -1;
 };
@@ -76,9 +75,11 @@ FrustumOrtho.prototype.set = function(camera, frustumScale){
 
     var eye = camera.getEye(this._eye);
     var frustum = camera.getFrustum(this._frustumTemp);
-    var frustumLeft = frustum[0],
+
+    //  TODO: Fix left/right switch
+    var frustumLeft = frustum[2],
         frustumTop = frustum[1],
-        frustumRight = frustum[2],
+        frustumRight = frustum[0],
         frustumBottom = frustum[3],
         frustumNear = frustum[4] * frustumScale,
         frustumFar = frustum[5] * frustumScale;
@@ -123,15 +124,24 @@ FrustumOrtho.prototype.set = function(camera, frustumScale){
     this._calcPlane(3,f1,f2,n2);
     this._calcPlane(4,n0,n1,n2);
     this._calcPlane(5,f1,f0,f3);
+};
 
+FrustumOrtho.prototype.containsArr = function(arr,index){
+    index = index || 0;
+    return this.contains3f(arr[index],arr[index + 1],arr[index + 2]); //? index : -1;
 };
 
 FrustumOrtho.prototype.contains = function(point){
+    return this.contains3f(point.x,point.y,point.z);
+};
+
+FrustumOrtho.prototype.contains3f = function(x,y,z){
+    var tempPoint = this._vec3Temp0.set3f(x,y,z);
     var planeDists = this._planeDists,
         planeNormals = this._planeNormals;
     var i = -1;
     while(++i < 6){
-        if(planeDists[i] + planeNormals[i].dot(point) < 0){
+        if(planeDists[i] + planeNormals[i].dot(tempPoint) < 0){
             return false;
         }
     }
