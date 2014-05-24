@@ -56,11 +56,11 @@ glTrans.setMatrixMode = function(mode){
 };
 
 glTrans.getModelViewMatrixF32 = function(matrix){
-    return this._matrixModelView.toFloat32Array(matrix);
+    return this._matrixModelView.toFloat32Array(matrix || this._matrixF32Temp0);
 };
 
 glTrans.getProjectionMatrixF32 = function(matrix){
-    return this._matrixProjection.toFloat32Array(matrix);
+    return this._matrixProjection.toFloat32Array(matrix || this._matrixF32Temp0);
 };
 
 glTrans.getMatrixF32 = function(matrix){
@@ -123,13 +123,11 @@ glTrans.popMatrices = function(){
 //
 
 glTrans.multMatrix = function(matrix){
-    var _matrix = this._matrixMode == glTrans.MODELVIEW ? this._matrixModelView : this._matrixProjection;
-    Matrix44.mult(matrix,_matrix,_matrix);
-    //_matrix.multiplied(matrix,_matrix);
+    (this._matrixMode == glTrans.MODELVIEW ? this._matrixModelView : this._matrixProjection).mult(matrix);
 };
 
 glTrans.translate = function (v) {
-    this.translate3f(v[0],v[1],v[2]);
+    this.translate3f(v.x, v.y, v.z);
 };
 
 glTrans.translate3f = function (x, y, z) {
