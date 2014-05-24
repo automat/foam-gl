@@ -143,7 +143,7 @@ CameraAbstract.prototype.getW = function(v){
 
 // draw orthonormal frame
 
-CameraAbstract.prototype.debugDraw = function(){
+CameraAbstract.prototype.draw = function(){
     var trans = Matrix44.createRotationOnB(this._w,this._v,this._u);
     var color = glDraw.getColor();
 
@@ -158,5 +158,6 @@ CameraAbstract.prototype.debugDraw = function(){
 
     glDraw.color(color);
 };
+
 
 module.exports = CameraAbstract;

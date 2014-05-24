@@ -44,13 +44,6 @@ CameraPersp.prototype.updateProjectionMatrix = function () {
     this._projectionMatrixUpdated = true;
 };
 
-CameraPersp.prototype.toString = function () {
-    return '{position= ' + Vec3.toString(this.position) +
-            ', target= ' + Vec3.toString(this._target) +
-        ', up= ' + Vec3.toString(this._up) + '}'
-};
-
-
 CameraPersp.prototype.setAspectRatio = function (aspectRatio) {
     this._aspectRatioLast = aspectRatio;
     this._projectionMatrixUpdated = false;

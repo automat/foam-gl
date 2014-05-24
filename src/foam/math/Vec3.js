@@ -215,6 +215,10 @@ Vec3.one = function(){
     return new Vec3(1,1,1);
 };
 
+Vec3.prototype.toString = function(){
+    return '[' + this.x + ',' + this.y + ',' + this.z + ']';
+};
+
 
 
 
