@@ -85,7 +85,9 @@ function App() {
 
 
 
-     App.__instance = this;
+    App.__instance = this;
+
+    window.addEventListener('resize',this.onWindowResize.bind(this));
 
     //
     //
@@ -167,7 +169,7 @@ App.prototype.setFullscreen = function(bool){
 
 App.prototype.setFullWindow = function(bool){
     this._fullWindow = bool;
-}
+};
 
 App.prototype._updateCanvasSize = function(){
     var canvas = this._canvas,
