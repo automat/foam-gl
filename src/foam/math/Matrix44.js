@@ -213,7 +213,7 @@ Matrix44.prototype.rotateOnB = function(u,v,w){
     m[ 9] = w.y;
     m[10] = w.z;
 
-    return m;
+    return this;
 };
 
 Matrix44.createScale = function(sx, sy, sz, mat44){
