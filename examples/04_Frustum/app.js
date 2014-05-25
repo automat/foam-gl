@@ -6,15 +6,11 @@ var Foam         = require('../../src/foam/foam.js'),
     Program      = Foam.Program,
     CameraPersp  = Foam.CameraPersp,
     CameraOrtho  = Foam.CameraOrtho,
-    Ease         = Foam.Ease,
-    Texture      = Foam.Texture;
-
-var Fbo = Foam.Fbo;
-var FrustumOrtho = Foam.FrustumOrtho;
+    FrustumPersp = Foam.FrustumPersp,
+    FrustumOrtho = Foam.FrustumOrtho;
 
 var gl;
 var shaderSource;
-var textureSource;
 
 function App() {
     Foam.Application.apply(this, arguments);
@@ -34,11 +30,15 @@ App.prototype.setup = function () {
     var program = this._program = new Program(shaderSource);
     program.bind();
 
+    //
+    //  Camear
+    //
+
     var windowAspectRatio = this.getWindowAspectRatio();
     var camera;
 
     camera = this._cameraPersp = new CameraPersp();
-    camera.setPerspective(45.0,windowAspectRatio,0.0125,7);
+    camera.setPerspective(35.0,windowAspectRatio,0.0125,4);
     camera.lookAt(Vec3.one(), Vec3.zero());
     camera.updateMatrices();
 
@@ -53,13 +53,15 @@ App.prototype.setup = function () {
     camera.lookAt(Vec3.one(),Vec3.zero());
     camera.updateMatrices();
 
+    this._cameraSelected = camera;
     this._frustumOrtho = new FrustumOrtho();
+    this._frustumPersp = new FrustumPersp();
 
     //
     //  test obj
     //
 
-    var num = 1000;
+    var num = 3000;
     this._pointBufferVertex = gl.createBuffer();
     this._pointBufferColor = gl.createBuffer();
     this._pointBufferColorData = new Float32Array(num * 4);
@@ -69,9 +71,9 @@ App.prototype.setup = function () {
     var i = -1, j;
     while(++i < num){
         j = i * 3;
-        vertexData[j  ] = ( -1 + Math.random() * 2) * 2;
-        vertexData[j+1] = ( -1 + Math.random() * 2) * 2;
-        vertexData[j+2] = ( -1 + Math.random() * 2) * 2;
+        vertexData[j  ] = ( -1 + Math.random() * 2);
+        vertexData[j+1] = ( -1 + Math.random() * 2);
+        vertexData[j+2] = ( -1 + Math.random() * 2);
     }
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._pointBufferVertex);
@@ -89,38 +91,49 @@ App.prototype.update = function () {
     gl.clearColor(0.1,0.1,0.1,1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    var camera = this._camera;
-    var frustumOtho = this._frustumOrtho;
+    var frustumOrtho = this._frustumOrtho,
+        frustumPersp = this._frustumPersp;
 
-    glTrans.setMatricesCamera(camera);
-
+    var camera;
     camera = this._cameraPersp;
-    camera.setEye3f(Math.cos(t * 0.5) * 2, Math.sin(t * 0.5), Math.sin(t * 0.5) * 2);
+    camera.lookAt(new Vec3(Math.cos(t) * 2,0,Math.sin(t) * 2), new Vec3(Math.cos(t),Math.cos(t),Math.sin(t)));
     camera.updateMatrices();
-
+    frustumPersp.set(camera);
 
     var windowAspectRatio = this.getWindowAspectRatio();
     var zoom = 0.5 + (0.5 + Math.sin(t) * 0.5) * 0.5;
 
     camera = this._cameraOrtho;
     camera.setOrtho(-windowAspectRatio * zoom, windowAspectRatio * zoom, -zoom, zoom,-1,3);
-    camera.setEye3f(Math.cos(t),Math.sin(t),Math.sin(t));
+    camera.lookAt(new Vec3(Math.cos(t),Math.sin(t),Math.sin(t)), new Vec3(0,Math.sin(t*0.5),0));
     camera.updateMatrices();
+    frustumOrtho.set(camera);
 
-    frustumOtho.set(camera);
-    //glTrans.setMatricesCamera(camera);
+    glTrans.setMatricesCamera(this._cameraSelected);
+
 
     var vertexData = this._pointBufferVertexData,
         colorData  = this._pointBufferColorData;
 
-    var i = -1, l = vertexData.length / 3 , j;
+    var x, y, z;
+
+    var i = -1, l = vertexData.length / 3 , j ,k;
     while(i++ < l){
-        j = i * 4;
-        if(frustumOtho.containsArr(vertexData,i * 3)){
-            colorData[j] = colorData[j+1] = colorData[j+2] = colorData[j+3] = 1.0;
-        } else {
-            colorData[j  ] = colorData[j+3] = 1.0;
-            colorData[j+1] = colorData[j+2] = 0.0;
+        j = i * 3;
+        k = i * 4;
+
+        colorData[k  ] = colorData[k+3] = 1.0;
+        colorData[k+1] = colorData[k+2] = 0.0;
+
+        x = vertexData[j  ];
+        y = vertexData[j+1];
+        z = vertexData[j+2];
+
+        if(frustumOrtho.containsPoint3f(x,y,z)){
+            colorData[k+2] = 1.0;
+        }
+        if(frustumPersp.containsPoint3f(x,y,z)){
+            colorData[k+1] = 1.0;
         }
     }
 
@@ -133,10 +146,21 @@ App.prototype.update = function () {
 
 App.prototype.drawScene = function(){
     glDraw.drawPivot(3);
+    glDraw.drawCubeColored(0.125);
+
+    var cameraSelected = this._cameraSelected;
+    var cameraOrtho = this._cameraOrtho,
+        cameraPersp = this._cameraPersp;
 
     this._frustumOrtho.draw();
-    this._cameraOrtho.draw();
-    this._cameraPersp.draw();
+    this._frustumPersp.draw();
+
+    if(cameraSelected != cameraOrtho){
+        cameraOrtho.draw();
+    }
+    if(cameraSelected != cameraPersp){
+        cameraPersp.draw();
+    }
 
     var program = this._program;
 
@@ -157,6 +181,10 @@ App.prototype.drawScene = function(){
     gl.enableVertexAttribArray(program[Program.ATTRIB_TEXCOORD]);
 };
 
+App.prototype.onCameraSelected = function(index){
+    index = index.srcElement.selectedIndex;
+    this._cameraSelected = index == 0 ? this._camera : index == 1 ? this._cameraOrtho : this._cameraPersp;
+};
 
 
 
@@ -164,8 +192,31 @@ App.prototype.drawScene = function(){
 var app;
 
 window.addEventListener('load',function(){
+
+
     System.loadFile('../examples/04_Frustum/program.glsl',function(data){
         shaderSource = data;
         app = new App();
+
+        var selectCamera = document.createElement('select');
+            selectCamera.style.width = '150px';
+            selectCamera.style.position = 'absolute';
+            selectCamera.style.left = '20px';
+            selectCamera.style.top = '20px';
+            selectCamera.addEventListener('change',app.onCameraSelected.bind(app));
+
+        var options = ['Camera Scene', 'Camera Ortho', 'Camera Persp'];
+        var i = -1, l = options.length, option;
+        while(++i < l){
+            option = document.createElement('option');
+            option.innerHTML = options[i];
+            selectCamera.appendChild(option);
+        }
+
+
+        document.body.appendChild(selectCamera);
     });
+
+
+
 });

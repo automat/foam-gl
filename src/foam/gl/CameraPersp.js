@@ -6,7 +6,7 @@ var CameraAbstract = require('./CameraAbstract'),
 function CameraPersp() {
     CameraAbstract.call(this);
 
-    this._aspectRatioLast = 0;
+    this._aspectRatio = 0;
 }
 
 CameraPersp.prototype = Object.create(CameraAbstract.prototype);
@@ -16,7 +16,7 @@ CameraPersp.prototype.setPerspective = function (fov, windowAspectRatio, near, f
     this._near = near;
     this._far = far;
 
-    this._aspectRatioLast = windowAspectRatio;
+    this._aspectRatio = windowAspectRatio;
 
     this.updateProjectionMatrix();
 };
@@ -40,12 +40,36 @@ CameraPersp.prototype.updateProjectionMatrix = function () {
     if (this._projectionMatrixUpdated){
         return;
     }
-    glu.perspective(this.projectionMatrix.m, this._fov, this._aspectRatioLast, this._near, this._far);
+    var aspectRatio = this._aspectRatio,
+        fov = this._fov,
+        near = this._near,
+        far = this._far;
+
+    var fov_2 = Math.tan(fov * Math.PI / 180 * 0.5);
+
+    var frustumTop = this._frustumTop = near * fov_2,
+        frustumRight = this._frustumRight = frustumTop * aspectRatio;
+    this._frustumBottom = frustumTop * -1;
+    this._frustumLeft = frustumRight * -1;
+
+    var f = 1.0 / fov_2,
+        nf = 1.0 / (near - far);
+
+    var m = this.projectionMatrix.m;
+
+    m[ 1] = m[ 2] = m[ 3] = m[ 4] = m[ 6] = m[ 7] = m[ 8] = m[ 9] = m[12] = m[13] = m[15] = 0;
+
+    m[ 0] = f / aspectRatio;
+    m[ 5] = f;
+    m[10] = (far + near) * nf;
+    m[11] = -1;
+    m[14] = (2 * far * near) * nf;
+
     this._projectionMatrixUpdated = true;
 };
 
 CameraPersp.prototype.setAspectRatio = function (aspectRatio) {
-    this._aspectRatioLast = aspectRatio;
+    this._aspectRatio = aspectRatio;
     this._projectionMatrixUpdated = false;
 };
 

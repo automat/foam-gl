@@ -4,19 +4,19 @@ var CameraAbstract = require('./CameraAbstract'),
 function CameraOrtho() {
     CameraAbstract.call(this);
 
-    this._frustumLeft = this._leftInit = null;
-    this._frustumRight = this._rightInit = null;
-    this._frustumBottom = this._bottomInit = null;
-    this._frustumTop = this._topInit = null;
+    this._frustumLeft = this._frustumLeftInit = null;
+    this._frustumRight = this._frustumRightInit = null;
+    this._frustumBottom = this._frustumBottomInit = null;
+    this._frustumTop = this._frustumTopInit = null;
 }
 
 CameraOrtho.prototype = Object.create(CameraAbstract.prototype);
 
 CameraOrtho.prototype.setOrtho = function (left, right, bottom, top, near, far) {
-    this._frustumLeft = this._leftInit = left;
-    this._frustumRight = this._rightInit = right;
-    this._frustumBottom = this._bottomInit = bottom;
-    this._frustumTop = this._topInit = top;
+    this._frustumLeft = this._frustumLeftInit = left;
+    this._frustumRight = this._frustumRightInit = right;
+    this._frustumBottom = this._frustumBottomInit = bottom;
+    this._frustumTop = this._frustumTopInit = top;
     this._near = near;
     this._far = far;
     this._projectionMatrixUpdated = false;
@@ -45,10 +45,10 @@ CameraOrtho.prototype.updateProjectionMatrix = function () {
 };
 
 CameraOrtho.prototype.setZoom = function (zoom) {
-    this._frustumLeft = this._leftInit * zoom;
-    this._frustumRight = this._rightInit * zoom;
-    this._frustumBottom = this._bottomInit * zoom;
-    this._frustumTop = this._topInit * zoom;
+    this._frustumLeft = this._frustumLeftInit * zoom;
+    this._frustumRight = this._frustumRightInit * zoom;
+    this._frustumBottom = this._frustumBottomInit * zoom;
+    this._frustumTop = this._frustumTopInit * zoom;
     this._projectionMatrixUpdated = false;
     this.updateProjectionMatrix();
 };

@@ -57,6 +57,7 @@ module.exports = {
     CameraPersp: require('./gl/CameraPersp'),
     CameraOrtho: require('./gl/CameraOrtho'),
     FrustumOrtho : require('./gl/FrustumOrtho'),
+    FrustumPersp : require('./gl/FrustumPersp'),
 
     Texture: require('./gl/Texture'),
     Fbo: require('./gl/Fbo'),
