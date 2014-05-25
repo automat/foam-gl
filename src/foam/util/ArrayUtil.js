@@ -36,6 +36,7 @@ var ArrayUtil = {
 
     appendArray: function (a, b) {
         a.push.apply(a, b);
+        return a;
     },
 
     toArray: function (a) {
