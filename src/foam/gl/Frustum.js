@@ -7,8 +7,8 @@ function Frustum(){
     var frustumTemp = this._frustumTemp = new Array(6);
 
     var planeNormals = this._planeNormals = new Array(6),
-        planePoints = this._planePoints  = new Array(6),
-        planeDists  = this._planeDists   = new Array(6);
+        planePoints = this._planePoints = new Array(6),
+        planeDists  = this._planeDists = new Array(6);
 
     var i = -1, l = 6;
     while(++i < l){
@@ -81,12 +81,13 @@ Frustum.prototype.containsPoint = function(point){
 };
 
 Frustum.prototype.containsPoint3f = function(x,y,z){
-    var tempPoint = this._vec3Temp.set3f(x,y,z);
+    var planeNormal;
     var planeDists = this._planeDists,
         planeNormals = this._planeNormals;
     var i = -1;
     while(++i < 6){
-        if(planeDists[i] + planeNormals[i].dot(tempPoint) < 0){
+        planeNormal = planeNormals[i];
+        if(planeDists[i] + (planeNormal.x * x + planeNormal.y * y +planeNormal.z * z) < 0){
             return false;
         }
     }

@@ -13,7 +13,6 @@ FrustumOrtho.prototype.set = function(camera, frustumScale){
     var eye = camera.getEye(this._eye);
     var frustum = camera.getFrustum(this._frustumCamera);
 
-    //  TODO: Fix left/right switch
     var frustumLeft = frustum[2],
         frustumTop = frustum[1],
         frustumRight = frustum[0],
