@@ -47,6 +47,13 @@ function glDraw_Internal(){
     this._matrixTemp1 = new Matrix44();
     this._matrixTemp2 = new Matrix44();
     this._matrixF32   = new Float32Array(16);
+    this._vec3Temp0 = new Vec3();
+    this._vec3Temp1 = new Vec3();
+    this._vec3Temp2 = new Vec3();
+    this._vec3Temp3 = new Vec3();
+    this._vec3Temp4 = new Vec3();
+    this._vec3Temp5 = new Vec3();
+    this._up = Vec3.yAxis();
 
 
     var buffer, data, num;
@@ -78,7 +85,7 @@ function glDraw_Internal(){
     ArrayUtil.appendArray(data, ArrayUtil.createArray(numHeadVertices,0,0,0));
     ArrayUtil.appendArray(data, ArrayUtil.createArray(numHeadVertices,0,0,0));
 
-    data = this._pivotVboVertices = new Float32Array(data);
+    data = this._bufferPivotVertex = new Float32Array(data);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, data.byteLength, gl.DYNAMIC_DRAW);
@@ -113,7 +120,7 @@ function glDraw_Internal(){
     ArrayUtil.appendArray(data,ElementArrayUtil.genTriangleFan(38,38 + 16));
     data = new Uint16Array(data);
 
-    buffer = this._pivotIndexBuffer = gl.createBuffer();
+    buffer = this._bufferPivotIndex = gl.createBuffer();
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
@@ -352,11 +359,36 @@ function glDraw_Internal(){
     this._linesArrTemp = [];
 
     /*--------------------------------------------------------------------------------------------*/
+    //  Points
+    /*--------------------------------------------------------------------------------------------*/
+
+    this._bufferPoints = gl.createBuffer();
+    this._bufferPointsVertex = new Float32Array(0);
+    this._bufferPointsColor = new Float32Array(0);
+    this._pointsColor = new Color();
+    this._pointsArrTemp = [];
+
+    /*--------------------------------------------------------------------------------------------*/
     //  Vector
     /*--------------------------------------------------------------------------------------------*/
 
-    this._vectorDirection = new Vec3();
-    this._vectorLength = 0;
+    this._vectorAxisLength = null;
+    this._vectorHeadLength = null;
+    this._vectorHeadRadius = null;
+    this._vectorHeadVertex = new Float32Array(numHeadVertices * 3);
+
+    this._bufferVectorVertex = gl.createBuffer();
+    this._bufferVectorVertexData = new Float32Array(6 + this._vectorHeadVertex.length);
+
+    buffer = this._bufferVectorColor = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(ArrayUtil.createArray(numHeadVertices + 2,1,1,1,1)),gl.STATIC_DRAW);
+
+    buffer = this._bufferVectorIndex = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,buffer);
+    data = ElementArrayUtil.genTriangleFan(2,2+16);
+    this._bufferVectorIndexDataLength = data.length;
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(data),gl.STATIC_DRAW);
 
     /*--------------------------------------------------------------------------------------------*/
     //  Init
@@ -367,21 +399,252 @@ function glDraw_Internal(){
 }
 
 /*--------------------------------------------------------------------------------------------*/
-//  Quad
+//  Vector
 /*--------------------------------------------------------------------------------------------*/
 
+glDraw_Internal.prototype.drawVector = function(v0,v1){
+    this.drawVectorf(v0.x,v0.y,v0.z,v1.x,v1.y,v1.z);
+};
 
+glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1, headLength, headRadius){
+    if(x0 == x1 && y0 == y1 && z0 == z1){
+        return;
+    }
+
+    headLength = ObjectUtil.isUndefined(headLength) ? 0.125 : headLength;
+    headRadius = ObjectUtil.isUndefined(headRadius) ? 0.075 : headRadius;
+
+
+    this._updateProgramLocations();
+
+    var gl = this._gl;
+    var attribLocationVertexPos    = this._attribLocationVertexPos,
+        attribLocationVertexNormal = this._attribLocationVertexNormal,
+        attribLocationVertexColor  = this._attribLocationVertexColor,
+        attribLocationTexcoord     = this._attribLocationTexcoord;
+
+    if(attribLocationVertexPos == -1){
+        return;
+    }
+
+    if(attribLocationVertexNormal != -1){
+        gl.disableVertexAttribArray(attribLocationVertexNormal);
+    }
+    if(attribLocationTexcoord != -1){
+        gl.disableVertexAttribArray(attribLocationTexcoord);
+    }
+
+    var prevABuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+    var prevEBuffer = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
+    var abuffer = this._bufferVectorVertex;
+    var ebuffer = this._bufferVectorIndex;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER,abuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ebuffer);
+
+
+    var start = this._vec3Temp0.set3f(x0,y0,z0),
+        end   = this._vec3Temp1.set3f(x1,y1,z1);
+    var axis  = end.subbed(start,this._vec3Temp2),
+        axisLen = axis.length();
+
+    var vertices = this._bufferVectorVertexData,
+        headVertices = this._vectorHeadVertex;
+
+    if(this._vectorHeadLength != headLength ||
+       this._vectorHeadRadius != headRadius){
+        this._genHead(headLength,headRadius,headVertices,0);
+        this._vectorHeadLength = headLength;
+        this._vectorHeadRadius = headRadius;
+    }
+
+    if(this._vectorAxisLength != axisLen ||
+       vertices[0] != x0 ||
+       vertices[1] != y0 ||
+       vertices[2] != z0 ||
+       vertices[3] != x1 ||
+       vertices[4] != y1 ||
+       vertices[5] != z1){
+
+        vertices[0] = x0;
+        vertices[1] = y0;
+        vertices[2] = z0;
+        vertices[3] = x1;
+        vertices[4] = y1;
+        vertices[5] = z1;
+
+        vertices.set(headVertices,6);
+        axis.normalize();
+
+        var left = this._up.crossed(axis, this._vec3Temp3).normalize(),
+            up   = axis.crossed(left, this._vec3Temp4).normalize();
+
+        if(start.x == end.x && start.z == end.z){
+            if(start.y > end.y){
+                left.set3f(0,0,1);
+                up.set3f(1,0,0);
+                axis.set3f(0,-1,0);
+            } else {
+                left.set3f(1,0,0);
+                up.set3f(0,0,1);
+                axis.set3f(0,1,0);
+            }
+        }
+
+        end.set(axis).scale(axisLen - headLength);
+
+        var matrix = this._matrixTemp0;
+        matrix.identity();
+        matrix.rotateOnB(left,up,axis);
+        matrix.translate(end.x,end.y,end.z);
+
+        var i = 6, l = vertices.length;
+        while(i < l){
+            matrix.multVec3AI(vertices,i);
+            i += 3;
+        }
+
+        gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.DYNAMIC_DRAW);
+
+        this._vectorAxisLength = axisLen;
+    }
+
+    gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,0);
+
+    if(attribLocationVertexColor != -1){
+        abuffer = this._bufferVectorColor;
+        gl.bindBuffer(gl.ARRAY_BUFFER,abuffer);
+        gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,0);
+    }
+
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+
+    gl.drawArrays(gl.LINES,0,2);
+    gl.drawElements(gl.TRIANGLE_FAN,this._bufferVectorIndexDataLength,gl.UNSIGNED_SHORT,0);
+
+    if(attribLocationVertexNormal != -1){
+        gl.enableVertexAttribArray(attribLocationVertexNormal);
+    }
+
+    if(attribLocationTexcoord != -1){
+        gl.enableVertexAttribArray(attribLocationTexcoord);
+    }
+
+    if(ebuffer != prevEBuffer){
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, prevEBuffer);
+    }
+
+    if(abuffer != prevABuffer){
+        gl.bindBuffer(gl.ARRAY_BUFFER, prevABuffer);
+    }
+};
 
 /*--------------------------------------------------------------------------------------------*/
-//  Line strip
+//  Points
 /*--------------------------------------------------------------------------------------------*/
 
-glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1){
+glDraw_Internal.prototype.drawPoints = function(points){
+    var args = arguments.length == 1 ? arguments[0] : arguments,
+        arr  = this._pointsArrTemp;
+    var l = args.length;
+    arr.length = l * 3;
+
+    var i = -1 , i3, vec3;
+
+    while (++i < l) {
+        vec3 = args[i];
+        i3   = i * 3;
+
+        arr[i3  ] = vec3.x;
+        arr[i3+1] = vec3.y;
+        arr[i3+2] = vec3.z;
+    }
+
+    this.drawPointsf(arr);
+};
+
+glDraw_Internal.prototype.drawPointsf = function(points){
+    this._updateProgramLocations();
+
+    var gl = this._gl;
+    var attribLocationVertexPos    = this._attribLocationVertexPos,
+        attribLocationVertexNormal = this._attribLocationVertexNormal,
+        attribLocationVertexColor  = this._attribLocationVertexColor,
+        attribLocationTexcoord     = this._attribLocationTexcoord;
+
+    if(attribLocationVertexPos == -1){
+        return;
+    }
+
+    if(attribLocationVertexNormal != -1){
+        gl.disableVertexAttribArray(attribLocationVertexNormal);
+    }
+    if(attribLocationTexcoord != -1){
+        gl.disableVertexAttribArray(attribLocationTexcoord);
+    }
+
+    var prevABuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
+    var buffer = this._bufferPoints;
 
 
+    if(buffer != prevABuffer){
+        gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+    }
 
+    if(this._bufferPointsVertex.length >= points.length){
+        this._bufferPointsVertex.set(points);
 
+    } else {
+        this._bufferPointsVertex = new Float32Array(points);
+        this._bufferPointsColor  = new Float32Array(points.length / 3 * 4);
+    }
 
+    var vertices = this._bufferPointsVertex;
+    var colors  = this._bufferPointsColor;
+
+    gl.bufferData(gl.ARRAY_BUFFER, vertices.byteLength + colors.byteLength, gl.STREAM_DRAW);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertices);
+
+    gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,0);
+
+    var color = this._color,
+        pointsColor = this._pointsColor;
+
+    if(attribLocationVertexColor != -1){
+        if(!pointsColor.equals(color)){
+            var i = 0;
+            while(i < colors.length){
+                colors[i  ] = color.r;
+                colors[i+1] = color.g;
+                colors[i+2] = color.b;
+                colors[i+3] = color.a;
+
+                i+=4;
+            }
+            pointsColor.set(color);
+        }
+
+        gl.bufferSubData(gl.ARRAY_BUFFER, vertices.byteLength, colors);
+        gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,vertices.byteLength);
+    }
+
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+
+    gl.drawArrays(gl.POINTS,0,points.length / 3);
+
+    if(attribLocationVertexNormal != -1){
+        gl.enableVertexAttribArray(attribLocationVertexNormal);
+    }
+
+    if(attribLocationTexcoord != -1){
+        gl.enableVertexAttribArray(attribLocationTexcoord);
+    }
+
+    if(buffer != prevABuffer){
+        gl.bindBuffer(gl.ARRAY_BUFFER, prevABuffer);
+    }
 };
 
 /*--------------------------------------------------------------------------------------------*/
@@ -536,13 +799,13 @@ glDraw_Internal.prototype.drawLineStripf = function(lineStrip){
     gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,0);
 
     var color4f = this._color,
-        lineColor4f = this._lineStripColor4f;
+        lineStripColor = this._lineStripColor;
 
     if(attribLocationVertexColor != -1){
-        if(lineColor4f[0] != color4f.r ||
-           lineColor4f[1] != color4f.g ||
-           lineColor4f[2] != color4f.b ||
-           lineColor4f[3] != color4f.a){
+        if(lineStripColor[0] != color4f.r ||
+           lineStripColor[1] != color4f.g ||
+           lineStripColor[2] != color4f.b ||
+           lineStripColor[3] != color4f.a){
 
             var i = 0;
             while(i < color.length){
@@ -555,10 +818,10 @@ glDraw_Internal.prototype.drawLineStripf = function(lineStrip){
 
             gl.bufferSubData(gl.ARRAY_BUFFER, vertex.byteLength, color);
 
-            lineColor4f[0] = color4f.r;
-            lineColor4f[1] = color4f.g;
-            lineColor4f[2] = color4f.b;
-            lineColor4f[3] = color4f.a;
+            lineStripColor[0] = color4f.r;
+            lineStripColor[1] = color4f.g;
+            lineStripColor[2] = color4f.b;
+            lineStripColor[3] = color4f.a;
         }
         gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,vertex.byteLength);
     }
@@ -1030,7 +1293,7 @@ glDraw_Internal.prototype._updatePivotGeom = function(axisLength, headLength, he
     var axis_head_length = axisLength - headLength;
 
     var gl       = this._gl;
-    var vertices = this._pivotVboVertices;
+    var vertices = this._bufferPivotVertex;
 
     var i,l;
 
@@ -1132,7 +1395,7 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
     var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
     var prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
     var vbo = this._pivotVertexBuffer;
-    var ibo = this._pivotIndexBuffer;
+    var ibo = this._bufferPivotIndex;
 
     gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ibo);
@@ -1165,7 +1428,7 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
 /*--------------------------------------------------------------------------------------------*/
 
 glDraw_Internal.prototype._genHead = function(length, radius, arr, offset){
-    offset = !offset ? 0 : offset;
+    offset = offset || 0;
 
     var numSteps = 15;
     var step = (Math.PI * 2) / (numSteps - 1);
