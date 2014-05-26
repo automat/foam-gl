@@ -578,6 +578,8 @@ glDraw_Internal.prototype.drawPoints = function(points){
 glDraw_Internal.prototype.drawPointsf = function(points){
     this._updateProgramLocations();
 
+
+
     var gl = this._gl;
     var attribLocationVertexPos    = this._attribLocationVertexPos,
         attribLocationVertexNormal = this._attribLocationVertexNormal,
@@ -603,7 +605,9 @@ glDraw_Internal.prototype.drawPointsf = function(points){
         gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     }
 
-    if(this._bufferPointsVertex.length >= points.length){
+    var prevLength = this._bufferPointsVertex.length;
+
+    if(prevLength >= points.length){
         this._bufferPointsVertex.set(points);
 
     } else {
@@ -623,7 +627,8 @@ glDraw_Internal.prototype.drawPointsf = function(points){
         pointsColor = this._pointsColor;
 
     if(attribLocationVertexColor != -1){
-        if(!pointsColor.equals(color)){
+        if(prevLength != vertices.length ||
+           !pointsColor.equals(color)){
             var i = 0;
             while(i < colors.length){
                 colors[i  ] = color.r;
@@ -1058,20 +1063,32 @@ glDraw_Internal.prototype.drawRectStroked = function(width,height){
 /*--------------------------------------------------------------------------------------------*/
 
 glDraw_Internal.prototype._updateCubeGeom = function(){
-    var color4f = this._color,
-        color   = this._cubeColorBufferData;
+    var color = this._color,
+        colorCube = this._cubeColorBufferData;
 
-    if( color[0] == color4f[0] &&
-        color[1] == color4f[1] &&
-        color[2] == color4f[2] &&
-        color[3] == color4f[3]){
+
+
+    if( colorCube[0] == color.r &&
+        colorCube[1] == color.g &&
+        colorCube[2] == color.b &&
+        colorCube[3] == color.a){
         return;
     }
 
-    ArrayUtil.fillArrayObj4(color,0,color4f);
+    colorCube[ 0] = colorCube[ 4] = colorCube[ 8] = colorCube[12] = color.r;
+    colorCube[ 1] = colorCube[ 5] = colorCube[ 9] = colorCube[13] = color.g;
+    colorCube[ 2] = colorCube[ 6] = colorCube[10] = colorCube[14] = color.b;
+    colorCube[ 3] = colorCube[ 7] = colorCube[11] = colorCube[15] = color.a;
+    colorCube[16] = colorCube[20] = colorCube[24] = colorCube[28] = color.r;
+    colorCube[17] = colorCube[21] = colorCube[25] = colorCube[29] = color.g;
+    colorCube[18] = colorCube[22] = colorCube[26] = colorCube[30] = color.b;
+    colorCube[19] = colorCube[23] = colorCube[27] = colorCube[31] = color.a;
+
+
+
 
     var gl = this._gl;
-    gl.bufferSubData(gl.ARRAY_BUFFER,0,color);
+    gl.bufferSubData(gl.ARRAY_BUFFER,0,colorCube);
 };
 
 glDraw_Internal.prototype._drawCube_Internal = function(size,drawMode){
@@ -1506,11 +1523,15 @@ glDraw_Internal.prototype._updateProgramLocations = function(){
 
 
 glDraw_Internal.prototype.colorf = function(r,g,b,a){
-    this._color.setf(r, g || 0, b || 0, a || 1);
+    this._color.setf(r, g || 0, b || 0, ObjectUtil.isUndefined(a) ? 1.0 : a);
 };
 
 glDraw_Internal.prototype.color = function(color){
     this._color.set(color);
+};
+
+glDraw_Internal.prototype.alpha = function(alpha){
+    this._color.a = alpha;
 };
 
 
