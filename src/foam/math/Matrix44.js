@@ -726,6 +726,70 @@ Matrix44.prototype.multVec3AI = function (a, i) {
     a[i + 2] = m[ 2] * x + m[ 6] * y + m[10] * z + m[14];
 };
 
+Matrix44.prototype.multVec3Arr = function(arr,offset){
+    offset = offset || 0 - 1;
+
+    var m = this.m;
+    var m00 = m[ 0],
+        m01 = m[ 1],
+        m02 = m[ 2],
+        m04 = m[ 4],
+        m05 = m[ 5],
+        m06 = m[ 6],
+        m08 = m[ 8],
+        m09 = m[ 9],
+        m10 = m[10],
+        m12 = m[12],
+        m13 = m[13],
+        m14 = m[14];
+
+    var vec3, x, y,z;
+
+    var l = arr.length;
+    while(++offset < l){
+        vec3 = arr[offset];
+        x = vec3.x;
+        y = vec3.y;
+        z = vec3.z;
+
+        vec3.x = m00 * x + m04 * y + m08 * z + m12;
+        vec3.y = m01 * x + m05 * y + m09 * z + m13;
+        vec3.z = m02 * x + m06 * y + m10 * z + m14;
+    }
+};
+
+Matrix44.prototype.multVec3AArr = function(arr,offset){
+    offset = offset || 0;
+
+    var m = this.m;
+    var m00 = m[ 0],
+        m01 = m[ 1],
+        m02 = m[ 2],
+        m04 = m[ 4],
+        m05 = m[ 5],
+        m06 = m[ 6],
+        m08 = m[ 8],
+        m09 = m[ 9],
+        m10 = m[10],
+        m12 = m[12],
+        m13 = m[13],
+        m14 = m[14];
+
+    var x, y, z;
+    var l = arr.length;
+    while(offset < l){
+        x = arr[offset    ];
+        y = arr[offset + 1];
+        z = arr[offset + 2];
+
+        arr[offset    ] = m00 * x + m04 * y + m08 * z + m12;
+        arr[offset + 1] = m01 * x + m05 * y + m09 * z + m13;
+        arr[offset + 2] = m02 * x + m06 * y + m10 * z + m14;
+
+        offset += 3;
+    }
+};
+
 Matrix44.prototype.multVec4 = function (v) {
     var m = this.m;
     var x = v.x,
