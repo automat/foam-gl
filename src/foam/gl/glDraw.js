@@ -434,14 +434,15 @@ glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1, headLength, 
         gl.disableVertexAttribArray(attribLocationTexcoord);
     }
 
-    var prevABuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
-    var prevEBuffer = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
-    var abuffer = this._bufferVectorVertex;
-    var ebuffer = this._bufferVectorIndex;
+    var prevABuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING),
+        prevEBuffer = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
+    var abuffer = this._bufferVectorVertex,
+        ebuffer = this._bufferVectorIndex;
 
-    gl.bindBuffer(gl.ARRAY_BUFFER,abuffer);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ebuffer);
-
+    if(abuffer != prevABuffer){
+        gl.bindBuffer(gl.ARRAY_BUFFER,abuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ebuffer);
+    }
 
     var start = this._vec3Temp0.set3f(x0,y0,z0),
         end   = this._vec3Temp1.set3f(x1,y1,z1);
@@ -451,14 +452,9 @@ glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1, headLength, 
     var vertices = this._bufferVectorVertexData,
         headVertices = this._vectorHeadVertex;
 
-    if(this._vectorHeadLength != headLength ||
-       this._vectorHeadRadius != headRadius){
-        this._genHead(headLength,headRadius,headVertices,0);
-        this._vectorHeadLength = headLength;
-        this._vectorHeadRadius = headRadius;
-    }
-
     if(this._vectorAxisLength != axisLen ||
+       this._vectorHeadLength != headLength ||
+       this._vectorHeadRadius != headRadius ||
        vertices[0] != x0 ||
        vertices[1] != y0 ||
        vertices[2] != z0 ||
@@ -472,6 +468,13 @@ glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1, headLength, 
         vertices[3] = x1;
         vertices[4] = y1;
         vertices[5] = z1;
+
+        if(this._vectorHeadLength != headLength ||
+            this._vectorHeadRadius != headRadius) {
+            this._genHead(headLength, headRadius, headVertices, 0);
+            this._vectorHeadLength = headLength;
+            this._vectorHeadRadius = headRadius;
+        }
 
         vertices.set(headVertices,6);
         axis.normalize();
@@ -491,22 +494,33 @@ glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1, headLength, 
             }
         }
 
-        end.set(axis).scale(axisLen - headLength);
+        var axisScaled = axis.scaled(axisLen - headLength,this._vec3Temp5);
+        end.set(start).add(axisScaled);
 
         var matrix = this._matrixTemp0;
-        matrix.identity();
-        matrix.rotateOnB(left,up,axis);
-        matrix.translate(end.x,end.y,end.z);
+            matrix.identity();
+            matrix.translate(end.x,end.y,end.z);
+            matrix.rotateOnB(left,up,axis);
+        var m = matrix.m;
+        var x, y, z;
 
         var i = 6, l = vertices.length;
         while(i < l){
-            matrix.multVec3AI(vertices,i);
+            x = vertices[i    ];
+            y = vertices[i + 1];
+            z = vertices[i + 2];
+
+            vertices[i    ] = m[ 0] * x + m[ 4] * y + m[ 8] * z + m[12];
+            vertices[i + 1] = m[ 1] * x + m[ 5] * y + m[ 9] * z + m[13];
+            vertices[i + 2] = m[ 2] * x + m[ 6] * y + m[10] * z + m[14];
+
             i += 3;
         }
 
         gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.DYNAMIC_DRAW);
 
         this._vectorAxisLength = axisLen;
+
     }
 
     gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,0);
@@ -531,12 +545,9 @@ glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1, headLength, 
         gl.enableVertexAttribArray(attribLocationTexcoord);
     }
 
-    if(ebuffer != prevEBuffer){
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, prevEBuffer);
-    }
-
     if(abuffer != prevABuffer){
         gl.bindBuffer(gl.ARRAY_BUFFER, prevABuffer);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, prevEBuffer);
     }
 };
 
