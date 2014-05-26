@@ -1,5 +1,7 @@
 var Vec3 = require('../math/Vec3');
+var AABB = require('../geom/AABB');
 var glDraw, _glDraw = require('./glDraw');
+
 
 function Frustum(){
     this._vec3Temp = new Vec3();
@@ -52,9 +54,13 @@ Frustum.prototype.draw = function(){
     glDraw.drawLines(n0,n1,n1,n2,n2,n3,n3,n0,
         n0,f0,n1,f1,n2,f2,n3,f3,
         f0,f1,f1,f2,f2,f3,f3,f0);
-    glDraw.colorf(1,0,0,1);
-    glDraw.drawLines(eye,n0,eye,n1,eye,n2,eye,n3);
+    //glDraw.colorf(1,0,0,1);
+    //glDraw.drawLines(eye,n0,eye,n1,eye,n2,eye,n3);
     glDraw.color(prevColor);
+
+    glDraw.drawPoints(this._planePoints);
+
+
 };
 
 
@@ -92,6 +98,84 @@ Frustum.prototype.containsPoint3f = function(x,y,z){
         }
     }
     return true;
+};
+
+Frustum.prototype.containsAABB = function(aabb){
+    var planeNormal,planeDost;
+    var planeDists = this._planeDists,
+        planeNormals = this._planeNormals;
+
+    var aabbCenter = aabb.center;
+
+    var x, y, z;
+    var count = 0;
+
+    x = aabbCenter.x;
+    y = aabbCenter.y;
+    z = aabbCenter.z;
+
+
+    //  check center
+    var i = -1;
+    while(++i < 6){
+        planeNormal = planeNormals[i];
+        if(planeDists[i] + (planeNormal.x * x + planeNormal.y * y +planeNormal.z * z) < 0){
+            break;
+        }
+        count++;
+    }
+
+    if(count == 6){
+        return true;
+    }
+
+
+    var aabbVertices = aabb.vertices,
+        aabbVertex;
+
+    //  check corners
+    var j = -1;
+    while(++j < 8){
+        aabbVertex = aabbVertices[j];
+        x = aabbVertex.x;
+        y = aabbVertex.y;
+        z = aabbVertex.z;
+        count = 0;
+        i = -1;
+        while(++i < 6){
+            planeNormal = planeNormals[i];
+            if(planeDists[i] + (planeNormal.x * x + planeNormal.y * y +planeNormal.z * z) < 0){
+                continue;
+            }
+            count++;
+        }
+        if(count == 6){
+            return true;
+        }
+    }
+
+
+    //check compete box
+
+    var n = this._near,
+        f = this._far;
+
+    var maxX = aabb.max.x,
+        minX = aabb.min.x,
+        maxY = aabb.max.y,
+        minY = aabb.min.y,
+        maxZ = aabb.max.z,
+        minZ = aabb.min.z;
+
+    count = 0; i = -1; while(++i < 4){ if(n[i].x > maxX)count++; if(f[i].x > maxX)count++; } if(count == 8) { return false; }
+    count = 0; i = -1; while(++i < 4){ if(n[i].x < minX)count++; if(f[i].x < minX)count++; } if(count == 8) { return false; }
+    count = 0; i = -1; while(++i < 4){ if(n[i].y > maxY)count++; if(f[i].y > maxY)count++; } if(count == 8) { return false; }
+    count = 0; i = -1; while(++i < 4){ if(n[i].y < minY)count++; if(f[i].y < minY)count++; } if(count == 8) { return false; }
+    count = 0; i = -1; while(++i < 4){ if(n[i].z > maxZ)count++; if(f[i].z > maxZ)count++; } if(count == 8) { return false; }
+    count = 0; i = -1; while(++i < 4){ if(n[i].z < minZ)count++; if(f[i].z < minZ)count++; } if(count == 8) { return false; }
+
+
+    return false;
 };
 
 module.exports = Frustum;
