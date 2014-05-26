@@ -31,10 +31,24 @@ Vec3.prototype.add = function(v){
     return this;
 };
 
+Vec3.prototype.addf = function(x,y,z){
+    this.x += x;
+    this.y += y;
+    this.z += z;
+    return this;
+};
+
 Vec3.prototype.sub = function(v){
     this.x -= v.x;
     this.y -= v.y;
     this.z -= v.z;
+    return this;
+};
+
+Vec3.prototype.subf = function(x,y,z){
+    this.x -= x;
+    this.y -= y;
+    this.z -= z;
     return this;
 };
 
@@ -184,6 +198,45 @@ Vec3.prototype.yz = function(){
     return new Vec2(this.y,this.x);
 };
 
+
+Vec3.prototype.toXAxis = function(){
+    this.x = 1;
+    this.y = this.z = 0;
+    return this;
+};
+
+Vec3.prototype.toYAxis = function(){
+    this.x = this.z = 0;
+    this.y = 1;
+    return this;
+};
+
+Vec3.prototype.toZAxis = function(){
+    this.x = this.y = 0;
+    this.z = 1;
+    return this;
+};
+
+Vec3.prototype.toZero = function(){
+    this.x = this.y = this.z = 0;
+    return this;
+};
+
+Vec3.prototype.toOne = function(){
+    this.x = this.y = this.z = 1;
+    return this;
+};
+
+Vec3.prototype.toMax = function(){
+    this.x = this.y = this.z = Number.MAX_VALUE;
+    return this;
+};
+
+Vec3.prototype.toMin = function(){
+    this.x = this.y = this.z = -Number.MAX_VALUE;
+    return this;
+};
+
 Vec3.prototype.toFloat32Array = function(arr,offset){
     if(!arr && !offset){
         return new Float32Array([this.x,this.y,this.z]);
@@ -213,6 +266,27 @@ Vec3.zero = function(){
 
 Vec3.one = function(){
     return new Vec3(1,1,1);
+};
+
+Vec3.max = function(){
+    return new Vec3(Number.MAX_VALUE,Number.MAX_VALUE,Number.MAX_VALUE);
+};
+
+Vec3.min = function(){
+    return new Vec3(-Number.MAX_VALUE,-Number.MAX_VALUE-Number.MAX_VALUE);
+};
+
+Vec3.randomPosition = function(){
+    var min = arguments[0] || 0,
+        max = (arguments[1] && arguments[1] > min) || min;
+
+    return new Vec3(min + ( 1 + max - min ) * Math.random(),
+                    min + ( 1 + max - min ) * Math.random(),
+                    min + ( 1 + max - min ) * Math.random());
+};
+
+Vec3.randomDirection = function(){
+    return Vec3.randomPosition(arguments).normalize();
 };
 
 Vec3.prototype.toString = function(){
