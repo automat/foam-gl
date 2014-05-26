@@ -1,15 +1,15 @@
+var ObjectUtil = require('./ObjectUtil');
+
 function Color(r,g,b,a) {
-    this.r = r || 0;
-    this.g = g || 0;
-    this.b = b || 0;
-    this.a = a || 1;
+    this.r = this.g = this.b = this.a = null;
+    this.setf(r,g,b,a);
 }
 
 Color.prototype.setf = function(r,g,b,a){
-    this.r = r;
+    this.r = r || 0;
     this.g = g || 0;
     this.b = b || 0;
-    this.a = a || 1;
+    this.a = ObjectUtil.isUndefined(a) ? 1.0 : a;
     return this;
 };
 
@@ -57,7 +57,8 @@ Color.blue = function(){
     return new Color(0,0,1,1);
 };
 
-
-
+Color.prototype.toString = function(){
+    return '[' + this.r + ',' + this.g + ',' + this.b + ',' + this.a + ']';
+};
 
 module.exports = Color;
