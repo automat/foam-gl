@@ -7,7 +7,7 @@ function AABB() {
         max  = this.max = Vec3.min();
     this.center = new Vec3();
     this.size = new Vec3();
-    this.vertices = new Array(8);
+    this.points = new Array(8);
 
     switch (arguments.length){
         case 1 :
@@ -26,11 +26,11 @@ function AABB() {
             break;
     }
 
-    var vertices = this.vertices;
+    var points = this.points;
     var i = -1,
-        l = vertices.length;
+        l = points.length;
     while(++i < l){
-        vertices[i] = new Vec3();
+        points[i] = new Vec3();
     }
     this._update();
 
@@ -66,33 +66,33 @@ AABB.prototype._update = function(){
     var sizeX = size.x,
         sizeZ = size.z;
 
-    var vertices = this.vertices;
+    var points = this.points;
 
-    var v0 = vertices[0],
-        v1 = vertices[1],
-        v2 = vertices[2],
-        v3 = vertices[3],
-        v4 = vertices[4],
-        v5 = vertices[5],
-        v6 = vertices[6],
-        v7 = vertices[7];
+    var p0 = points[0],
+        p1 = points[1],
+        p2 = points[2],
+        p3 = points[3],
+        p4 = points[4],
+        p5 = points[5],
+        p6 = points[6],
+        p7 = points[7];
 
 
-    v0.x = v1.x = v2.x = v3.x = max.x;
-    v0.y = v1.y = v2.y = v3.y = max.y;
-    v0.z = v1.z = v2.z = v3.z = max.z;
+    p0.x = p1.x = p2.x = p3.x = max.x;
+    p0.y = p1.y = p2.y = p3.y = max.y;
+    p0.z = p1.z = p2.z = p3.z = max.z;
 
-    v0.x -= sizeX; v0.z -= sizeZ;
-    v1.z -= sizeZ;
-    v2.x -= sizeX;
+    p0.x -= sizeX; p0.z -= sizeZ;
+    p1.z -= sizeZ;
+    p2.x -= sizeX;
 
-    v4.x = v5.x = v6.x = v7.x = min.x;
-    v4.y = v5.y = v6.y = v7.y = min.y;
-    v4.z = v5.z = v6.z = v7.z = min.z;
+    p4.x = p5.x = p6.x = p7.x = min.x;
+    p4.y = p5.y = p6.y = p7.y = min.y;
+    p4.z = p5.z = p6.z = p7.z = min.z;
 
-    v4.x += sizeX;
-    v5.z += sizeZ;
-    v6.x += sizeX; v6.z += sizeZ;
+    p4.x += sizeX;
+    p5.z += sizeZ;
+    p6.x += sizeX; p6.z += sizeZ;
 
     var center = this.center;
     center.x = min.x + sizeX * 0.5;

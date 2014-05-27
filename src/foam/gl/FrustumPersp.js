@@ -59,13 +59,20 @@ FrustumPersp.prototype.set = function(camera, frustumScale){
     ftr.set(eye).add(frustumFarW).add(frustumTopV).add(frustumRightU);
     fbr.set(eye).add(frustumFarW).add(frustumBottomV).add(frustumRightU);
     fbl.set(eye).add(frustumFarW).add(frustumBottomV).add(frustumLeftU);
-
+    /*
     this._calcPlane(0,ntr,ntl,ftl);
     this._calcPlane(1,nbl,nbr,fbr);
     this._calcPlane(2,ntl,nbl,fbl);
     this._calcPlane(3,ftr,fbr,nbr);
     this._calcPlane(4,ntl,ntr,nbr);
-    this._calcPlane(5,ftr,ftl,fbl);
+    this._calcPlane(5,ftr,ftl,fbl);*/
+    var planes = this._planes;
+    planes[0].setFromPoints(ntr,ntl,ftl);
+    planes[1].setFromPoints(nbl,nbr,fbr);
+    planes[2].setFromPoints(ntl,nbl,fbl);
+    planes[3].setFromPoints(ftr,fbr,nbr);
+    planes[4].setFromPoints(ntl,ntr,nbr);
+    planes[5].setFromPoints(ftr,ftl,fbl);
 };
 
 

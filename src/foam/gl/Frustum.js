@@ -1,5 +1,6 @@
 var Vec3 = require('../math/Vec3');
 var AABB = require('../geom/AABB');
+var Plane = require('../geom/Plane');
 var glDraw, _glDraw = require('./glDraw');
 
 
@@ -8,15 +9,20 @@ function Frustum(){
     this._frustumCamera = new Array(6);
     var frustumTemp = this._frustumTemp = new Array(6);
 
+    var planes = this._planes = new Array(6);
+
+
+    /*
     var planeNormals = this._planeNormals = new Array(6),
         planePoints = this._planePoints = new Array(6),
         planeDists  = this._planeDists = new Array(6);
-
+    */
     var i = -1, l = 6;
     while(++i < l){
-        planeNormals[i] = new Vec3();
-        planePoints[i] = new Vec3();
-        planeDists[i] = 0.0;
+      //  planeNormals[i] = new Vec3();
+      //  planePoints[i] = new Vec3();
+      //  planeDists[i] = 0.0;
+        planes[i] = new Plane();
         frustumTemp[i] = new Vec3();
     }
 
@@ -58,7 +64,7 @@ Frustum.prototype.draw = function(){
     //glDraw.drawLines(eye,n0,eye,n1,eye,n2,eye,n3);
     glDraw.color(prevColor);
 
-    glDraw.drawPoints(this._planePoints);
+    //glDraw.drawPoints(this._planePoints);
 
 
 };
@@ -90,10 +96,15 @@ Frustum.prototype.containsPoint3f = function(x,y,z){
     var planeNormal;
     var planeDists = this._planeDists,
         planeNormals = this._planeNormals;
+    var planes = this._planes;
     var i = -1;
     while(++i < 6){
-        planeNormal = planeNormals[i];
+        //planeNormal = planeNormals[i];
+        /*
         if(planeDists[i] + (planeNormal.x * x + planeNormal.y * y +planeNormal.z * z) < 0){
+            return false;
+        }*/
+        if(planes[i].distanceSigned3f(x,y,z) < 0){
             return false;
         }
     }
@@ -101,9 +112,7 @@ Frustum.prototype.containsPoint3f = function(x,y,z){
 };
 
 Frustum.prototype.containsAABB = function(aabb){
-    var planeNormal,planeDost;
-    var planeDists = this._planeDists,
-        planeNormals = this._planeNormals;
+    var planes = this._planes;
 
     var aabbCenter = aabb.center;
 
@@ -118,8 +127,7 @@ Frustum.prototype.containsAABB = function(aabb){
     //  check center
     var i = -1;
     while(++i < 6){
-        planeNormal = planeNormals[i];
-        if(planeDists[i] + (planeNormal.x * x + planeNormal.y * y +planeNormal.z * z) < 0){
+        if(planes[i].distanceSigned3f(x,y,z) < 0){
             break;
         }
         count++;
@@ -128,23 +136,20 @@ Frustum.prototype.containsAABB = function(aabb){
     if(count == 6){
         return true;
     }
-
-
-    var aabbVertices = aabb.vertices,
-        aabbVertex;
+    var points = aabb.points,
+        point;
 
     //  check corners
     var j = -1;
     while(++j < 8){
-        aabbVertex = aabbVertices[j];
-        x = aabbVertex.x;
-        y = aabbVertex.y;
-        z = aabbVertex.z;
+        point = points[j];
+        x = point.x;
+        y = point.y;
+        z = point.z;
         count = 0;
         i = -1;
         while(++i < 6){
-            planeNormal = planeNormals[i];
-            if(planeDists[i] + (planeNormal.x * x + planeNormal.y * y +planeNormal.z * z) < 0){
+            if(planes[i].distanceSigned3f(x,y,z)  < 0){
                 continue;
             }
             count++;
