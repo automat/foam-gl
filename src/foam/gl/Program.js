@@ -67,6 +67,9 @@ Program.ATTRIB_VERTEX_NORMAL   = 'aVertexNormal';
 Program.ATTRIB_VERTEX_COLOR    = 'aVertexColor';
 Program.ATTRIB_TEXCOORD        = 'aTexcoord';
 
+Program.UNIFORM_POINT_SIZE = 'uPointSize';
+
+
 Program.prototype.delete = function(){
    this._gl.deleteProgram(this._program);
 };
