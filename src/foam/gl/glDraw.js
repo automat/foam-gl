@@ -403,6 +403,11 @@ function glDraw_Internal(){
 /*--------------------------------------------------------------------------------------------*/
 
 glDraw_Internal.prototype.drawVector = function(v0,v1){
+    if(!v1){
+        this.drawVectorf(0,0,0,v0.x,v0.y,v0.z);
+        return;
+    }
+
     this.drawVectorf(v0.x,v0.y,v0.z,v1.x,v1.y,v1.z);
 };
 
