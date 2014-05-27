@@ -277,8 +277,14 @@ Vec3.min = function(){
 };
 
 Vec3.randomPosition = function(){
-    var min = arguments[0] || 0,
-        max = (arguments[1] && arguments[1] > min) || min;
+    var min, max;
+    if(arguments.length == 1){
+        min = 0;
+        max = arguments[0];
+    } else {
+        min = arguments[0];
+        max = arguments[1];
+    }
 
     return new Vec3(min + ( 1 + max - min ) * Math.random(),
                     min + ( 1 + max - min ) * Math.random(),
