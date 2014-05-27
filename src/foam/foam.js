@@ -43,6 +43,11 @@ module.exports = {
 //    Mat33       : require('./math/fMat33'),
     Matrix44: require('./math/Matrix44'),
     Ease: require('./math/Ease'),
+    Random : require('./math/Random'),
+
+    Color : require('./util/Color'),
+    AABB : require('./geom/AABB'),
+    Plane : require('./geom/Plane'),
 
 
     Application: require('./app/App'),
