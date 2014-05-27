@@ -170,6 +170,31 @@ AABB.prototype.setFromPointsf = function(points){
     this._update();
 };
 
+//http://cgvr.cs.uni-bremen.de/teaching/cg2_08/folien/05_culling_1up_2.pdf
+AABB.prototype.getNPoint = function(normal,point){
+    point = point || new Vec3();
+    var min = this.min,
+        max = this.max;
+
+    point.x = normal.x >= 0 ? max.x : min.x;
+    point.y = normal.y >= 0 ? max.y : min.y;
+    point.z = normal.z >= 0 ? max.z : min.z;
+
+    return point;
+};
+
+AABB.prototype.getPPoint = function(normal,point){
+    point = point || new Vec3();
+    var min = this.min,
+        max = this.max;
+
+    point.x = normal.x >= 0 ? min.x : max.x;
+    point.y = normal.y >= 0 ? min.y : max.y;
+    point.z = normal.z >= 0 ? min.z : max.z;
+
+    return point;
+};
+
 AABB.prototype.draw = function(center){
     glTrans.pushMatrix();
     glTrans.translate(this.center);
@@ -180,6 +205,5 @@ AABB.prototype.draw = function(center){
     glDraw.drawCubeStroked();
     glTrans.popMatrix();
 };
-
 
 module.exports = AABB;
