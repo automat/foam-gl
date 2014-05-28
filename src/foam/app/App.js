@@ -1,14 +1,12 @@
-var fError = require('../system/common/Error'),
+var fError     = require('../system/common/Error'),
     ObjectUtil = require('../util/ObjectUtil'),
-    Platform = require('../system/common/Platform'),
-    Mouse = require('../util/Mouse');
+    Vec2       = require('../math/Vec2'),
+    Rect       = require('../geom/Rect'),
+    Mouse      = require('../input/Mouse'),
+    MouseState = require('../input/MouseState'),
+    gl         = require('../gl/gl'),
+    glDraw     = require('../gl/glDraw');
 
-var gl     = require('../gl/gl'),
-    glDraw = require('../gl/glDraw');
-
-var Program = require('../gl/Program');
-
-var Default     = require('../system/common/Default');
 
 function App() {
     if(!window.WebGLRenderingContext){
@@ -20,19 +18,12 @@ function App() {
         throw new Error(Error.CLASS_IS_SINGLETON);
     }
 
-    var target = Platform.getTarget();
-    if (ObjectUtil.isUndefined(target)) {
-        throw new Error(Error.WRONG_PLATFORM);
-    }
-
     //
     //  Context & Window
     //
-    this._windowTitle = null;
-    this._fullWindow = false;
-    this._fullscreen = false;
-    this._windowSize = [0,0];
+    this._windowBounds = new Rect();
     this._windowRatio = 0;
+    this._windowScale = 1.0;
 
     //
     //  input
@@ -45,10 +36,9 @@ function App() {
     this._mouseMove = false;
     this._mouseWheelDelta = 0.0;
     this._mouseMove = false;
-    this._mouseBounds = true;
     this._hideCursor = false;
 
-    this.mouse = new Mouse();
+    this._mouse = new Mouse();
 
     //
     //  time
@@ -63,7 +53,7 @@ function App() {
     this._timeElapsed = 0;
     this._loop = true;
 
-    this.setFPS(30.0);
+    this.setFPS(60.0);
 
     //
     //  canvas & context
@@ -80,24 +70,41 @@ function App() {
         this.onWebGLContextNotAvailable();
         return this;
     }
-
     _gl.activeTexture(_gl.TEXTURE0);
-
     gl.set(_gl);
     glDraw.init();
-
-    document.body.appendChild(canvas);
 
     window.requestAnimationFrame = window.requestAnimationFrame ||
                                    window.webkitRequestAnimationFrame ||
                                    window.mozRequestAnimationFrame;
 
-
-
-
     App.__instance = this;
-
     window.addEventListener('resize',this.onWindowResize.bind(this));
+
+    document.body.appendChild(canvas);
+
+    var mouse = this._mouse;
+    var self = this;
+
+    canvas.addEventListener('mouseMove',function(e){
+        mouse._position.x = e.offsetX;
+        mouse._position.y = e.offsetY;
+        mouse._state = MouseState.MOUSE_MOVE;
+        self.onMouseMove();
+    });
+
+    canvas.addEventListener('mouseDown',function(e){
+        mouse._state = MouseState.MOUSE_DOWN;
+        self.onMouseDown();
+    });
+
+    canvas.addEventListener('mouseUp',function(e){
+        self.onMouseUp();
+    });
+
+    canvas.addEventListener('mouseOut',function(e){
+        self.onMouseOut();
+    });
 
     //
     //
@@ -109,17 +116,14 @@ function App() {
         var time, timeDelta;
         var timeInterval = this._timeInterval;
         var timeNext;
-        var self = this;
 
-        function update() {
-
-            requestAnimationFrame(update, null);
+        function update_Internal() {
+            requestAnimationFrame(update_Internal, null);
 
             time = self._time = Date.now();
             timeDelta = time - self._timeNext;
 
             self._timeDelta = Math.min(timeDelta / timeInterval, 1);
-
 
             if (timeDelta > timeInterval) {
                 timeNext = self._timeNext = time - (timeDelta % timeInterval);
@@ -129,85 +133,87 @@ function App() {
                 self._timeElapsed = (timeNext - self._timeStart) / 1000.0;
                 self._framenum++;
             }
-
-
         }
-
-        update();
+        update_Internal();
     } else {
         this.update();
     }
-
 }
 
 App.getInstance = function () {
     return App.__instance;
 };
 
+// override
 App.prototype.setup = function () {
     throw new Error(Error.APP_NO_SETUP);
 };
 
+// override
 App.prototype.update = function () {
     throw new Error(Error.APP_NO_UPDATE);
+};
+
+// override
+App.prototype.onWebGLContextNotAvailable = function(){
+    console.log('FOAM: WebGLContext not available.');
 };
 
 /*--------------------------------------------------------------------------------------------*/
 //  window
 /*--------------------------------------------------------------------------------------------*/
 
-App.prototype.setWindowSize = function (width, height) {
-    if(this._fullWindow){
-        width  = window.innerWidth;
-        height = window.innerHeight;
-    }
+App.prototype.setWindowSize = function (width, height, scale) {
+    var windowScale  = this._windowScale = scale || this._windowScale,
+        windowBounds = this._windowBounds;
 
-    if (width  == this._windowSize[0] && height == this._windowSize[1]){
+    width  *= windowScale;
+    height *= windowScale;
+
+    if (width  == windowBounds.x1 && height == windowBounds.y1){
         return;
     }
 
-    this._windowSize[0] = width;
-    this._windowSize[1] = height;
-    this._windowRatio   = width / height;
+    windowBounds.x1 = width;
+    windowBounds.y1 = height;
+    this._windowRatio = width / height;
 
     this._updateCanvasSize();
 };
 
-App.prototype.setFullscreen = function(bool){
-    this._fullscreen = bool;
-};
-
-App.prototype.setFullWindow = function(bool){
-    this._fullWindow = bool;
-};
-
 App.prototype._updateCanvasSize = function(){
-    var canvas = this._canvas,
-        width  = this._windowSize[0],
-        height = this._windowSize[1];
+    var windowWidth = this._windowBounds.x1,
+        windowHeight = this._windowBounds.y1,
+        windowScale = this._windowScale;
 
-    canvas.style.width = width + 'px';
-    canvas.style.height = height + 'px';
-    canvas.width = width;
-    canvas.height = height;
+    var canvas = this._canvas;
+        canvas.style.width = windowWidth / windowScale + 'px';
+        canvas.style.height = windowHeight / windowScale + 'px';
+        canvas.width = windowWidth;
+        canvas.height = windowHeight;
 };
 
-App.prototype.getWindowSize = function () {
-    return this._windowSize.slice();
+App.prototype.getWindowSize = function (v) {
+    return (v || new Vec2()).setf(this._windowBounds.x1,this._windowBounds.y1);
 };
 
 App.prototype.getWindowWidth = function () {
-    return this._windowSize[0];
+    return this._windowBounds.x1;
 };
 
 App.prototype.getWindowHeight = function () {
-    return this._windowSize[1];
+    return this._windowBounds.y1;
 };
 
 App.prototype.getWindowAspectRatio = function () {
     return this._windowRatio;
 };
 
+App.prototype.getWindowScale = function(){
+    return this._windowScale;
+}
+
+//override
 App.prototype.onWindowResize = function (e) {};
 
 
@@ -246,7 +252,7 @@ App.prototype.getTimeDelta = function () {
 
 App.prototype.loop = function(loop){
     this._loop = loop;
-}
+};
 
 
 /*--------------------------------------------------------------------------------------------*/
@@ -269,6 +275,7 @@ App.prototype.getKeyCode = function () {
 App.prototype.getKeyStr = function () {
     return this._keyStr;
 };
+
 App.prototype.getMouseWheelDelta = function () {
     return this._mouseWheelDelta;
 };
@@ -278,14 +285,10 @@ App.prototype.onKeyDown = function (e) {};
 App.prototype.onKeyUp = function (e) {};
 App.prototype.onMouseUp = function (e) {};
 App.prototype.onMouseDown = function (e) {};
+App.prototype.onMouseOut = function(e){};
 App.prototype.onMouseWheel = function (e) {};
 App.prototype.onMouseMove = function (e) {};
 
-
-// override
-App.prototype.onWebGLContextNotAvailable = function(){
-    console.log('FOAM: WebGLContext not available.');
-};
 
 /*
  App.prototype.getWindowWidth  = function(){return this._appImpl.getWindowWidth();};
