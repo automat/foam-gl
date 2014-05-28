@@ -40,7 +40,6 @@ module.exports = {
     Vec2: require('./math/Vec2'),
     Vec3: require('./math/Vec3'),
     Vec4: require('./math/Vec4'),
-//    Mat33       : require('./math/fMat33'),
     Matrix44: require('./math/Matrix44'),
     Ease: require('./math/Ease'),
     Random : require('./math/Random'),
@@ -48,8 +47,6 @@ module.exports = {
     Color : require('./util/Color'),
     AABB : require('./geom/AABB'),
     Plane : require('./geom/Plane'),
-
-
     Application: require('./app/App'),
 
     gl: require('./gl/gl'),
@@ -67,6 +64,9 @@ module.exports = {
     Texture: require('./gl/Texture'),
     Fbo: require('./gl/Fbo'),
 
+    Mouse : require('./input/Mouse'),
+    MouseState : require('./input/MouseState'),
+
 //
 //    Light            : require('./gl/gl/light/fLight'),
 //    PointLight       : require('./gl/gl/light/fPointLight'),
@@ -74,23 +74,13 @@ module.exports = {
 //    SpotLight        : require('./gl/gl/light/fSpotLight'),
 //
 //    Material      : require('./gl/gl/fMaterial'),
-//    Texture       : require('./gl/gl/texture/fTexture'),
-//    CanvasTexture : require('./gl/gl/texture/fCanvasTexture'),
-//
-//    glDraw     : require('./gl/glDraw'),
-//    glTrans         : require('./gl/glTrans'),
-//
-//    Mouse       : require('./util/fMouse'),
-//    MouseState  : require('./util/fMouseState'),
-//    Color       : require('./util/fColor'),
-//    Util        : require('./util/fUtil'),
-//
-//    Platform    : require('./system/common/fPlatform'),
     System: require('./system/System'),
 //
 //    Flags : require('./system/fFlags'),
 
-    ObjectUtil: require('./util/ObjectUtil')
+    ObjectUtil: require('./util/ObjectUtil'),
+    ArrayUtil : require('./util/ArrayUtil'),
+    ElementArrayUtil : require('./util/ElementArrayUtil')
 
 
 
