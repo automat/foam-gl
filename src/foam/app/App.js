@@ -11,6 +11,11 @@ var Program = require('../gl/Program');
 var Default     = require('../system/common/Default');
 
 function App() {
+    if(!window.WebGLRenderingContext){
+        this.onWebGLContextNotAvailable();
+        return this;
+    }
+
     if (App.__instance) {
         throw new Error(Error.CLASS_IS_SINGLETON);
     }
@@ -69,7 +74,12 @@ function App() {
 
     var _gl =  canvas.getContext('webkit-3d') ||
                canvas.getContext("webgl") ||
-               canvas.getContext("experimental-webgl")
+               canvas.getContext("experimental-webgl");
+
+    if(!_gl){
+        this.onWebGLContextNotAvailable();
+        return this;
+    }
 
     _gl.activeTexture(_gl.TEXTURE0);
 
@@ -271,6 +281,11 @@ App.prototype.onMouseDown = function (e) {};
 App.prototype.onMouseWheel = function (e) {};
 App.prototype.onMouseMove = function (e) {};
 
+
+// override
+App.prototype.onWebGLContextNotAvailable = function(){
+    console.log('FOAM: WebGLContext not available.');
+};
 
 /*
  App.prototype.getWindowWidth  = function(){return this._appImpl.getWindowWidth();};
