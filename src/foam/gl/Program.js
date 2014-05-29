@@ -69,6 +69,11 @@ Program.ATTRIB_TEXCOORD        = 'aTexcoord';
 
 Program.UNIFORM_POINT_SIZE = 'uPointSize';
 
+Program._currentProgram = null;
+Program.getCurrentProgram = function(){
+    return Program._currentProgram;
+};
+
 
 Program.prototype.delete = function(){
    this._gl.deleteProgram(this._program);
@@ -91,6 +96,7 @@ Program.prototype.bind = function () {
     while (++i < n) {
         gl.enableVertexAttribArray(a[i]);
     }
+    Program._currentProgram = this;
 };
 
 Program.prototype.unbind = function () {
@@ -104,6 +110,8 @@ Program.prototype.unbind = function () {
         gl.disableVertexAttribArray(a[i]);
     }
     gl.useProgram(null);
+    Program._currentProgram = null;
 };
+
 
 module.exports = Program;
