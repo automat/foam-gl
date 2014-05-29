@@ -64,8 +64,11 @@ module.exports = {
     Texture: require('./gl/Texture'),
     Fbo: require('./gl/Fbo'),
 
+    System: require('./system/System'),
+    EventDispatcher : require('./system/EventDispatcher'),
+    Event : require('./system/Event'),
     Mouse : require('./input/Mouse'),
-    MouseState : require('./input/MouseState'),
+    MouseEvent : require('./input/MouseEvent'),
 
 //
 //    Light            : require('./gl/gl/light/fLight'),
@@ -74,9 +77,6 @@ module.exports = {
 //    SpotLight        : require('./gl/gl/light/fSpotLight'),
 //
 //    Material      : require('./gl/gl/fMaterial'),
-    System: require('./system/System'),
-//
-//    Flags : require('./system/fFlags'),
 
     ObjectUtil: require('./util/ObjectUtil'),
     ArrayUtil : require('./util/ArrayUtil'),

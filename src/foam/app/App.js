@@ -1,9 +1,10 @@
 var fError     = require('../system/common/Error'),
     ObjectUtil = require('../util/ObjectUtil'),
+    Event      = require('../system/Event'),
     Vec2       = require('../math/Vec2'),
     Rect       = require('../geom/Rect'),
     Mouse      = require('../input/Mouse'),
-    MouseState = require('../input/MouseState'),
+    MouseEvent = require('../input/MouseEvent'),
     gl         = require('../gl/gl'),
     glDraw     = require('../gl/glDraw');
 
@@ -32,13 +33,13 @@ function App() {
     this._keyStr = '';
     this._keyCode = '';
 
-    this._mouseDown = false;
-    this._mouseMove = false;
-    this._mouseWheelDelta = 0.0;
-    this._mouseMove = false;
     this._hideCursor = false;
 
+    this._mouseTimer = null;
     this._mouse = new Mouse();
+    this._mousePosTemp = new Vec2();
+    this._mousePosLastTemp = new Vec2();
+    this._mousePosition = {position:new Vec2(),positionLast:new Vec2()};
 
     //
     //  time
@@ -86,24 +87,63 @@ function App() {
     var mouse = this._mouse;
     var self = this;
 
-    canvas.addEventListener('mouseMove',function(e){
+    function onMouseStopped(){
+        mouse._positionLast.x = mouse._position.x;
+        mouse._positionLast.y = mouse._position.y;
+        mouse._move = false;
+
+        if(mouse.hasEventListener(MouseEvent.MOUSE_STOP)){
+            mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_STOP));
+        }
+    }
+
+    canvas.addEventListener('mousemove',function(e){
+        mouse._move = true;
+        mouse._positionLast.x = mouse._position.x;
+        mouse._positionLast.y = mouse._position.y;
         mouse._position.x = e.offsetX;
         mouse._position.y = e.offsetY;
-        mouse._state = MouseState.MOUSE_MOVE;
-        self.onMouseMove();
+
+        if(mouse._down){
+            if(mouse.hasEventListener(MouseEvent.MOUSE_DRAG)){
+                mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_DRAG));
+            }
+        }
+
+        clearTimeout(self._mouseTimer);
+        self._mouseTimer = setTimeout(onMouseStopped,100);
+
+        if(mouse.hasEventListener(MouseEvent.MOUSE_MOVE)){
+            mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_MOVE));
+        }
     });
 
-    canvas.addEventListener('mouseDown',function(e){
-        mouse._state = MouseState.MOUSE_DOWN;
-        self.onMouseDown();
+    canvas.addEventListener('mousedown',function(){
+        mouse._down = true;
+        if(mouse.hasEventListener(MouseEvent.MOUSE_DOWN)){
+            mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_DOWN));
+        }
     });
 
-    canvas.addEventListener('mouseUp',function(e){
-        self.onMouseUp();
+    canvas.addEventListener('mouseup',function(){
+        mouse._down = false;
+        if(mouse.hasEventListener(MouseEvent.MOUSE_DOWN)){
+            mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_DOWN));
+        }
     });
 
-    canvas.addEventListener('mouseOut',function(e){
-        self.onMouseOut();
+    canvas.addEventListener('mouseout',function(){
+        mouse._leave = true;
+        if(mouse.hasEventListener(MouseEvent.MOUSE_OUT)){
+            mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_OUT));
+        }
+    });
+
+    canvas.addEventListener('mouseenter',function(){
+        mouse._enter = true;
+        if(mouse.hasEventListener(MouseEvent.MOUSE_ENTER)){
+            mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_ENTER));
+        }
     });
 
     //
@@ -133,6 +173,10 @@ function App() {
                 self._timeElapsed = (timeNext - self._timeStart) / 1000.0;
                 self._framenum++;
             }
+
+            mouse._downLast = mouse._down;
+            mouse._enter = false;
+            mouse._leave = false;
         }
         update_Internal();
     } else {
@@ -263,12 +307,6 @@ App.prototype.loop = function(loop){
 App.prototype.isKeyDown = function () {
     return this._keyDown;
 };
-App.prototype.isMouseDown = function () {
-    return this._mouseDown;
-};
-App.prototype.isMouseMove = function () {
-    return this._mouseMove;
-};
 App.prototype.getKeyCode = function () {
     return this._keyCode;
 };
@@ -276,19 +314,9 @@ App.prototype.getKeyStr = function () {
     return this._keyStr;
 };
 
-App.prototype.getMouseWheelDelta = function () {
-    return this._mouseWheelDelta;
-};
 
-
-App.prototype.onKeyDown = function (e) {};
-App.prototype.onKeyUp = function (e) {};
-App.prototype.onMouseUp = function (e) {};
-App.prototype.onMouseDown = function (e) {};
-App.prototype.onMouseOut = function(e){};
-App.prototype.onMouseWheel = function (e) {};
-App.prototype.onMouseMove = function (e) {};
-
+App.prototype.onKeyDown = function () {};
+App.prototype.onKeyUp = function () {};
 
 /*
  App.prototype.getWindowWidth  = function(){return this._appImpl.getWindowWidth();};
