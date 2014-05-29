@@ -237,6 +237,10 @@ App.prototype._updateCanvasSize = function(){
         canvas.height = windowHeight;
 };
 
+App.prototype.getWindowBounds = function(rect){
+    return (rect || new Rect()).set(this._windowBounds);
+}
+
 App.prototype.getWindowSize = function (v) {
     return (v || new Vec2()).setf(this._windowBounds.x1,this._windowBounds.y1);
 };
@@ -255,7 +259,7 @@ App.prototype.getWindowAspectRatio = function () {
 
 App.prototype.getWindowScale = function(){
     return this._windowScale;
-}
+};
 
 //override
 App.prototype.onWindowResize = function (e) {};
