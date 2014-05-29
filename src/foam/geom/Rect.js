@@ -13,6 +13,7 @@ Rect.prototype.set = function(rect){
     this.y0 = rect.y0;
     this.x1 = rect.x1;
     this.y1 = rect.y1;
+    return this;
 };
 
 Rect.prototype.setPosition = function(v){
@@ -22,6 +23,7 @@ Rect.prototype.setPosition = function(v){
     this.y0 = v.y;
     this.x1 = this.x0 + width;
     this.y1 = this.y0 + height;
+    return this;
 };
 
 Rect.prototype.setPositionf = function(x,y){
@@ -31,6 +33,7 @@ Rect.prototype.setPositionf = function(x,y){
     this.y0 = y;
     this.x1 = this.x0 + width;
     this.y1 = this.y0 + height;
+    return this;
 };
 
 Rect.prototype.getPosition = function(v){
@@ -40,19 +43,23 @@ Rect.prototype.getPosition = function(v){
 Rect.prototype.setSize = function(v){
     this.x1 = this.x0 + v.x;
     this.y1 = this.y0 + v.y;
+    return this;
 };
 
 Rect.prototype.setSizef = function(width,height){
     this.x1 = this.x0 + width;
     this.y1 = this.y0 + height;
+    return this;
 };
 
 Rect.prototype.setWidth = function(width){
     this.x1 = this.x0 + width;
+    return this;
 };
 
 Rect.prototype.setHeight = function(height){
     this.y1 = this.y0 + height;
+    return this;
 };
 
 Rect.prototype.getWidth = function(){
