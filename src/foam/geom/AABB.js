@@ -113,23 +113,12 @@ AABB.prototype.setFromPoints = function(points){
         py = point.y;
         pz = point.z;
 
-        if( px < min.x ) {
-            min.x = px;
-        } else if( px > max.x ){
-            max.x = px;
-        }
-
-        if( py < min.y ) {
-            min.y = py;
-        } else if( py > max.y ){
-            max.y = py;
-        }
-
-        if( pz < min.z ) {
-            min.z = pz;
-        } else if( pz > max.z ){
-            max.z = pz;
-        }
+        min.x = Math.min(min.x,px);
+        max.x = Math.max(max.x,px);
+        min.y = Math.min(min.y,py);
+        max.y = Math.max(max.y,py);
+        min.z = Math.min(min.z,pz);
+        max.z = Math.max(max.z,pz);
     }
 
     this._update();
@@ -148,23 +137,12 @@ AABB.prototype.setFromPointsf = function(points){
         py = point.y;
         pz = point.z;
 
-        if( px < min.x ) {
-            min.x = px;
-        } else if( px > max.x ){
-            max.x = px;
-        }
-
-        if( py < min.y ) {
-            min.y = py;
-        } else if( py > max.y ){
-            max.y = py;
-        }
-
-        if( pz < min.z ) {
-            min.z = pz;
-        } else if( pz > max.z ){
-            max.z = pz;
-        }
+        min.x = Math.min(min.x,px);
+        max.x = Math.max(max.x,px);
+        min.y = Math.min(min.y,py);
+        max.y = Math.max(max.y,py);
+        min.z = Math.min(min.z,pz);
+        max.z = Math.max(max.z,pz);
     }
 
     this._update();
