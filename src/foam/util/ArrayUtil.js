@@ -130,6 +130,20 @@ var ArrayUtil = {
             }
         }
         return true;
+    },
+
+    toFloat32Array : function(points){
+        var array = new Float32Array(points.length * 3);
+        var i = -1, l = points.length;
+        var i3, point;
+        while(++i < l){
+            i3 = i * 3;
+            point = points[i];
+            array[i3  ] = point.x;
+            array[i3+1] = point.y;
+            array[i3+2] = point.z;
+        }
+        return array;
     }
 };
 
