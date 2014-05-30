@@ -6,6 +6,12 @@ function Rect() {
     this.y0 = 0;
     this.x1 = 0;
     this.y1 = 0;
+    switch (arguments.length){
+        case 4:
+            this.setf(arguments[0],arguments[1],arguments[2],arguments[3]);
+            break;
+    }
+
 }
 
 Rect.prototype.set = function(rect){
@@ -14,6 +20,13 @@ Rect.prototype.set = function(rect){
     this.x1 = rect.x1;
     this.y1 = rect.y1;
     return this;
+};
+
+Rect.prototype.setf = function(x0,y0,x1,y1){
+    this.x0 = x0;
+    this.y0 = y0;
+    this.x1 = x1;
+    this.y1 = y1;
 };
 
 Rect.prototype.setPosition = function(v){
@@ -76,6 +89,10 @@ Rect.prototype.getSize = function(v){
 
 Rect.prototype.getCenter = function(v){
     return (v || new Vec2()).setf((this.x0 + this.x1) * 0.5,(this.y0 + this.y1) * 0.5);
+};
+
+Rect.prototype.getAspectRatio = function(){
+    return this.getWidth() / this.getHeight();
 };
 
 module.exports = Rect;
