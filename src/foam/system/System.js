@@ -1,23 +1,15 @@
 var System = {
     loadFile : function(file,callback){
-        var client = new XMLHttpRequest();
-        client.open('GET', file);
-        client.onreadystatechange = function() {
-            switch (client.readyState){
-                case 0:
-                    break;
-                case 1:
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    callback(client.responseText);
-                    break;
+        var request = new XMLHttpRequest();
+        request.open('GET', file);
+        request.onreadystatechange = function() {
+            if(request.readyState == 4){
+                if(request.status == 200){
+                    callback(request.responseText);
+                }
             }
         };
-        client.send();
+        request.send();
     },
 
     loadImage : function(file, callback){
