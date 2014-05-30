@@ -1,5 +1,5 @@
 EventDispatcher = function () {
-    this._listeners = [];
+    this._listeners = {};
 };
 
 EventDispatcher.prototype.addEventListener = function (type, method) {
@@ -23,25 +23,46 @@ EventDispatcher.prototype.removeEventListener = function (type, method) {
     if (!this.hasEventListener(type)){
         return;
     }
-    var methods = this._listeners[type];
-    var i = methods.length;
-    while (--i > -1) {
-        if (methods[i] == method) {
-            methods.splice(i, 1);
-            if (methods.length == 0){
-                delete this._listeners[type];
+
+    if(method){
+        var methods = this._listeners[type];
+        var i = methods.length;
+        while (--i > -1) {
+            if (methods[i] == method) {
+                methods.splice(i, 1);
+                if (methods.length == 0){
+                    delete this._listeners[type];
+                }
+                break;
             }
-            break;
         }
+        return;
     }
+    delete this._listeners[type];
 };
 
+
+
 EventDispatcher.prototype.removeAllEventListeners = function () {
-    this._listeners = [];
+    this._listeners = {};
 };
 
 EventDispatcher.prototype.hasEventListener = function (type) {
     return this._listeners[type] != undefined && this._listeners[type] != null;
 };
+
+EventDispatcher.prototype.getNumListerners = function(){
+    var listeners = this._listeners;
+    if(Object.keys){
+        return Object.keys(listeners).length;
+    }
+    var num = 0, key;
+    for(key in listeners){
+        if(listeners.hasOwnProperty(key)){
+            num++;
+        }
+    }
+    return num;
+}
 
 module.exports = EventDispatcher;
