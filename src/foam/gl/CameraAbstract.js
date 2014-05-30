@@ -59,7 +59,7 @@ CameraAbstract.prototype.setTarget = function (v) {
 };
 
 CameraAbstract.prototype.setTarget3f = function (x, y, z) {
-    Vec3.set3f(this._target, x, y, z);
+    this._target.set3f(x, y, z);
     this._modelViewMatrixUpdated = false;
 };
 
