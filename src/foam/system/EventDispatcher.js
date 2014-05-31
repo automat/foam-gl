@@ -1,3 +1,5 @@
+var ObjectUtil = require('../util/ObjectUtil');
+
 EventDispatcher = function () {
     this._listeners = {};
 };
@@ -52,17 +54,7 @@ EventDispatcher.prototype.hasEventListener = function (type) {
 };
 
 EventDispatcher.prototype.getNumListerners = function(){
-    var listeners = this._listeners;
-    if(Object.keys){
-        return Object.keys(listeners).length;
-    }
-    var num = 0, key;
-    for(key in listeners){
-        if(listeners.hasOwnProperty(key)){
-            num++;
-        }
-    }
-    return num;
+    return ObjectUtil.getNumKeys(this._listeners);
 }
 
 module.exports = EventDispatcher;

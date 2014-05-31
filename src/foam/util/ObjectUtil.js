@@ -143,6 +143,19 @@ var ObjectUtil = {
         return out.substr(0, out.lastIndexOf(',')) + ']';
     },
 
+    getNumKeys : function(obj){
+        if(Object.keys){
+            return Object.keys(obj).length;
+        }
+        var num = 0, key;
+        for(key in obj){
+            if(obj.hasOwnProperty(key)){
+                num++;
+            }
+        }
+        return num;
+    },
+
     getObjectString: function (obj) {
         if (!this.isObject(obj)) {
             throw new TypeError('Object must be of type object.')
