@@ -12,6 +12,8 @@ function Mouse() {
 
     this._position = new Vec2();
     this._positionLast = new Vec2();
+    this._positionNormalized = new Vec2();
+    this._positionLastNormalized = new Vec2();
     this._down = this._downLast = false;
     this._up = false;
     this._move = this._moveLast = false;
@@ -45,6 +47,30 @@ Mouse.prototype.getXLast = function () {
 
 Mouse.prototype.getYLast = function () {
     return this._positionLast.y;
+};
+
+Mouse.prototype.getPositionNormalized = function(v){
+    return (v || new Vec2()).set(this._positionNormalized);
+}
+
+Mouse.prototype.getPositionLastNormalized = function (v) {
+    return (v || new Vec2()).set(this._positionLastNormalized);
+};
+
+Mouse.prototype.getXNormalized = function () {
+    return this._positionNormalized.x;
+};
+
+Mouse.prototype.getYNormalized = function () {
+    return this._positionNormalized.y;
+};
+
+Mouse.prototype.getXLastNormalized = function () {
+    return this._positionLastNormalized.x;
+};
+
+Mouse.prototype.getYLastNormalized = function () {
+    return this._positionLastNormalized.y;
 };
 
 Mouse.prototype.getWheelDelta = function () {

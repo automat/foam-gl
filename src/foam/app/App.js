@@ -87,9 +87,13 @@ function App() {
     var mouse = this._mouse;
     var self = this;
 
+
+
     function onMouseStopped(){
         mouse._positionLast.x = mouse._position.x;
         mouse._positionLast.y = mouse._position.y;
+        mouse._positionLastNormalized.x = mouse._positionNormalized.x;
+        mouse._positionLastNormalized.y = mouse._positionNormalized.y;
         mouse._move = false;
 
         if(mouse.hasEventListener(MouseEvent.MOUSE_STOP)){
@@ -103,6 +107,10 @@ function App() {
         mouse._positionLast.y = mouse._position.y;
         mouse._position.x = e.offsetX;
         mouse._position.y = e.offsetY;
+        mouse._positionLastNormalized.x = mouse._positionNormalized.x;
+        mouse._positionLastNormalized.y = mouse._positionNormalized.y;
+        mouse._positionNormalized.x = mouse._position.x / self._windowBounds.x1;
+        mouse._positionNormalized.y = mouse._position.y / self._windowBounds.y1;
 
         if(mouse._down){
             if(mouse.hasEventListener(MouseEvent.MOUSE_DRAG)){
@@ -119,7 +127,15 @@ function App() {
     });
 
     canvas.addEventListener('mousedown',function(){
+        mouse._downLast = mouse._down;
         mouse._down = true;
+
+        if(mouse._down && !mouse._downLast){
+            if(mouse.hasEventListener(MouseEvent.MOUSE_PRESSED)){
+                mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_PRESSED));
+            }
+        }
+
         if(mouse.hasEventListener(MouseEvent.MOUSE_DOWN)){
             mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_DOWN));
         }
@@ -164,6 +180,7 @@ function App() {
             timeDelta = time - self._timeNext;
 
             self._timeDelta = Math.min(timeDelta / timeInterval, 1);
+
 
             if (timeDelta > timeInterval) {
                 timeNext = self._timeNext = time - (timeDelta % timeInterval);
