@@ -1,4 +1,4 @@
-var Foam         = require('../../src/foam/foam.js'),
+var Foam         = require('../../src/foam/Foam.js'),
     glTrans      = Foam.glTrans,
     glDraw       = Foam.glDraw,
     System       = Foam.System,

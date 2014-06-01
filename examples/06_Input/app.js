@@ -1,4 +1,4 @@
-var Foam = require('../../src/foam/foam.js'),
+var Foam = require('../../src/foam/Foam.js'),
     MouseEvent = Foam.MouseEvent,
     Mouse = Foam.Mouse;
 

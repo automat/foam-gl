@@ -4,7 +4,7 @@
  *  F | O | A | M
  *
  *
- * Foam - A Plask/Web GL toolkit
+ * Foam - A WebGL toolkit
  *
  * Foam is available under the terms of the MIT license.  The full text of the
  * MIT license is included below.
@@ -36,38 +36,41 @@
 
 module.exports = {
 
-    Math: require('./math/Math'),
-    Vec2: require('./math/Vec2'),
-    Vec3: require('./math/Vec3'),
-    Vec4: require('./math/Vec4'),
-    Matrix44: require('./math/Matrix44'),
-    Ease: require('./math/Ease'),
-    Random : require('./math/Random'),
+    Math :     require('./math/Math'),
+    Vec2 :     require('./math/Vec2'),
+    Vec3 :     require('./math/Vec3'),
+    Vec4 :     require('./math/Vec4'),
+    Matrix44 : require('./math/Matrix44'),
+    Ease :     require('./math/Ease'),
+    Random :   require('./math/Random'),
 
     Color : require('./util/Color'),
-    AABB : require('./geom/AABB'),
+    AABB :  require('./geom/AABB'),
     Plane : require('./geom/Plane'),
-    Application: require('./app/App'),
+    Rect :  require('./geom/Rect'),
+    Application : require('./app/App'),
 
-    gl: require('./gl/gl'),
-    glTrans: require('./gl/glTrans'),
-    glDraw: require('./gl/glDraw'),
-    glu: require('./gl/glu'),
+    gl :      require('./gl/gl'),
+    glTrans : require('./gl/glTrans'),
+    glDraw :  require('./gl/glDraw'),
+    glu :     require('./gl/glu'),
 
 
-    Program: require('./gl/Program'),
-    CameraPersp: require('./gl/CameraPersp'),
-    CameraOrtho: require('./gl/CameraOrtho'),
+    Program : require('./gl/Program'),
+    CameraPersp :   require('./gl/CameraPersp'),
+    CameraOrtho :   require('./gl/CameraOrtho'),
+    Arcball : require('./gl/Arcball'),
     FrustumOrtho : require('./gl/FrustumOrtho'),
     FrustumPersp : require('./gl/FrustumPersp'),
 
     Texture: require('./gl/Texture'),
     Fbo: require('./gl/Fbo'),
 
-    System: require('./system/System'),
+    System :      require('./system/System'),
+    FileWatcher : require('./system/FileWatcher'),
     EventDispatcher : require('./system/EventDispatcher'),
-    Event : require('./system/Event'),
-    Mouse : require('./input/Mouse'),
+    Event :           require('./system/Event'),
+    Mouse :      require('./input/Mouse'),
     MouseEvent : require('./input/MouseEvent'),
 
 //
@@ -78,8 +81,8 @@ module.exports = {
 //
 //    Material      : require('./gl/gl/fMaterial'),
 
-    ObjectUtil: require('./util/ObjectUtil'),
-    ArrayUtil : require('./util/ArrayUtil'),
+    ObjectUtil :  require('./util/ObjectUtil'),
+    ArrayUtil :   require('./util/ArrayUtil'),
     ElementArrayUtil : require('./util/ElementArrayUtil')
 
 
