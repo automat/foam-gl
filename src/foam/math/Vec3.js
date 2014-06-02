@@ -77,6 +77,17 @@ Vec3.prototype.cross =function (v) {
     return this;
 };
 
+Vec3.prototype.crossf = function(x,y,z){
+    var vx = v.x,
+        vy = v.y,
+        vz = v.z;
+
+    this.x = y * vz - vy * z;
+    this.y = z * vx - vz * x;
+    this.z = x * vy - vx * y;
+    return this;
+}
+
 Vec3.prototype.length = function(){
     var x = this.x,
         y = this.y,
@@ -174,6 +185,10 @@ Vec3.prototype.crossed = function(v,out){
     return (out || new Vec3()).set(this).cross(v);
 };
 
+Vec3.prototype.crossedf = function(x,y,z,out){
+    return (out || new Vec3()).set(this).crossf(x,y,z);
+}
+
 Vec3.prototype.normalized = function(out){
     return (out || new Vec3()).set(this).normalize();
 };
@@ -247,6 +262,7 @@ Vec3.prototype.toFloat32Array = function(arr,offset){
     arr[offset+2] = this.z;
     return arr;
 };
+
 
 Vec3.xAxis = function(){
     return new Vec3(1,0,0);
