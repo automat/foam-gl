@@ -109,7 +109,6 @@ Vec2.prototype.limit = function(n){
     var dsq = x * x + y * y,
         lsq = n * n;
 
-
     if(lsq > 0 && dsq > lsq){
         var nd = n / Math.sqrt(dsq);
         this.x *= nd;
@@ -134,14 +133,6 @@ Vec2.prototype.subbed = function(v,out){
 Vec2.prototype.scaled = function(n,out){
     return (out || new Vec2()).set(this).scale(n);
 };
-
-Vec2.prototype.crossed = function(v,out){
-    return (out || new Vec2()).set(this).cross(v);
-};
-
-Vec2.prototype.crossedf = function(x,y,z,out){
-    return (out || new Vec2()).set(this).crossf(x,y,z);
-}
 
 Vec2.prototype.normalized = function(out){
     return (out || new Vec2()).set(this).normalize();
