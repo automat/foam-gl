@@ -289,7 +289,7 @@ Vec3.max = function(){
 };
 
 Vec3.min = function(){
-    return new Vec3(-Number.MAX_VALUE,-Number.MAX_VALUE-Number.MAX_VALUE);
+    return new Vec3(-Number.MAX_VALUE,-Number.MAX_VALUE,-Number.MAX_VALUE);
 };
 
 Vec3.randomPosition = function(){
