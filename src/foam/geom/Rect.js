@@ -67,6 +67,90 @@ Rect.prototype.setPositionf = function(x,y){
     return this;
 };
 
+Rect.prototype.include = function(rect){
+    var min = this.min,
+        max = this.max,
+        rmin = rect.min,
+        rmax = rect.max;
+
+    if(min.x > rmin.x) {
+        min.x = rmin.x;
+    }
+    if(max.x < rmax.x) {
+        max.x = rmax.x;
+    }
+    if(min.y > rmin.y) {
+        min.y = rmin.y;
+    }
+    if(max.y < rmax.y) {
+        max.y = rmax.y;
+    }
+    return this;
+}
+
+Rect.prototype.includePoint = function(point){
+    var min = this.min,
+        max = this.max;
+
+    var x = point.x,
+        y = point.y;
+
+    if(min.x > x) {
+        min.x = x;
+    }
+    if(max.x < x) {
+        max.x = x;
+    }
+    if(min.y > y) {
+        min.y = y;
+    }
+    if(max.y < y) {
+        max.y = y;
+    }
+
+    return this;
+}
+
+Rect.prototype.includePoints = function(points){
+    var min = this.min,
+        max = this.max;
+
+    var p,x,y;
+    var i = -1, l = points.length;
+
+    while(++i < l){
+        p = points[i];
+        x = p.x;
+        y = p.y;
+
+        if(min.x > x) {
+            min.x = x;
+        }
+        if(max.x < x) {
+            max.x = x;
+        }
+        if(min.y > y) {
+            min.y = y;
+        }
+        if(max.y < y) {
+            max.y = y;
+        }
+    }
+
+    return this;
+}
+
+Rect.prototype.scale = function(n){
+    this.min.scale(n);
+    this.max.scale(n);
+    return this;
+}
+
+Rect.prototype.isZero = function(){
+    return this.min.x == 0 && this.min.y == 0 &&
+           this.max.x == 0 && this.max.y == 0;
+}
+
 Rect.prototype.getPosition = function(v){
     return (v || new Vec2()).set(this.min);
 };
