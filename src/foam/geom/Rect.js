@@ -184,12 +184,28 @@ Rect.prototype.getHeight = function(){
 };
 
 Rect.prototype.getSize = function(v){
-    return (v || new Vec2()).set(this.getWidth(),this.getHeight());
+    return (v || new Vec2()).setf(this.getWidth(),this.getHeight());
 };
 
 Rect.prototype.getCenter = function(v){
     return (v || new Vec2()).setf((this.min.x + this.max.x) * 0.5,(this.min.y + this.max.y) * 0.5);
 };
+
+Rect.prototype.getTL = function(){
+    return this.min.copy();
+};
+
+Rect.prototype.getTR = function(){
+    return new Vec2(this.max.x, this.min.y);
+};
+
+Rect.prototype.getBL = function(){
+    return new Vec2(this.min.x, this.max.y);
+};
+
+Rect.prototype.getBR = function(){
+    return this.max.copy();
+}
 
 Rect.prototype.getAspectRatio = function(){
     return this.getWidth() / this.getHeight();
