@@ -1,69 +1,9 @@
 var opentype = require('../../lib/opentype.js'),
     Rect = require('../geom/Rect'),
     Vec2 = require('../math/Vec2'),
-    _gl = require('./gl'),
-    ObjectUtil = require('../util/ObjectUtil'),
-    fMath = require('../math/Math');
+    _gl = require('./gl');
 
-var GLYPH_PADDING = 2;
-
-function rectPath(ctx,rect){
-    ctx.fillStyle = 'rgb(255,0,0)';
-    ctx.beginPath();
-    ctx.arc(rect.min.x,rect.min.y,3,0,Math.PI*2);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(rect.min.x,rect.min.y);
-    ctx.lineTo(rect.max.x,rect.min.y);
-    ctx.lineTo(rect.max.x,rect.max.y);
-    ctx.lineTo(rect.min.x,rect.max.y);
-    ctx.lineTo(rect.min.x,rect.min.y);
-    ctx.closePath();
-}
-
-function lineVPath(ctx,min,max,val){
-    ctx.beginPath();
-    ctx.moveTo(min,val);
-    ctx.lineTo(max,val);
-    ctx.closePath();
-}
-
-function drawChar(ctx,font,char) {
-    var fm = font.getMetrics();
-    var cm = font.getMetrics(char);
-
-    ctx.save();
-    ctx.translate(-cm.bounds.min.x, -cm.bounds.min.y);
-
-
-    ctx.strokeStyle = '#000';
-    lineVPath(ctx,0);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgb(0,0,255)';
-    lineVPath(ctx,cm.bounds.min.x,cm.bounds.max.x,-fm.ascent);
-    lineVPath(ctx,cm.bounds.min.x,cm.bounds.max.x,-fm.descent);
-    ctx.stroke();
-
-
-    //x min/max
-    ctx.strokeStyle = 'rgb(0,255,255)';
-    rectPath(ctx,cm.bounds);
-    ctx.stroke();
-
-    /*
-    ctx.strokeStyle = 'rgb(0,255,0)';
-    rectPath(ctx,fm.bounds);
-    ctx.stroke();
-    */
-    font.getGlyph(char).draw(ctx,0,0,font.getFontSize());
-    //glyph.drawMetrics(ctx,0,0,fontSize);
-
-    ctx.restore();
-}
+var GLYPH_PADDING = 5;
 
 function GlyphTextureInfo(){
     this.offset = new Vec2();
@@ -78,6 +18,7 @@ function Metrics(){
 
 function GlyphMetrics(){
     Metrics.call(this);
+    this.uniformBounds = new Rect();
     this.advanceWidth = 0;
     this.leftSideBearing = 0;
 }
@@ -185,7 +126,8 @@ TextureFont.prototype._genMapGlyph = function(){
 
     var glyphs = this._glyphs = {},
         glyphMetrics = this._glyphMetrics = {},
-        glyphBounds = new Rect();
+        glyphBounds = new Rect(),
+        glyphBoundsUniform = new Rect();
 
     var scale = this._scale;
     var glyph, metrics;
@@ -196,9 +138,9 @@ TextureFont.prototype._genMapGlyph = function(){
     var glyphPoints = [];
     var glyphMaxSize = Vec2.min();
 
-    var key, i, l;
+    var key, k, i, l;
 
-    for(var k in keys){
+    for(k in keys){
         key = keys[k];
         glyph = glyphs[key] = !glyphs[key] ? font.charToGlyph(key) : glyphs[key];
 
@@ -237,8 +179,16 @@ TextureFont.prototype._genMapGlyph = function(){
 
         metrics = glyphMetrics[key] = new GlyphMetrics();
         metrics.bounds.set(glyphBounds);
+        metrics.uniformBounds.set(glyphBounds);
         metrics.advanceWidth = glyph.advanceWidth * scale;
         metrics.leftSideBearing = glyph.leftSideBearing * scale;
+    }
+
+    for(k in keys){
+        key = keys[k];
+        glyphBoundsUniform = glyphMetrics[key].uniformBounds;
+        glyphBoundsUniform.min.y = fontBounds.min.y;
+        glyphBoundsUniform.max.y = fontBounds.max.y;
     }
 
     // sort on height
@@ -264,8 +214,9 @@ TextureFont.prototype._genMapGlyph = function(){
         glyphTexInfo;
 
     var glyphOffset = new Vec2(),
-        glyphOffsetYBase = glyphMetrics[keys[0]].bounds.getHeight(),
-        glyphSize;
+        glyphOffsetYBase = fontBounds.getHeight(),
+        glyphSize,
+        glyphSizeUniform; // glyph bounds equal font max bounds heights
 
     i = -1;
     l = keys.length;
@@ -274,27 +225,30 @@ TextureFont.prototype._genMapGlyph = function(){
         key = keys[i];
         metrics = glyphMetrics[key];
         glyphSize = metrics.bounds.getSize();
+        glyphSizeUniform = metrics.uniformBounds.getSize();
 
-        if((glyphOffset.x + glyphSize.x) >= canvasWidthMax){
+
+        if((glyphOffset.x + glyphSizeUniform.x) >= canvasWidthMax){
             glyphOffset.x = 0;
             glyphOffset.y += glyphOffsetYBase;
-            glyphOffsetYBase = glyphSize.y;
+            glyphOffsetYBase = glyphSizeUniform.y;
         }
 
         glyphTexInfo = glyphTexInfos[key] = new GlyphTextureInfo();
         glyphTexInfo.offset.set(glyphOffset);
-        glyphTexInfo.size.set(glyphSize);
+        glyphTexInfo.baseOffset = glyphSizeUniform.y - glyphSize.y;
+        glyphTexInfo.size.set(glyphSizeUniform);
 
-        glyphOffset.x += glyphSize.x;
+        glyphOffset.x += glyphSizeUniform.x;
         canvasSize.x = Math.max(glyphOffset.x, canvasSize.x);
         canvasSize.y = Math.max(glyphOffset.y, canvasSize.y);
     }
 
-    canvas.width = canvasSize.x + 200;
+    canvas.width = canvasSize.x;
     canvas.height = canvasSize.y + glyphOffsetYBase;
 
     ctx.fillStyle = 'rgb(255,0,0)';
-    rectPath(ctx,new Rect(canvasSize.x, canvas.height));
+    ctx.fillRect(0,0,canvasSize.x,canvas.height);
     ctx.fill();
 
     i = -1;
@@ -304,12 +258,34 @@ TextureFont.prototype._genMapGlyph = function(){
         glyphTexInfo = glyphTexInfos[key];
         glyphOffset = glyphTexInfo.offset;
         glyphSize = glyphTexInfo.size;
+        glyphBounds = glyphMetrics[key].uniformBounds;
 
         ctx.save();
         ctx.translate(glyphOffset.x,glyphOffset.y);
-        drawChar(ctx,this,key);
+
+        //ctx.strokeStyle = '#FFF';
+        //ctx.strokeRect(0,0,glyphBounds.getWidth(),glyphBounds.getHeight());
+
+        ctx.save();
+        ctx.translate(-glyphBounds.min.x, -glyphBounds.min.y);
+
+        glyphs[key].draw(ctx,0,0,fontSize);
+        //glyphs[key].drawMetrics(ctx,0,0,fontSize);
+
+        ctx.restore();
         ctx.restore();
     }
+
+    glyphTexInfo = glyphTexInfos[keys[34]];
+    glyphOffset = glyphTexInfo.offset;
+
+    ctx.save();
+    ctx.translate(glyphOffset.x,glyphOffset.y);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(-2,-2,4,4);
+    ctx.strokeStyle = '#fff';
+    ctx.strokeRect(0,0,glyphTexInfo.size.x,glyphTexInfo.size.y);
+    ctx.restore();
 };
 
 TextureFont.prototype.getMetrics = function(char){
@@ -322,6 +298,11 @@ TextureFont.prototype.getMetrics = function(char){
     }
     console.log("Char not supported: " + char);
     return null;
+};
+
+
+TextureFont.prototype.drawString = function(){
+
 };
 
 TextureFont.loadAsync = function(path, callback){
