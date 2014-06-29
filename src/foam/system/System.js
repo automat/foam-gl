@@ -1,13 +1,14 @@
 var ObjectUtil = require('../util/ObjectUtil');
 
 var System = {
-    loadFile : function(path,callback){
+    loadFile : function(path,callback,responseType){
         var request = new XMLHttpRequest();
         request.open('GET', path);
+        request.responseType = responseType || 'text';
         request.onreadystatechange = function() {
             if(request.readyState == 4){
                 if(request.status == 200){
-                    callback(request.responseText);
+                    callback(request.response);
                 } else if(request.status == 404){
                     console.log('File not found. File: ' + path);
                 }
@@ -33,10 +34,10 @@ var System = {
             if(ObjectUtil.isObject(obj)){
                 if(obj.hasOwnProperty('path') && obj.hasOwnProperty('type')){
                     var type = obj.type;
-                    if( type != 'arraybuffer' ||
-                        type != 'blob' ||
-                        type != 'document' ||
-                        type != 'json' ||
+                    if( type != 'arraybuffer' &&
+                        type != 'blob' &&
+                        type != 'document' &&
+                        type != 'json' &&
                         type != 'text'){
                         console.log('Invalid return type: ' + type);
                         numFiles--;
@@ -47,7 +48,7 @@ var System = {
                         request.onreadystatechange = function(){
                             if(request.readyState == 4){
                                 if(request.status == 200){
-                                    bundle_[key] = request.responseText;
+                                    bundle_[key] = request.response;
                                     numFilesLoaded++;
                                 } else if(request == 404){
                                     console.log('File not found. File: ' + obj);
@@ -58,7 +59,6 @@ var System = {
                         }
                         request.send();
                     }
-
                 } else {
                     console.log("Invalid resource object: " + obj);
                     numFiles--;
@@ -84,7 +84,7 @@ var System = {
 
         for(var key in bundle){
             if(bundle.hasOwnProperty(key)){
-                if(!ObjectUtil.isString(bundle[key])){
+                if(!ObjectUtil.isString(key)){
                     console.log('Bundle file path: ' + key + ' is not of type string.');
                     numFiles--;
                     onFileProcessed();
