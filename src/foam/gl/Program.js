@@ -59,6 +59,8 @@ function Program(vertexShader, fragmentShader) {
     }
 }
 
+// Default shared shader vars - global, reassignable
+
 Program.UNIFORM_MODELVIEW_MATRIX  = 'uModelViewMatrix';
 Program.UNIFORM_PROJECTION_MATRIX = 'uProjectionMatrix';
 
@@ -67,6 +69,8 @@ Program.ATTRIB_VERTEX_NORMAL   = 'aVertexNormal';
 Program.ATTRIB_VERTEX_COLOR    = 'aVertexColor';
 Program.ATTRIB_TEXCOORD        = 'aTexcoord';
 
+Program.UNIFORM_COLOR      = 'uColor';
+Program.UNIFORM_TEXTURE    = 'uTexture';
 Program.UNIFORM_POINT_SIZE = 'uPointSize';
 
 Program._currentProgram = null;
