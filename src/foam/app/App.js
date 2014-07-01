@@ -1,6 +1,7 @@
 var fError     = require('../system/common/Error'),
     ObjectUtil = require('../util/ObjectUtil'),
     Event      = require('../system/Event'),
+    System     = require('../system/System'),
     Vec2       = require('../math/Vec2'),
     Rect       = require('../geom/Rect'),
     Mouse      = require('../input/Mouse'),
@@ -338,6 +339,65 @@ App.prototype.getKeyStr = function () {
 
 App.prototype.onKeyDown = function () {};
 App.prototype.onKeyUp = function () {};
+
+
+/*--------------------------------------------------------------------------------------------*/
+//  lazy init
+/*--------------------------------------------------------------------------------------------*/
+
+
+App._newObj = function(obj){
+    function App_(){
+        App.call(this);
+    }
+    App_.prototype = Object.create(App.prototype);
+    for( var p in obj ){
+        if(obj.hasOwnProperty(p)){
+            App_.prototype[p] = obj[p];
+        }
+    }
+    return new App_();
+}
+
+App.newOnLoad = function(obj){
+    var obj_ = {instance:null};
+    window.addEventListener('load',function(){
+        obj_.instance = App._newObj(obj);
+    });
+    return obj_;
+}
+
+App.newOnLoadResource = function(resource, type, obj){
+    var obj_ = {instance:null};
+    window.addEventListener('load', function () {
+        System.loadFile(resource,function(resource){
+            var setup = obj.setup;
+            obj.setup = function () {
+                setup.call(this,resource);
+            }
+            obj_.instance = App._newObj(obj);
+        },type);
+    });
+    return obj_;
+};
+
+App.newOnLoadResourceBundle = function(bundle, obj){
+    var obj_ = {instance:null};
+    window.addEventListener('load',function(){
+        System.loadFileBundle(bundle,function(bundle){
+            var setup = obj.setup;
+            obj.setup = function(){
+                setup.call(this,bundle);
+            };
+            obj_.instance = App._newObj(obj);
+        });
+    });
+    return obj_;
+};
+
+App.new = function(obj){
+    return new App._newObj(obj);
+}
 
 /*
  App.prototype.getWindowWidth  = function(){return this._appImpl.getWindowWidth();};
