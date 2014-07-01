@@ -5,9 +5,9 @@ var Foam = require('../../src/foam/Foam.js'),
 var gl;
 
 function App() {
-    Foam.Application.apply(this, arguments);
+    Foam.App.apply(this, arguments);
 }
-App.prototype = Object.create(Foam.Application.prototype);
+App.prototype = Object.create(Foam.App.prototype);
 
 App.prototype.setup = function () {
     this.setWindowSize(800,600);

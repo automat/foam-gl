@@ -13,10 +13,10 @@ var gl;
 var shaderSource = '';
 
 function App() {
-    Foam.Application.apply(this, arguments);
+    Foam.App.apply(this, arguments);
 }
 
-App.prototype = Object.create(Foam.Application.prototype);
+App.prototype = Object.create(Foam.App.prototype);
 
 App.prototype.setup = function () {
     this.setFPS(60);

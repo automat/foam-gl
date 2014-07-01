@@ -1,4 +1,4 @@
-var Foam         = require('../../src/foam/foam.js'),
+var Foam         = require('../../src/foam/Foam.js'),
     glTrans      = Foam.glTrans,
     glDraw       = Foam.glDraw,
     System       = Foam.System,
@@ -27,10 +27,10 @@ Cluster.prototype.updateAABB = function(){
 };
 
 function App() {
-    Foam.Application.apply(this, arguments);
+    Foam.App.apply(this, arguments);
 }
 
-App.prototype = Object.create(Foam.Application.prototype);
+App.prototype = Object.create(Foam.App.prototype);
 
 App.prototype.setup = function () {
     this.setFPS(60);
@@ -45,7 +45,7 @@ App.prototype.setup = function () {
         program.bind();
 
     var camera = this._cameraPersp = new CameraPersp();
-        camera.setPerspective(45.0,this.getWindowAspectRatio(),0.00125, 10.0);
+        camera.setPerspective(45.0,this.getWindowAspectRatio(),0.00125, 30.0);
         camera.lookAt(Vec3.one(), Vec3.zero());
         camera.updateMatrices();
 

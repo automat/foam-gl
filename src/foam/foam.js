@@ -41,6 +41,7 @@ module.exports = {
     Vec3 :     require('./math/Vec3'),
     Vec4 :     require('./math/Vec4'),
     Matrix44 : require('./math/Matrix44'),
+    Quat :     require('./math/Quat'),
     Ease :     require('./math/Ease'),
     Random :   require('./math/Random'),
 
@@ -48,12 +49,14 @@ module.exports = {
     AABB :  require('./geom/AABB'),
     Plane : require('./geom/Plane'),
     Rect :  require('./geom/Rect'),
-    Application : require('./app/App'),
+    App : require('./app/App'),
 
     gl :      require('./gl/gl'),
     glTrans : require('./gl/glTrans'),
     glDraw :  require('./gl/glDraw'),
     glu :     require('./gl/glu'),
+
+    TextureFont : require('./gl/TextureFont'),
 
 
     Program : require('./gl/Program'),
