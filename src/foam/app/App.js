@@ -11,15 +11,20 @@ var fError     = require('../system/common/Error'),
     gl         = require('../gl/gl'),
     glDraw     = require('../gl/glDraw');
 
+var DEFAULT_WINDOW_WIDTH = 800,
+    DEFAULT_WINDOW_HEIGHT = 600;
+var DEFAULT_FPS = 60.0;
+
+var KEY_PRESS_THRESHOLD = 100;
 
 function App() {
+    if (App.__instance) {
+        throw new Error(Error.CLASS_IS_SINGLETON);
+    }
+
     if(!window.WebGLRenderingContext){
         this.onWebGLContextNotAvailable();
         return this;
-    }
-
-    if (App.__instance) {
-        throw new Error(Error.CLASS_IS_SINGLETON);
     }
 
     //
@@ -59,7 +64,7 @@ function App() {
     this._timeElapsed = 0;
     this._loop = true;
 
-    this.setFPS(60.0);
+    this.setFPS(DEFAULT_FPS);
 
     //
     //  canvas & context
@@ -181,7 +186,7 @@ function App() {
         keyboard._timestampLast = keyboard._timestamp;
         keyboard._timestamp = e.timeStamp;
 
-        if(keyboard._timestamp - keyboard._timestampLast < 100) {
+        if(keyboard._timestamp - keyboard._timestampLast < KEY_PRESS_THRESHOLD) {
             if(keyboard.hasEventListener(KeyEvent.KEY_PRESS)) {
                 keyboard.dispatchEvent(new Event(keyboard, KeyEvent.KEY_PRESS));
             }
@@ -360,29 +365,6 @@ App.prototype.loop = function(loop){
     this._loop = loop;
 };
 
-
-/*--------------------------------------------------------------------------------------------*/
-//  input
-/*--------------------------------------------------------------------------------------------*/
-
-/*
-
-App.prototype.isKeyDown = function () {
-    return this._keyDown;
-};
-App.prototype.getKeyCode = function () {
-    return this._keyCode;
-};
-App.prototype.getKeyStr = function () {
-    return this._keyStr;
-};
-
-
-App.prototype.onKeyDown = function () {};
-App.prototype.onKeyUp = function () {};
-*/
-
-
 /*--------------------------------------------------------------------------------------------*/
 //  lazy init
 /*--------------------------------------------------------------------------------------------*/
@@ -446,47 +428,5 @@ App.new = function(obj){
  App.prototype.setWindowTitle       = function(title){this._appImpl.setWindowTitle(title);};
  App.prototype.restrictMouseToFrame = function(bool) {this._appImpl.restrictMouseToFrame(bool);};
  App.prototype.hideMouseCursor      = function(bool) {this._appImpl.hideMouseCursor(bool);};
-
- App.prototype.setFullWindowFrame  = function(bool){return this._appImpl.setFullWindowFrame(bool);};
- App.prototype.setFullscreen       = function(bool){return this._appImpl.setFullscreen(true);};
- App.prototype.isFullscreen        = function()    {return this._appImpl.isFullscreen();};
- App.prototype.setBorderless       = function(bool){return this._appImpl.setBorderless(bool);};
- App.prototype.isBorderless        = function()    {return this._appImpl.isBorderless();};
- App.prototype.setDisplay          = function(num) {return this._appImpl.setDisplay(num);};
- App.prototype.getDisplay          = function()    {return this._appImpl.getDisplay();};
-
- App.prototype.setFPS = function(fps){this._appImpl.setFPS(fps);};
-
-
- App.prototype.isKeyDown          = function(){return this._appImpl.isKeyDown();};
- App.prototype.isMouseDown        = function(){return this._appImpl.isMouseDown();};
- App.prototype.isMouseMove        = function(){return this._appImpl.isMouseMove();};
- App.prototype.getKeyStr          = function(){return this._appImpl.getKeyStr();};
- App.prototype.getKeyCode         = function(){return this._appImpl.getKeyCode();};
- App.prototype.getMouseWheelDelta = function(){return this._appImpl.getMouseWheelDelta();};
-
-
- App.prototype.onKeyDown    = function(e){};
- App.prototype.onKeyUp      = function(e){};
- App.prototype.onMouseUp    = function(e){};
- App.prototype.onMouseDown  = function(e){};
- App.prototype.onMouseWheel = function(e){};
- App.prototype.onMouseMove  = function(e){};
-
- App.prototype.onWindowResize = function(e){};
-
- App.prototype.getFramesElapsed  = function(){return this._appImpl.getFramesElapsed();};
- App.prototype.getSecondsElapsed = function(){return this._appImpl.getSecondsElapsed();};
- App.prototype.getTime           = function(){return this._appImpl.getTime();};
- App.prototype.getTimeStart      = function(){return this._appImpl.getTimeStart();};
- App.prototype.getTimeNext       = function(){return this._appImpl.getTimeNext();};
- App.prototype.getTimeDelta      = function(){return this._appImpl.getTimeDelta();};
-
- App.prototype.getWindow = function(){return this._appImpl.getWindow();};
-
- App.prototype.getWindowAspectRatio = function(){return this._appImpl.getWindowAspectRatio();};
-
- App.__instance   = null;
- App.getInstance = function(){return App.__instance;};
  */
 module.exports = App;

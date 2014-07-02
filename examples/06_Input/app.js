@@ -46,11 +46,9 @@ Foam.App.newOnLoad({
 
     onKeyUp : function(event){
         console.log(event);
-        //console.log(event);
     },
 
     onKeyPress : function(event){
         console.log(event.type);
     }
-
 });
