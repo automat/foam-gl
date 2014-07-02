@@ -1,12 +1,19 @@
 var CameraAbstract = require('./CameraAbstract'),
+    App = require('../app/App.js'),
     Vec3 = require('../math/Vec3'),
     glu = require('./glu');
 
+var DEFAULT_FOV  = 60.0,
+    DEFAULT_NEAR = 0.0001,
+    DEFAULT_FAR  = 10.0;
 
 function CameraPersp() {
     CameraAbstract.call(this);
-
-    this._aspectRatio = 0;
+    this.setPerspective(DEFAULT_FOV,
+                        App.getInstance().getWindowAspectRatio(),
+                        DEFAULT_NEAR,
+                        DEFAULT_FAR);
+    this.setEye(Vec3.one());
 }
 
 CameraPersp.prototype = Object.create(CameraAbstract.prototype);
@@ -19,6 +26,11 @@ CameraPersp.prototype.setPerspective = function (fov, windowAspectRatio, near, f
     this._aspectRatio = windowAspectRatio;
 
     this.updateProjectionMatrix();
+};
+
+CameraPersp.prototype.setDistance = function(dist){
+    this._eye.normalize().scale(dist);
+    this._modelViewMatrixUpdated = false;
 };
 
 CameraPersp.prototype.updateModelViewMatrix = function () {

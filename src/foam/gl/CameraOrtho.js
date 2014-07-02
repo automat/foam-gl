@@ -1,13 +1,16 @@
 var CameraAbstract = require('./CameraAbstract'),
-    glu = require('./glu');
+    Vec3 = require('../math/Vec3'),
+    App  = require('../app/App'),
+    glu  = require('./glu');
+
+var DEFAULT_NEAR = -10,
+    DEFAUTL_FAR  = 10;
 
 function CameraOrtho() {
     CameraAbstract.call(this);
-
-    this._frustumLeft = this._frustumLeftInit = null;
-    this._frustumRight = this._frustumRightInit = null;
-    this._frustumBottom = this._frustumBottomInit = null;
-    this._frustumTop = this._frustumTopInit = null;
+    var aspectRatio = App.getInstance().getWindowAspectRatio();
+    this.setOrtho(-aspectRatio,aspectRatio,-1,1,DEFAULT_NEAR,DEFAUTL_FAR);
+    this.setEye(Vec3.one());
 }
 
 CameraOrtho.prototype = Object.create(CameraAbstract.prototype);
@@ -44,7 +47,7 @@ CameraOrtho.prototype.updateProjectionMatrix = function () {
     this._projectionMatrixUpdated = true;
 };
 
-CameraOrtho.prototype.setZoom = function (zoom) {
+CameraOrtho.prototype.setDistance = function (zoom) {
     this._frustumLeft = this._frustumLeftInit * zoom;
     this._frustumRight = this._frustumRightInit * zoom;
     this._frustumBottom = this._frustumBottomInit * zoom;
