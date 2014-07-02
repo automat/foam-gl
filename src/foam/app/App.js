@@ -6,6 +6,8 @@ var fError     = require('../system/common/Error'),
     Rect       = require('../geom/Rect'),
     Mouse      = require('../input/Mouse'),
     MouseEvent = require('../input/MouseEvent'),
+    Keyboard   = require('../input/Keyboard'),
+    KeyEvent   = require('../input/KeyEvent'),
     gl         = require('../gl/gl'),
     glDraw     = require('../gl/glDraw');
 
@@ -41,6 +43,8 @@ function App() {
     this._mousePosTemp = new Vec2();
     this._mousePosLastTemp = new Vec2();
     this._mousePosition = {position:new Vec2(),positionLast:new Vec2()};
+
+    this._keyboard = new Keyboard();
 
     //
     //  time
@@ -85,7 +89,8 @@ function App() {
 
     document.body.appendChild(canvas);
 
-    var mouse = this._mouse;
+    var mouse    = this._mouse,
+        keyboard = this._keyboard;
     var self = this;
 
 
@@ -110,8 +115,8 @@ function App() {
         mouse._position.y = e.offsetY;
         mouse._positionLastNormalized.x = mouse._positionNormalized.x;
         mouse._positionLastNormalized.y = mouse._positionNormalized.y;
-        mouse._positionNormalized.x = mouse._position.x / self._windowBounds.x1;
-        mouse._positionNormalized.y = mouse._position.y / self._windowBounds.y1;
+        mouse._positionNormalized.x = mouse._position.x / self._windowBounds.getWidth();
+        mouse._positionNormalized.y = mouse._position.y / self._windowBounds.getHeight();
 
         if(mouse._down){
             if(mouse.hasEventListener(MouseEvent.MOUSE_DRAG)){
@@ -160,6 +165,41 @@ function App() {
         mouse._enter = true;
         if(mouse.hasEventListener(MouseEvent.MOUSE_ENTER)){
             mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_ENTER));
+        }
+    });
+
+    canvas.addEventListener('keydown',function(e){
+        keyboard._up   = false;
+        keyboard._down = true;
+        keyboard._altKey = e.altKey;
+        keyboard._ctrlKey = e.ctrlKey;
+        keyboard._shiftKey = e.shiftKey;
+
+        keyboard._keycodePrev = keyboard._keycode;
+        keyboard._keycode = e.keyCode;
+
+        keyboard._timestampLast = keyboard._timestamp;
+        keyboard._timestamp = e.timeStamp;
+
+        if(keyboard._timestamp - keyboard._timestampLast < 100) {
+            if(keyboard.hasEventListener(KeyEvent.KEY_PRESS)) {
+                keyboard.dispatchEvent(new Event(keyboard, KeyEvent.KEY_PRESS));
+            }
+            return;
+        }
+
+        if(keyboard.hasEventListener(KeyEvent.KEY_DOWN)){
+            keyboard.dispatchEvent(new Event(keyboard,KeyEvent.KEY_DOWN));
+        }
+    });
+
+    canvas.addEventListener('keyup',function(e){
+        keyboard._down = false;
+        keyboard._up   = true;
+        keyboard._altKey = keyboard._ctrKey = keyboard._shiftKey = false;
+
+        if(keyboard.hasEventListener(KeyEvent.KEY_DOWN)){
+            keyboard.dispatchEvent(new Event(keyboard,KeyEvent.KEY_UP));
         }
     });
 
@@ -232,20 +272,20 @@ App.prototype.setWindowSize = function (width, height, scale) {
     width  *= windowScale;
     height *= windowScale;
 
-    if (width  == windowBounds.x1 && height == windowBounds.y1){
+    if (width  == windowBounds.getWidth() && height == windowBounds.getHeight()){
         return;
     }
 
-    windowBounds.x1 = width;
-    windowBounds.y1 = height;
-    this._windowRatio = width / height;
+    windowBounds.setWidth(width);
+    windowBounds.setHeight(height);
 
+    this._windowRatio = windowBounds.getAspectRatio();
     this._updateCanvasSize();
 };
 
 App.prototype._updateCanvasSize = function(){
-    var windowWidth = this._windowBounds.x1,
-        windowHeight = this._windowBounds.y1,
+    var windowWidth = this._windowBounds.getWidth(),
+        windowHeight = this._windowBounds.getHeight(),
         windowScale = this._windowScale;
 
     var canvas = this._canvas;
@@ -260,15 +300,15 @@ App.prototype.getWindowBounds = function(rect){
 }
 
 App.prototype.getWindowSize = function (v) {
-    return (v || new Vec2()).setf(this._windowBounds.x1,this._windowBounds.y1);
+    return (v || new Vec2()).setf(this._windowBounds.getWidth(),this._windowBounds.getHeight());
 };
 
 App.prototype.getWindowWidth = function () {
-    return this._windowBounds.x1;
+    return this._windowBounds.getWidth();
 };
 
 App.prototype.getWindowHeight = function () {
-    return this._windowBounds.y1;
+    return this._windowBounds.getHeight();
 };
 
 App.prototype.getWindowAspectRatio = function () {
@@ -325,6 +365,7 @@ App.prototype.loop = function(loop){
 //  input
 /*--------------------------------------------------------------------------------------------*/
 
+/*
 
 App.prototype.isKeyDown = function () {
     return this._keyDown;
@@ -339,6 +380,7 @@ App.prototype.getKeyStr = function () {
 
 App.prototype.onKeyDown = function () {};
 App.prototype.onKeyUp = function () {};
+*/
 
 
 /*--------------------------------------------------------------------------------------------*/
@@ -360,43 +402,37 @@ App._newObj = function(obj){
 }
 
 App.newOnLoad = function(obj){
-    var obj_ = {instance:null};
     window.addEventListener('load',function(){
-        obj_.instance = App._newObj(obj);
+        App._newObj(obj);
     });
-    return obj_;
 }
 
 App.newOnLoadResource = function(resource, type, obj){
-    var obj_ = {instance:null};
     window.addEventListener('load', function () {
         System.loadFile(resource,function(resource){
             var setup = obj.setup;
             obj.setup = function () {
                 setup.call(this,resource);
             }
-            obj_.instance = App._newObj(obj);
+            App._newObj(obj);
         },type);
     });
-    return obj_;
 };
 
 App.newOnLoadResourceBundle = function(bundle, obj){
-    var obj_ = {instance:null};
     window.addEventListener('load',function(){
         System.loadFileBundle(bundle,function(bundle){
             var setup = obj.setup;
             obj.setup = function(){
                 setup.call(this,bundle);
             };
-            obj_.instance = App._newObj(obj);
+            App._newObj(obj);
         });
     });
-    return obj_;
 };
 
 App.new = function(obj){
-    return new App._newObj(obj);
+    return App._newObj(obj);
 }
 
 /*

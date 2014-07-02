@@ -73,8 +73,11 @@ module.exports = {
     FileWatcher : require('./system/FileWatcher'),
     EventDispatcher : require('./system/EventDispatcher'),
     Event :           require('./system/Event'),
+
     Mouse :      require('./input/Mouse'),
     MouseEvent : require('./input/MouseEvent'),
+    Keyboard :   require('./input/Keyboard'),
+    KeyEvent :   require('./input/KeyEvent'),
 
 //
 //    Light            : require('./gl/gl/light/fLight'),
