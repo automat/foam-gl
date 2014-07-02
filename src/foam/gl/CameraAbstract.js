@@ -1,5 +1,5 @@
-var Vec3 = require('../math/Vec3'),
-    Matrix44 = require('../math/Matrix44'),
+var Vec3       = require('../math/Vec3'),
+    Matrix44   = require('../math/Matrix44'),
     ObjectUtil = require('../util/ObjectUtil');
 
 var Color = require('../util/Color');

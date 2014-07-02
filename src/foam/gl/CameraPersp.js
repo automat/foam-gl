@@ -9,11 +9,13 @@ var DEFAULT_FOV  = 60.0,
 
 function CameraPersp() {
     CameraAbstract.call(this);
+
     this.setPerspective(DEFAULT_FOV,
                         App.getInstance().getWindowAspectRatio(),
                         DEFAULT_NEAR,
                         DEFAULT_FAR);
     this.setEye(Vec3.one());
+    this.updateModelViewMatrix();
 }
 
 CameraPersp.prototype = Object.create(CameraAbstract.prototype);
@@ -25,6 +27,7 @@ CameraPersp.prototype.setPerspective = function (fov, windowAspectRatio, near, f
 
     this._aspectRatio = windowAspectRatio;
 
+    this._projectionMatrixUpdated = false;
     this.updateProjectionMatrix();
 };
 

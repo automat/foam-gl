@@ -11,6 +11,7 @@ function CameraOrtho() {
     var aspectRatio = App.getInstance().getWindowAspectRatio();
     this.setOrtho(-aspectRatio,aspectRatio,-1,1,DEFAULT_NEAR,DEFAUTL_FAR);
     this.setEye(Vec3.one());
+    this.updateModelViewMatrix();
 }
 
 CameraOrtho.prototype = Object.create(CameraAbstract.prototype);
