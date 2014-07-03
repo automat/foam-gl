@@ -2,6 +2,7 @@ var fError     = require('../system/common/Error'),
     ObjectUtil = require('../util/ObjectUtil'),
     Event      = require('../system/Event'),
     System     = require('../system/System'),
+    Resource   = require('../system/Resource'),
     Vec2       = require('../math/Vec2'),
     Rect       = require('../geom/Rect'),
     Mouse      = require('../input/Mouse'),
@@ -17,7 +18,7 @@ var DEFAULT_FPS = 60.0;
 
 var KEY_PRESS_THRESHOLD = 100;
 
-function App() {
+function App(canvas) {
     if (App.__instance) {
         throw new Error(Error.CLASS_IS_SINGLETON);
     }
@@ -69,9 +70,12 @@ function App() {
     //
     //  canvas & context
     //
-    var canvas = this._canvas = document.createElement('canvas');
-        canvas.setAttribute('tabindex','0');
-        canvas.focus();
+
+    var canvas_ = canvas;
+
+    canvas = this._canvas = canvas_ ? canvas_ : document.createElement('canvas');
+    canvas.setAttribute('tabindex','0');
+    canvas.focus();
 
     var _gl =  canvas.getContext('webkit-3d') ||
                canvas.getContext("webgl") ||
@@ -81,6 +85,13 @@ function App() {
         this.onWebGLContextNotAvailable();
         return this;
     }
+
+    if(canvas_){
+        this.setWindowSize(canvas_.width, canvas_.height);
+    } else {
+        this.setWindowSize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+    }
+
     _gl.activeTexture(_gl.TEXTURE0);
     gl.set(_gl);
     glDraw.init();
@@ -389,44 +400,30 @@ App.newOnLoad = function(obj){
     });
 }
 
-App.newOnLoadResource = function(resource, type, obj){
-    window.addEventListener('load', function () {
-        System.loadFile(resource,function(resource){
+App.prototype.newOnResource = function(resource, obj, callbackError, strict){
+    Resource.load(resource,function(resource){
+        var setup = obj.setup;
+        obj.setup = function(){
+            setup.call(this,resource);
+        }
+        App._newObj(obj);
+    }, callbackError, strict);
+}
+
+App.newOnLoadWithResource = function(resource, obj, callbackError, strict){
+    window.addEventListener('load',function(){
+        Resource.load(resource, function(resource){
             var setup = obj.setup;
-            obj.setup = function () {
+            obj.setup = function(){
                 setup.call(this,resource);
             }
             App._newObj(obj);
-        },type);
+        }, callbackError, strict);
     });
-};
-
-App.newOnLoadResourceBundle = function(bundle, obj){
-    window.addEventListener('load',function(){
-        System.loadFileBundle(bundle,function(bundle){
-            var setup = obj.setup;
-            obj.setup = function(){
-                setup.call(this,bundle);
-            };
-            App._newObj(obj);
-        });
-    });
-};
+}
 
 App.new = function(obj){
     return App._newObj(obj);
 }
 
-/*
- App.prototype.getWindowWidth  = function(){return this._appImpl.getWindowWidth();};
- App.prototype.getWindowHeight = function(){return this._appImpl.getWindowHeight();};
-
- App.prototype.setUpdate = function(bool){this._appImpl.setUpdate(bool);};
-
-
-
- App.prototype.setWindowTitle       = function(title){this._appImpl.setWindowTitle(title);};
- App.prototype.restrictMouseToFrame = function(bool) {this._appImpl.restrictMouseToFrame(bool);};
- App.prototype.hideMouseCursor      = function(bool) {this._appImpl.hideMouseCursor(bool);};
- */
 module.exports = App;

@@ -69,8 +69,10 @@ module.exports = {
     Texture: require('./gl/Texture'),
     Fbo: require('./gl/Fbo'),
 
-    System :      require('./system/System'),
-    FileWatcher : require('./system/FileWatcher'),
+    System :       require('./system/System'),
+    Resource :     require('./system/Resource'),
+    ResourceType : require('./system/ResourceType'),
+    FileWatcher :  require('./system/FileWatcher'),
     EventDispatcher : require('./system/EventDispatcher'),
     Event :           require('./system/Event'),
 
