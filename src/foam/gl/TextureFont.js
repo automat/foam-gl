@@ -9,12 +9,18 @@ var opentype = require('../../lib/opentype.js'),
 
 
 var GLYPH_TABLE_TEX_MAX_WIDTH = 2048;
-var GLYPH_PADDING = 3;
+
+var GLYPH_PADDING      = 10,
+    GLYPH_PADDING_2    = GLYPH_PADDING * 2,
+    GLYPH_ERROR_MARGIN = 1,
+    GLYPH_PADDING_2_MARGIN = GLYPH_PADDING_2 - GLYPH_ERROR_MARGIN;
+
 
 function GlyphTextureInfo(){
     this.offset = new Vec2();
     this.size = new Vec2();
     this.baseOffset = 0;
+    this.advanceWidth = 0;
 
     this.texcoordsMin = new Vec2();
     this.texcoordsMax = new Vec2();
@@ -134,6 +140,10 @@ TextureFont.prototype.getFontSize = function(){
 };
 
 TextureFont.prototype._getKerningValue = function(leftChar,rightChar){
+    if(leftChar == null || rightChar == null){
+        return 0;
+    }
+
     var mapGlyph = this._glyphs;
     var lg = mapGlyph[leftChar],
         rg = mapGlyph[rightChar];
@@ -148,7 +158,7 @@ TextureFont.prototype._getKerningValue = function(leftChar,rightChar){
         console.log('Chars not supported: ' + leftChar + ', ' + rightChar + '.');
         return -1;
     }
-    return this._font.getKerningValue(lg,rg);
+    return this._font.getKerningValue(lg,rg) * this._scale;
 };
 
 TextureFont.prototype._genMapGlyph = function(){
@@ -208,7 +218,6 @@ TextureFont.prototype._genMapGlyph = function(){
         glyphBounds.max.x += GLYPH_PADDING;
         glyphBounds.max.y += GLYPH_PADDING;
 
-
         glyphMaxSize.x = Math.max(glyphMaxSize.x, glyphBounds.getWidth());
         glyphMaxSize.y = Math.max(glyphMaxSize.y, glyphBounds.getHeight());
 
@@ -251,7 +260,9 @@ TextureFont.prototype._genMapGlyph = function(){
     var glyphOffset = new Vec2(),
         glyphOffsetYBase = fontBounds.getHeight(),
         glyphSize,
-        glyphSizeUniform; // glyph bounds equal font max bounds heights
+        glyphSizeUniform, // glyph bounds equal font max bounds heights
+        glyphTexcoordsMin,
+        glyphTexcoordsMax;
 
     i = -1;
     l = keys.length;
@@ -299,15 +310,6 @@ TextureFont.prototype._genMapGlyph = function(){
         glyphOffset  = glyphTexInfo.offset;
         glyphBounds  = glyphMetrics[key].uniformBounds;
 
-        // draw every glyph with some padding to prevent overlapping
-
-        glyphTexInfo.texcoordsMin.set(glyphOffset).mult(canvasSizeInv);
-        glyphTexInfo.texcoordsMax.set(glyphOffset).add(glyphTexInfo.size).mult(canvasSizeInv);
-
-        //glyphTexInfo.texcoordsMin.set(glyphOffset).addf(GLYPH_PADDING,GLYPH_PADDING).mult(canvasSizeInv);
-        //glyphTexInfo.texcoordsMax.set(glyphOffset).add(glyphTexInfo.size).subf(GLYPH_PADDING,GLYPH_PADDING).mult(canvasSizeInv);
-
-
         //ctx.save();
         //ctx.translate(glyphOffset.x,glyphOffset.y);
 
@@ -346,31 +348,29 @@ TextureFont.prototype._genMapGlyph = function(){
 
         ctx.restore();
         //ctx.restore();
+
+        glyphTexInfo.advanceWidth = glyphMetrics[key].advanceWidth;
+        glyphSize         = glyphTexInfo.size;
+        glyphTexcoordsMin = glyphTexInfo.texcoordsMin;
+        glyphTexcoordsMax = glyphTexInfo.texcoordsMax;
+
+        // draw every glyph with some padding to prevent overlapping
+
+        glyphTexcoordsMin.set(glyphOffset).addf(GLYPH_PADDING,GLYPH_PADDING);
+        glyphSize.subf(GLYPH_PADDING_2_MARGIN,GLYPH_PADDING_2_MARGIN);
+
+        glyphTexcoordsMax.set(glyphTexcoordsMin).add(glyphSize);
+        glyphTexcoordsMin.mult(canvasSizeInv);
+        glyphTexcoordsMax.mult(canvasSizeInv);
     }
 
     var gl = this._gl;
     var texture = this._texture,
         texturePrev = gl.getParameter(gl.TEXTURE_BINDING_2D);
 
-    glyphTexInfo = glyphTexInfos[keys[34]];
-    glyphOffset = glyphTexInfo.offset;
-
-    ctx.save();
-    ctx.translate(glyphOffset.x,glyphOffset.y);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(-2,-2,4,4);
-    ctx.strokeStyle = '#fff';
-    ctx.strokeRect(0,0,glyphTexInfo.size.x,glyphTexInfo.size.y);
-    ctx.restore();
-
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
     gl.bindTexture(gl.TEXTURE_2D, texturePrev);
-
-
-
-
-
 };
 
 var COLOR_WHITE = Color.black();
@@ -420,8 +420,6 @@ TextureFont.prototype.drawString = function(str,color){
             glyphTexcoordMax,
             glyphSize;
 
-
-
         var dataVertexLen   = numVertices * 3,
             dataNormalLen   = numVertices * 3,
             dataColorLen    = numVertices * 4,
@@ -455,7 +453,12 @@ TextureFont.prototype.drawString = function(str,color){
             colorB = color.b,
             colorA = color.a;
 
+        var kerning;
+        var prevAdvanceWidth = 0;
+
         if(strLen != strLast.length){
+            //update all buffers
+
             bufferVertexData   = this._bufferVertexData   = new Float32Array(dataVertexLen);
             bufferNormalData   = this._bufferNormalData   = new Float32Array(dataNormalLen);
             bufferColorData    = this._bufferColorData    = new Float32Array(dataColorLen);
@@ -463,18 +466,21 @@ TextureFont.prototype.drawString = function(str,color){
 
             i = -1;
             while(++i < l){
+
                 glyphTextureInfo = glyphTextureInfos[str[i]];
                 glyphSize        = glyphTextureInfo.size;
                 glyphTexcoordMin = glyphTextureInfo.texcoordsMin;
                 glyphTexcoordMax = glyphTextureInfo.texcoordsMax;
+
+                kerning = this._getKerningValue(str[i-1],str[i]);
 
                 v0.set3f(prevV1.x, 0, 0);
                 v1.set3f(v0.x + glyphSize.x, v0.y, 0);
                 v2.set3f(v0.x, v0.y + glyphSize.y, 0);
                 v3.set3f(v1.x, v2.y, 0);
 
-                prevV0.set(v0);
-                prevV1.set(v1);
+                prevV0.set(v0).addf(glyphTextureInfo.advanceWidth,0);
+                prevV1.set(v0).addf(glyphTextureInfo.advanceWidth + kerning,0);
                 prevV2.set(v2);
                 prevV3.set(v3);
 
@@ -482,6 +488,8 @@ TextureFont.prototype.drawString = function(str,color){
                 uv1.setf(glyphTexcoordMax.x, uv0.y);
                 uv2.setf(uv0.x, glyphTexcoordMax.y);
                 uv3.setf(uv1.x, uv2.y);
+
+                prevAdvanceWidth = glyphTextureInfo.advanceWidth;
 
                 //        1      0--1    0--1   2,3,1
                 //       /|      | /     |  |
@@ -563,11 +571,6 @@ TextureFont.prototype.drawString = function(str,color){
 
             }
 
-            prevV0.toZero();
-            prevV1.toZero();
-            prevV2.toZero();
-            prevV3.toZero();
-
             gl.bindBuffer(gl.ARRAY_BUFFER,bufferVertex);
             gl.bufferData(gl.ARRAY_BUFFER,bufferVertexData,gl.STREAM_DRAW);
             gl.bindBuffer(gl.ARRAY_BUFFER,bufferNormal);
@@ -577,190 +580,98 @@ TextureFont.prototype.drawString = function(str,color){
             gl.bindBuffer(gl.ARRAY_BUFFER,bufferTexcoord);
             gl.bufferData(gl.ARRAY_BUFFER,bufferTexcoordData,gl.STREAM_DRAW);
 
-
-
-            //update all buffers
         } else {
             //just update the vertex buffer & texcoord buffer
-        }
-    }
 
+            bufferVertexData   = this._bufferVertexData   = new Float32Array(dataVertexLen);
+            bufferTexcoordData = this._bufferTexcoordData = new Float32Array(dataTexcoordLen);
 
+            i = -1;
+            while(++i < l){
 
-
-    /*
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-
-    if(str != strLast){
-        var glyphTextureInfos = this._glyphTextureInfos,
-            glyphTextureInfo,
-            glyphTexcoordMin,
-            glyphTexcoordMax,
-            glyphSize;
-
-        if(strLen != strLast.length){
-
-            // calc data comps
-
-            var dataVertexLen   = numVertices * 3,
-                dataNormalLen   = numVertices * 3,
-                dataColorLen    = numVertices * 4,
-                dataTexcoordLen = numVertices * 2;
-
-            var dataLen = dataVertexLen + dataNormalLen + dataColorLen + dataTexcoordLen;
-
-            data               = this._bufferGlyphsData = new Float32Array(dataLen);
-            offsetDataVertex   = this._bufferGlyphsDataVertexOffset = 0;
-            offsetDataNormal   = this._bufferGlyphsDataNormalOffset = offsetDataVertex + dataVertexLen;
-            offsetDataColor    = this._bufferGlyphsDataColorOffset  = offsetDataNormal + dataNormalLen;
-            offsetDataTexcoord = this._bufferGlyphsDataColorOffset  = offsetDataColor + dataColorLen;
-
-            var offset, offsetObj;
-
-            var v0 = new Vec3(),
-                v1 = new Vec3(),
-                v2 = new Vec3(),
-                v3 = new Vec3();
-
-            var uv0 = new Vec2(),
-                uv1 = new Vec2(),
-                uv2 = new Vec2(),
-                uv3 = new Vec2();
-
-            var i = -1;
-            while(++i < strLen){
                 glyphTextureInfo = glyphTextureInfos[str[i]];
                 glyphSize        = glyphTextureInfo.size;
                 glyphTexcoordMin = glyphTextureInfo.texcoordsMin;
                 glyphTexcoordMax = glyphTextureInfo.texcoordsMax;
 
-                // data vertex
+                kerning = this._getKerningValue(str[i-1],str[i]);
 
-                //        1      0--1    0--1   2,3,1
-                //       /|      | /     |  |
-                //      / |      |/      |  |
-                //     2--3      2       2--3
-
-                offset = (offsetDataVertex + i * 6 * 3);
-
-                v0.set3f(0, 0, 0);
+                v0.set3f(prevV1.x, 0, 0);
                 v1.set3f(v0.x + glyphSize.x, v0.y, 0);
                 v2.set3f(v0.x, v0.y + glyphSize.y, 0);
-                v3.set3f(v1.x, v2.x, 0);
+                v3.set3f(v1.x, v2.y, 0);
 
-
-                data[offset   ] = v0.x;
-                data[offset+ 1] = v0.y;
-                data[offset+ 2] = v0.z;
-
-                data[offset+ 3] = v2.x;
-                data[offset+ 4] = v2.y;
-                data[offset+ 5] = v2.z;
-
-                data[offset+ 6] = v1.x;
-                data[offset+ 7] = v1.y;
-                data[offset+ 8] = v1.z;
-
-                data[offset+ 9] = v1.x;
-                data[offset+10] = v1.y;
-                data[offset+11] = v1.z;
-
-                data[offset+12] = v2.x;
-                data[offset+13] = v2.y;
-                data[offset+14] = v2.z;
-
-                data[offset+15] = v3.x;
-                data[offset+16] = v3.y;
-                data[offset+17] = v3.z;
-
-                // data normal
-
-                offset = (offsetDataNormal + i * 6 * 3);
-
-                data[offset   ] = data[offset+ 3] = data[offset+ 6] =
-                data[offset+ 9] = data[offset+12] = data[offset+15] = 1.0;
-
-                data[offset+ 1] = data[offset+ 2] = data[offset+ 4] =
-                data[offset+ 5] = data[offset+ 7] = data[offset+ 8] =
-                data[offset+10] = data[offset+11] = data[offset+13] =
-                data[offset+14] = data[offset+16] = data[offset+17] = 0.0;
-
-                // data color
-
-                offset = (offsetDataColor + i * 6 * 4);
-
-                data[offset   ] = data[offset+ 4] = data[offset+ 8] =
-                data[offset+12] = data[offset+16] = data[offset+20] = color.r;
-
-                data[offset+ 1] = data[offset+ 5] = data[offset+ 9] =
-                data[offset+13] = data[offset+17] = data[offset+21] = color.g;
-
-                data[offset+ 2] = data[offset+ 6] = data[offset+10] =
-                data[offset+14] = data[offset+18] = data[offset+22] = color.b;
-
-                data[offset+ 3] = data[offset+ 7] = data[offset+11] =
-                data[offset+15] = data[offset+19] = data[offset+23] = color.a;
-
-                // data texcoord
-
-                offset = (offsetDataTexcoord + i * 6 * 2);
+                prevV0.set(v0).addf(glyphTextureInfo.advanceWidth,0);
+                prevV1.set(v0).addf(glyphTextureInfo.advanceWidth + kerning,0);
+                prevV2.set(v2);
+                prevV3.set(v3);
 
                 uv0.setf(glyphTexcoordMin.x, glyphTexcoordMin.y);
                 uv1.setf(glyphTexcoordMax.x, uv0.y);
                 uv2.setf(uv0.x, glyphTexcoordMax.y);
                 uv3.setf(uv1.x, uv2.y);
 
-                // 0: 0,1 - 1: 2,3 - 2: 4,5 - 3
+                prevAdvanceWidth = glyphTextureInfo.advanceWidth;
 
-                data[offset   ] = uv0.x;
-                data[offset+ 1] = uv0.y;
+                j = i * numVerticesPerGlyph;
+                // vertices
+                k = j * 3;
+                bufferVertexData[k   ] = v0.x;
+                bufferVertexData[k+ 1] = v0.y;
+                bufferVertexData[k+ 2] = v0.z;
 
-                data[offset+ 2] = uv2.x;
-                data[offset+ 3] = uv2.y;
+                bufferVertexData[k+ 3] = v2.x;
+                bufferVertexData[k+ 4] = v2.y;
+                bufferVertexData[k+ 5] = v2.z;
 
-                data[offset+ 4] = uv1.x;
-                data[offset+ 5] = uv1.y;
+                bufferVertexData[k+ 6] = v1.x;
+                bufferVertexData[k+ 7] = v1.y;
+                bufferVertexData[k+ 8] = v1.z;
 
-                data[offset+ 6] = uv1.x;
-                data[offset+ 7] = uv1.y;
+                bufferVertexData[k+ 9] = v1.x;
+                bufferVertexData[k+10] = v1.y;
+                bufferVertexData[k+11] = v1.z;
 
-                data[offset+ 8] = uv2.x;
-                data[offset+ 9] = uv2.y;
+                bufferVertexData[k+12] = v2.x;
+                bufferVertexData[k+13] = v2.y;
+                bufferVertexData[k+14] = v2.z;
 
-                data[offset+10] = uv3.x;
-                data[offset+11] = uv3.y;
+                bufferVertexData[k+15] = v3.x;
+                bufferVertexData[k+16] = v3.y;
+                bufferVertexData[k+17] = v3.z;
 
+                // texcoord
+                k = j * 2;
+                bufferTexcoordData[k   ] = uv0.x;
+                bufferTexcoordData[k+ 1] = uv0.y;
+
+                bufferTexcoordData[k+ 2] = uv2.x;
+                bufferTexcoordData[k+ 3] = uv2.y;
+
+                bufferTexcoordData[k+ 4] = uv1.x;
+                bufferTexcoordData[k+ 5] = uv1.y;
+
+                bufferTexcoordData[k+ 6] = uv1.x;
+                bufferTexcoordData[k+ 7] = uv1.y;
+
+                bufferTexcoordData[k+ 8] = uv2.x;
+                bufferTexcoordData[k+ 9] = uv2.y;
+
+                bufferTexcoordData[k+10] = uv3.x;
+                bufferTexcoordData[k+11] = uv3.y;
             }
 
-            offsetDataVertex   *= 4;
-            offsetDataNormal   *= 4;
-            offsetDataColor    *= 4;
-            offsetDataTexcoord *= 4;
-
-
-        } else {
-
+            gl.bindBuffer(gl.ARRAY_BUFFER,bufferVertex);
+            gl.bufferData(gl.ARRAY_BUFFER,bufferVertexData,gl.STREAM_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER,bufferTexcoord);
+            gl.bufferData(gl.ARRAY_BUFFER,bufferTexcoordData,gl.STREAM_DRAW);
         }
 
-        gl.bufferData(gl.ARRAY_BUFFER,data.byteLength,gl.STREAM_DRAW);
-
-    } else {
-
+        prevV0.toZero();
+        prevV1.toZero();
+        prevV2.toZero();
+        prevV3.toZero();
     }
-    */
-
-    /*
-    gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,offsetDataVertex);
-
-    if(attribLocationVertexNormal != -1){
-        gl.vertexAttribPointer(attribLocationVertexNormal,3,gl.FLOAT,false,0,offsetDataNormal);
-    }
-    if(attribLocationVertexColor != -1){
-        gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,offsetDataColor);
-    }
-    if(attribLocationTexcoord != -1){
-        gl.vertexAttribPointer(attribLocationTexcoord,4,gl.FLOAT,false,0,offsetDataTexcoord);
-    }*/
 
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -788,7 +699,6 @@ TextureFont.prototype.drawString = function(str,color){
     gl.bindTexture(gl.TEXTURE_2D, prevTexture);
     gl.bindBuffer(gl.ARRAY_BUFFER, prevVbo);
 
-
     this._stringLast = str;
 };
 
@@ -799,20 +709,6 @@ TextureFont.prototype.getGlyphTableGLTexture = function(){
 TextureFont.prototype.getGlyphTableGLTextureSize = function(v){
     return this._textureSize.copy(v);
 }
-
-TextureFont.loadAsync = function(path, callback){
-    var request = new XMLHttpRequest();
-    request.open('GET',path);
-    request.responseType = 'arraybuffer';
-    request.onreadystatechange = function(){
-        if(request.readyState == 4){
-            if(request.status == 200){
-                callback(new TextureFont(request.response));
-            }
-        }
-    };
-    request.send();
-};
 
 
 module.exports = TextureFont;
