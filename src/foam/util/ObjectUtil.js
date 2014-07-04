@@ -143,17 +143,17 @@ var ObjectUtil = {
         return out.substr(0, out.lastIndexOf(',')) + ']';
     },
 
-    getNumKeys : function(obj){
+    getKeys : function(obj){
         if(Object.keys){
-            return Object.keys(obj).length;
+            return Object.keys(obj);
         }
-        var num = 0, key;
+        var keys = [];
         for(key in obj){
             if(obj.hasOwnProperty(key)){
-                num++;
+                keys.push(key);
             }
         }
-        return num;
+        return keys;
     },
 
     getObjectString: function (obj) {
