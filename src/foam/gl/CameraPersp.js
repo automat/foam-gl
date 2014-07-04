@@ -32,7 +32,7 @@ CameraPersp.prototype.setPerspective = function (fov, windowAspectRatio, near, f
 };
 
 CameraPersp.prototype.setDistance = function(dist){
-    this._eye.normalize().scale(dist);
+    this._eye.set(this._target.subbed(this._eye).normalize().scale(dist));
     this._modelViewMatrixUpdated = false;
 };
 
