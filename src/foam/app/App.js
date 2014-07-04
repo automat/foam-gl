@@ -381,7 +381,13 @@ App.prototype.loop = function(loop){
 /*--------------------------------------------------------------------------------------------*/
 
 
-App._newObj = function(obj){
+App._newObj = function(obj,resource){
+    if(resource){
+        var setup = obj.setup;
+        obj.setup = function(){
+            setup.call(this,resource);
+        }
+    }
     function App_(){
         App.call(this);
     }
@@ -400,30 +406,22 @@ App.newOnLoad = function(obj){
     });
 }
 
-App.prototype.newOnResource = function(resource, obj, callbackError, callbackProcess, strict){
+App.newOnResource = function(resource, obj, callbackError, callbackProcess, strict){
     Resource.load(resource,function(resource){
-        var setup = obj.setup;
-        obj.setup = function(){
-            setup.call(this,resource);
-        }
-        App._newObj(obj);
+        App._newObj(obj,resource);
     }, callbackError, callbackProcess, strict);
 }
 
 App.newOnLoadWithResource = function(resource, obj, callbackError, callbackProcess, strict){
     window.addEventListener('load',function(){
         Resource.load(resource, function(resource){
-            var setup = obj.setup;
-            obj.setup = function(){
-                setup.call(this,resource);
-            }
-            App._newObj(obj);
+            App._newObj(obj,resource);
         }, callbackError, callbackProcess, strict);
     });
 }
 
-App.new = function(obj){
-    return App._newObj(obj);
+App.new = function(obj,resources){
+    return App._newObj(obj,resources);
 }
 
 module.exports = App;
