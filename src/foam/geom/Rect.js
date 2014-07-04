@@ -1,6 +1,9 @@
 var Vec2 = require('../math/Vec2'),
     Vec3 = require('../math/Vec3');
 
+var glTrans = require('../gl/glTrans'),
+    glDraw,_glDraw = require('../gl/glDraw');
+
 function Rect() {
     this.min = new Vec2();
     this.max = new Vec2();
@@ -13,6 +16,8 @@ function Rect() {
             this.setf(arguments[0],arguments[1],arguments[2],arguments[3]);
             break;
     }
+
+    glDraw = glDraw || _glDraw.get();
 }
 
 Rect.fromPoints = function(points,rect){
@@ -210,5 +215,13 @@ Rect.prototype.getBR = function(){
 Rect.prototype.getAspectRatio = function(){
     return this.getWidth() / this.getHeight();
 };
+
+Rect.prototype.draw = function(){
+    glTrans.pushMatrix();
+    glTrans.translate3f(this.min.x,this.min.y);
+    glDraw.drawRect(this.getWidth(),this.getHeight());
+    glTrans.popMatrix();
+}
+
 
 module.exports = Rect;
