@@ -74,7 +74,7 @@ function Load(resource,index,callbackSuccess,callbackError,strict){
 }
 
 var Resource = {
-    load : function(resource, callbackSuccess, callbackError, strict){
+    load : function(resource, callbackSuccess, callbackError, callbackProcess, strict){
         strict = ObjectUtil.isUndefined(strict) ? true : strict;
         var keys = ObjectUtil.getKeys(resource),
             numKeys = keys.length;
@@ -111,7 +111,12 @@ var Resource = {
                 if(callbackSuccess){
                     callbackSuccess(resource_);
                 }
+                return;
             }
+            if(callbackProcess){
+                callbackProcess(numFilesLoaded,numFiles);
+            }
+
         }
 
         function onError(){
