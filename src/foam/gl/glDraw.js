@@ -1,15 +1,13 @@
-var _gl     = require('./gl'),
+var ObjectUtil       = require('../util/ObjectUtil'),
+    ArrayUtil        = require('../util/ArrayUtil'),
+    ElementArrayUtil = require('../util/ElementArrayUtil'),
+    Vec3     = require('../math/Vec3'),
+    Quat     = require('../math/Quat'),
+    Matrix44 = require('../math/Matrix44'),
+    gl_   = require('./gl'),
     glTrans = require('./glTrans'),
-    Program = require('./Program');
-
-var ArrayUtil        = require('../util/ArrayUtil'),
-    ElementArrayUtil = require('../util/ElementArrayUtil');
-var ObjectUtil = require('../util/ObjectUtil');
-
-var Vec3       = require('../math/Vec3'),
-    Color      = require('../util/Color'),
-    Matrix44   = require('../math/Matrix44');
-
+    Program = require('./Program'),
+    Color = require('../util/Color');
 
 var DrawMode = {
     TRIANGLES : 0,
@@ -23,7 +21,7 @@ var DrawMode = {
 /*--------------------------------------------------------------------------------------------*/
 
 function glDraw_Internal(){
-    var gl = this._gl = _gl.get();
+    var gl = this._gl = gl_.get();
 
     /*--------------------------------------------------------------------------------------------*/
     //  program & attrib / uniform ref
@@ -391,12 +389,37 @@ function glDraw_Internal(){
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(data),gl.STATIC_DRAW);
 
     /*--------------------------------------------------------------------------------------------*/
+    //  Quaternion
+    /*--------------------------------------------------------------------------------------------*/
+
+    this._quatAxisLength = null;
+    this._quatHeadLength = null;
+    this._quatHeadRadius = null;
+    this._quatHeadVertex = new Float32Array(numHeadVertices * 3);
+
+    buffer = this._bufferQuatColor = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(ArrayUtil.createArray(numHeadVertices + 2,1,1,1,1)),gl.STATIC_DRAW);
+
+
+
+
+    /*--------------------------------------------------------------------------------------------*/
     //  Init
     /*--------------------------------------------------------------------------------------------*/
+
 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 }
+
+/*--------------------------------------------------------------------------------------------*/
+//  Vector
+/*--------------------------------------------------------------------------------------------*/
+
+glDraw_Internal.prototype.drawQuat = function(q){
+
+};
 
 /*--------------------------------------------------------------------------------------------*/
 //  Vector
@@ -1016,10 +1039,10 @@ glDraw_Internal.prototype._drawRect_Internal = function(width,height,drawMode){
             color[2] != color4f[2] ||
             color[3] != color4f[3]){
 
-            color[0] = color[4] = color[ 8] = color[12] = color4f[0];
-            color[1] = color[5] = color[ 9] = color[13] = color4f[1];
-            color[2] = color[6] = color[10] = color[14] = color4f[2];
-            color[3] = color[7] = color[11] = color[15] = color4f[3];
+            color[0] = color[4] = color[ 8] = color[12] = color4f.r;
+            color[1] = color[5] = color[ 9] = color[13] = color4f.g;
+            color[2] = color[6] = color[10] = color[14] = color4f.b;
+            color[3] = color[7] = color[11] = color[15] = color4f.a;
 
             gl.bufferSubData(gl.ARRAY_BUFFER, 0, color);
         }
@@ -1071,8 +1094,6 @@ glDraw_Internal.prototype._updateCubeGeom = function(){
     var color = this._color,
         colorCube = this._cubeColorBufferData;
 
-
-
     if( colorCube[0] == color.r &&
         colorCube[1] == color.g &&
         colorCube[2] == color.b &&
@@ -1080,17 +1101,14 @@ glDraw_Internal.prototype._updateCubeGeom = function(){
         return;
     }
 
-    colorCube[ 0] = colorCube[ 4] = colorCube[ 8] = colorCube[12] = color.r;
-    colorCube[ 1] = colorCube[ 5] = colorCube[ 9] = colorCube[13] = color.g;
-    colorCube[ 2] = colorCube[ 6] = colorCube[10] = colorCube[14] = color.b;
-    colorCube[ 3] = colorCube[ 7] = colorCube[11] = colorCube[15] = color.a;
-    colorCube[16] = colorCube[20] = colorCube[24] = colorCube[28] = color.r;
-    colorCube[17] = colorCube[21] = colorCube[25] = colorCube[29] = color.g;
-    colorCube[18] = colorCube[22] = colorCube[26] = colorCube[30] = color.b;
-    colorCube[19] = colorCube[23] = colorCube[27] = colorCube[31] = color.a;
-
-
-
+    var i = -1,j;
+    while(++i < 6){
+        j = i * 4 * 4;
+        colorCube[j   ] = colorCube[j+ 4] = colorCube[j+ 8] = colorCube[j+12] = color.r;
+        colorCube[j+ 1] = colorCube[j+ 5] = colorCube[j+ 9] = colorCube[j+13] = color.g;
+        colorCube[j+ 2] = colorCube[j+ 6] = colorCube[j+10] = colorCube[j+14] = color.b;
+        colorCube[j+ 3] = colorCube[j+ 7] = colorCube[j+11] = colorCube[j+15] = color.a;
+    }
 
     var gl = this._gl;
     gl.bufferSubData(gl.ARRAY_BUFFER,0,colorCube);
@@ -1418,6 +1436,7 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
     var attribLocationVertexPos   = this._attribLocationVertexPos,
         attribLocationVertexColor = this._attribLocationVertexColor,
         attribLocationTexcoord    = this._attribLocationTexcoord;
+
     if(attribLocationVertexPos == -1){
         return;
     }
