@@ -49,6 +49,18 @@ Vec2.prototype.scale = function(n){
     return this;
 };
 
+Vec2.prototype.mult = function(v){
+    this.x *= v.x;
+    this.y *= v.y;
+    return this;
+};
+
+Vec2.prototype.multf = function(x,y){
+    this.x *= x;
+    this.y *= y;
+    return this;
+};
+
 Vec2.prototype.dot =  function (v) {
     return this.x * v.x + this.y * v.y;
 };
