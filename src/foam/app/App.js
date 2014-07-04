@@ -400,17 +400,17 @@ App.newOnLoad = function(obj){
     });
 }
 
-App.prototype.newOnResource = function(resource, obj, callbackError, strict){
+App.prototype.newOnResource = function(resource, obj, callbackError, callbackProcess, strict){
     Resource.load(resource,function(resource){
         var setup = obj.setup;
         obj.setup = function(){
             setup.call(this,resource);
         }
         App._newObj(obj);
-    }, callbackError, strict);
+    }, callbackError, callbackProcess, strict);
 }
 
-App.newOnLoadWithResource = function(resource, obj, callbackError, strict){
+App.newOnLoadWithResource = function(resource, obj, callbackError, callbackProcess, strict){
     window.addEventListener('load',function(){
         Resource.load(resource, function(resource){
             var setup = obj.setup;
@@ -418,7 +418,7 @@ App.newOnLoadWithResource = function(resource, obj, callbackError, strict){
                 setup.call(this,resource);
             }
             App._newObj(obj);
-        }, callbackError, strict);
+        }, callbackError, callbackProcess, strict);
     });
 }
 
