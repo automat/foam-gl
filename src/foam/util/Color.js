@@ -18,7 +18,7 @@ Color.prototype.set = function(color){
 };
 
 Color.prototype.copy = function(color){
-    return (color || new Color()).set(color);
+    return (color || new Color()).set(this);
 };
 
 Color.prototype.equals = function(color){
