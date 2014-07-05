@@ -72,14 +72,19 @@ function TextureFont(arraybuffer){
     gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D,texturePrev);
 
-    this._bufferVertex   = gl.createBuffer();
-    this._bufferNormal   = gl.createBuffer();
-    this._bufferTexcoord = gl.createBuffer();
-    this._bufferColor    = gl.createBuffer();
+
+    this._buffer = gl.createBuffer();
+    this._bufferData = null;
+
     this._bufferVertexData   = null;
     this._bufferNormalData   = null;
     this._bufferTexcoordData = null;
     this._bufferColorData    = null;
+
+    this._bufferVertexDataOffset   = 0;
+    this._bufferNormalDataOffset   = 0;
+    this._bufferColorDataOffset    = 0;
+    this._bufferTexcoordDataOffset = 0;
 
     this._v0 = new Vec3();
     this._v1 = new Vec3();
@@ -357,7 +362,7 @@ TextureFont.prototype._genMapGlyph = function(){
     gl.bindTexture(gl.TEXTURE_2D, texturePrev);
 };
 
-var COLOR_WHITE = Color.white();
+var COLOR_WHITE = Color.black();
 
 TextureFont.prototype.drawString = function(str,color){
     var strLast = this._stringLast;
@@ -425,12 +430,22 @@ TextureFont.prototype.drawString = function(str,color){
         bufferColor    = this._bufferColor,
         bufferTexcoord = this._bufferTexcoord;
 
+    var vertexDataOffset   = this._bufferVertexDataOffset,
+        normalDataOffset   = this._bufferNormalDataOffset,
+        colorDataOffset    = this._bufferColorDataOffset,
+        texcoordDataOffset = this._bufferTexcoordDataOffset;
+
     var vertexData   = this._bufferVertexData,
         normalData   = this._bufferNormalData,
         colorData    = this._bufferColorData,
         texcoordData = this._bufferTexcoordData;
 
+    var buffer = this._buffer;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
     if(str != strLast){
+
         var char;
 
         var textureInfos = this._glyphTextureInfos,
@@ -466,13 +481,12 @@ TextureFont.prototype.drawString = function(str,color){
         l = strLen;
 
         if(strLen > strLastMax.length){
-            //update all buffers
+            //reinit all buffers
 
-            var vertexDataLen   = this._bufferDataVertexLen   = numVertices * 3,
-                normalDataLen   = this._bufferDataNormalLen   = numVertices * 3,
-                colorDataLen    = this._bufferDataColorLen    = numVertices * 4,
-                texcoordDataLen = this._bufferDataTexcoordLen = numVertices * 2;
-
+            var vertexDataLen   = numVertices * 3,
+                normalDataLen   = numVertices * 3,
+                colorDataLen    = numVertices * 4,
+                texcoordDataLen = numVertices * 2;
 
             vertexData   = this._bufferVertexData   = new Float32Array(vertexDataLen);
             normalData   = this._bufferNormalData   = new Float32Array(normalDataLen);
@@ -516,7 +530,6 @@ TextureFont.prototype.drawString = function(str,color){
                 //       /|      | /     |  |
                 //      / |      |/      |  |
                 //     2--3      2       2--3
-
 
                 j = i * GLYPH_NUM_VERTICES;
                 // vertices
@@ -590,16 +603,23 @@ TextureFont.prototype.drawString = function(str,color){
                 texcoordData[k+10] = uv3.x;
                 texcoordData[k+11] = uv3.y;
 
+
             }
 
-            gl.bindBuffer(gl.ARRAY_BUFFER,bufferVertex);
-            gl.bufferData(gl.ARRAY_BUFFER,vertexData,gl.DYNAMIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER,bufferNormal);
-            gl.bufferData(gl.ARRAY_BUFFER,normalData,gl.DYNAMIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER,bufferColor);
-            gl.bufferData(gl.ARRAY_BUFFER,colorData,gl.DYNAMIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER,bufferTexcoord);
-            gl.bufferData(gl.ARRAY_BUFFER,texcoordData,gl.DYNAMIC_DRAW);
+            vertexDataLen   = vertexData.byteLength;
+            normalDataLen   = normalData.byteLength;
+            colorDataLen    = colorData.byteLength;
+            texcoordDataLen = texcoordData.byteLength;
+
+            normalDataOffset   = this._bufferNormalDataOffset   = vertexDataOffset + vertexDataLen;
+            colorDataOffset    = this._bufferColorDataOffset    = normalDataOffset + normalDataLen;
+            texcoordDataOffset = this._bufferTexcoordDataOffset = colorDataOffset  + colorDataLen;
+
+            gl.bufferData(gl.ARRAY_BUFFER,vertexDataLen + normalDataLen + colorDataLen + texcoordDataLen,gl.DYNAMIC_DRAW);
+            gl.bufferSubData(gl.ARRAY_BUFFER,vertexDataOffset,vertexData);
+            gl.bufferSubData(gl.ARRAY_BUFFER,normalDataOffset,normalData);
+            gl.bufferSubData(gl.ARRAY_BUFFER,colorDataOffset,colorData);
+            gl.bufferSubData(gl.ARRAY_BUFFER,texcoordDataOffset,texcoordData);
 
             this._colorLast = !this._colorLast ? color.copy() : this._colorLast.set(color);
 
@@ -685,12 +705,11 @@ TextureFont.prototype.drawString = function(str,color){
                 texcoordData[k+11] = uv3.y;
             }
 
-            gl.bindBuffer(gl.ARRAY_BUFFER,bufferVertex);
-            gl.bufferData(gl.ARRAY_BUFFER,vertexData,gl.DYNAMIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER,bufferTexcoord);
-            gl.bufferData(gl.ARRAY_BUFFER,texcoordData,gl.DYNAMIC_DRAW);
+            gl.bufferSubData(gl.ARRAY_BUFFER,vertexDataOffset,vertexData);
+            gl.bufferSubData(gl.ARRAY_BUFFER,texcoordDataOffset,texcoordData);
 
             if(!color.equals(this._colorLast)){
+
                 i = -1;
                 while(++i < l){
                     j = i * GLYPH_NUM_VERTICES * 4;
@@ -700,38 +719,37 @@ TextureFont.prototype.drawString = function(str,color){
                     colorData[j+3] = color.a;
                 }
 
-                gl.bindBuffer(gl.ARRAY_BUFFER,bufferColor);
-                gl.bufferData(gl.ARRAY_BUFFER,colorData,gl.DYNAMIC_DRAW);
-
+                gl.bufferSubData(gl.ARRAY_BUFFER,colorDataOffset,colorData);
                 this._colorLast = !this._colorLast ? color.copy() : this._colorLast.set(color);
             }
         }
+    } else {
+
     }
 
-    gl.bindTexture(gl.TEXTURE_2D, texture);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER,bufferVertex);
-    gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,0);
+    gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,vertexDataOffset)
+
+    if(attribLocationVertexNormal != -1){
+        gl.vertexAttribPointer(attribLocationVertexNormal,3,gl.FLOAT,false,0,normalDataOffset);
+    }
 
     if(attribLocationVertexColor != -1){
-        gl.bindBuffer(gl.ARRAY_BUFFER, bufferColor);
-        gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,0);
-    }
-    if(attribLocationVertexNormal != -1){
-        gl.bindBuffer(gl.ARRAY_BUFFER, bufferNormal);
-        gl.vertexAttribPointer(attribLocationVertexNormal,3,gl.FLOAT,false,0,0);
-    }
-    if(attribLocationTexcoord != -1){
-        gl.bindBuffer(gl.ARRAY_BUFFER, bufferTexcoord);
-        gl.vertexAttribPointer(attribLocationTexcoord,2,gl.FLOAT,false,0,0);
+        gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,colorDataOffset);
     }
 
+    if(attribLocationTexcoord != -1){
+        gl.vertexAttribPointer(attribLocationTexcoord,2,gl.FLOAT,false,0,texcoordDataOffset);
+    }
+
+
+    gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniformMatrix4fv(uniformLocationModelViewMatrix, false, glTrans.getModelViewMatrixF32());
     gl.uniformMatrix4fv(uniformLocationProjectionMatrix,false, glTrans.getProjectionMatrixF32());
-
     gl.drawArrays(gl.TRIANGLES,0,numVertices);
-
     gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+
+
     gl.bindBuffer(gl.ARRAY_BUFFER, prevVbo);
 
     this._stringLast = str;
