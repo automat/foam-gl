@@ -1,3 +1,5 @@
+var resources  = require('./resources');
+
 var Foam        = require('../../src/foam/Foam.js'),
     glTrans     = Foam.glTrans,
     glDraw      = Foam.glDraw,
@@ -5,20 +7,13 @@ var Foam        = require('../../src/foam/Foam.js'),
     Vec3        = Foam.Vec3,
     Program     = Foam.Program,
     CameraPersp = Foam.CameraPersp,
-    Ease        = Foam.Ease,
-    Texture     = Foam.Texture;
+    Texture     = Foam.Texture,
+    Ease        = Foam.Ease;
 
-var gl;
-var shaderSource;
-var textureSource;
+var app = {}, gl;
 
-function App() {
-    Foam.App.apply(this, arguments);
-}
 
-App.prototype = Object.create(Foam.App.prototype);
-
-App.prototype.setup = function () {
+app.setup = function(resources){
     this.setFPS(60);
     this.setWindowSize(800, 600);
 
@@ -27,7 +22,7 @@ App.prototype.setup = function () {
 
     gl.viewport(0,0,this.getWindowWidth(),this.getWindowHeight());
 
-    var program = this._program = new Program(shaderSource);
+    var program = this._program = new Program(resources.shader);
     program.bind();
 
     var camera = this._camera = new CameraPersp();
@@ -35,58 +30,35 @@ App.prototype.setup = function () {
     camera.lookAt(Vec3.one(), Vec3.zero());
     camera.updateMatrices();
 
-    var texture = Texture.createFromImage(textureSource);
+
+    var texture = this._texture = Texture.createFromImage(resources.image0);
     texture.bind(0);
 
     gl.enable(gl.DEPTH_TEST);
     gl.uniform1f(program['uPointSize'],4.0);
 };
 
-App.prototype.update = function () {
+app.update = function(){
     var t = this.getSecondsElapsed();
+    var program = this._program,
+        camera = this._camera;
 
     gl.clearColor(0.1,0.1,0.1,1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    var camera = this._camera;
     camera.setEye3f(Math.cos(t) * 2,1,Math.sin(t) * 2);
     camera.updateMatrices();
     glTrans.setMatricesCamera(camera);
 
     glDraw.drawPivot();
 
-    var program = this._program;
-
-    gl.uniform1f(program['uUseTexture'],0.5 + Math.sin(t*4) * 0.5);
-    glDraw.color3f(1,0,0.25);
+    gl.uniform1f(program['uUseTexture'],Ease.stepSmooth(Math.sin(t * 4) * 0.5 + 0.5));
+    glDraw.colorf(1,0,0.25);
     glTrans.pushMatrix();
     glTrans.translate3f(-0.5,-0.5,0);
     glDraw.drawRect();
     glTrans.popMatrix();
-    gl.uniform1f(program['uUseTexture'],0.0);
+    gl.uniform1f(program['uUseTexture'],0);
 };
 
-var app;
-
-window.addEventListener('load',function(){
-    var numSources = 2,
-        numSourcesLoaded = 0;
-
-    function onSourcesLoaded(){
-        numSourcesLoaded++;
-        if(numSourcesLoaded != numSources){
-            return;
-        }
-        app = new App();
-    }
-
-    System.loadImage('../examples/02_Texture/texture.png', function(data){
-        textureSource = data;
-        onSourcesLoaded();
-    });
-
-    System.loadFile('../examples/02_Texture/program.glsl',function(data){
-        shaderSource = data;
-        onSourcesLoaded();
-    });
-});
+Foam.App.newOnLoadWithResource(resources,app);

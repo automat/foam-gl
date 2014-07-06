@@ -131,7 +131,6 @@ var Resource = {
             error = true;
         }
 
-
         var index = 0;
         for(var key in resource){
             Load(resource[key],index++,

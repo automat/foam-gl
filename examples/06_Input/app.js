@@ -9,7 +9,6 @@ var gl;
 
 Foam.App.newOnLoad({
     setup : function(){
-        this.setWindowSize(800,600);
         gl = Foam.gl.get();
 
         Mouse.getInstance().addEventListener(MouseEvent.MOUSE_DOWN,this.onMouseDown.bind(this));

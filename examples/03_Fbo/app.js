@@ -9,16 +9,13 @@ var Foam        = require('../../src/foam/Foam.js'),
     Fbo         = Foam.Fbo;
 
 var gl;
+var resource = {}, app = {};
 
-var shaderSource = '';
+resource.shader = {
+    path : '../examples/03_Fbo/program.glsl'
+};
 
-function App() {
-    Foam.App.apply(this, arguments);
-}
-
-App.prototype = Object.create(Foam.App.prototype);
-
-App.prototype.setup = function () {
+app.setup = function(resource){
     this.setFPS(60);
     this.setWindowSize(800, 600);
 
@@ -31,7 +28,7 @@ App.prototype.setup = function () {
 
     var fboScale = this._fboScale = 2;
 
-    var program = this._program = new Program(shaderSource);
+    var program = this._program = new Program(resource.shader);
     program.bind();
 
     var windowAspectRatio = this.getWindowAspectRatio();
@@ -49,7 +46,7 @@ App.prototype.setup = function () {
     gl.uniform1f(program['uPointSize'],4.0);
 };
 
-App.prototype.update = function () {
+app.update = function(){
     var t = this.getSecondsElapsed();
 
     var fboScale = this._fboScale;
@@ -100,26 +97,17 @@ App.prototype.update = function () {
 
     glTrans.setWindowMatrices(windowWidth, windowHeight, false);
 
-    glDraw.color3f(1,1,1);
+    glDraw.colorf(1,1,1);
     fbo.bindTexture();
     gl.uniform1f(program['uUseTexture'],1.0);
     glDraw.drawRect(windowWidth,windowHeight);
     gl.uniform1f(program['uUseTexture'],0.0);
     fbo.unbindTexture();
-
-
 };
 
-App.prototype.drawGeom = function(){
+app.drawGeom = function(){
     glDraw.drawCubeColored();
     glDraw.drawCubePoints();
 };
 
-var app;
-
-window.addEventListener('load',function(){
-    System.loadFile('../examples/03_Fbo/program.glsl',function(data){
-        shaderSource = data;
-        app = new App();
-    });
-});
+Foam.App.newOnLoadWithResource(resource,app);
