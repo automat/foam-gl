@@ -42,7 +42,7 @@ Color.white = function(){
 };
 
 Color.black = function(){
-    return new Color(1,0,0,1);
+    return new Color(0,0,0,1);
 };
 
 Color.red = function(){
