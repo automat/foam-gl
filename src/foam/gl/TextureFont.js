@@ -17,8 +17,33 @@ var GLYPH_PADDING      = 10,
 
 var GLYPH_NUM_VERTICES = 6;
 
+var CHAR_BR = '\n',
+    CHAR_SP = ' ';
+
+var COLOR_WHITE = Color.white();
+
 function removeDuplicates(str){
-    return str.replace(/(.)(?=\1)/g, "");
+    return str.replace(/(.)(?=\1)/g, '');
+}
+
+function getLineBreaks(str){
+    var indices = [];
+    var i = -1, l = str.length, char;
+    while(++i < l){
+        char = str[i];
+        if(char === '\n' || char === '\r' || char === '\r\n'){
+            indices.push(i);
+        }
+    }
+    return indices;
+}
+
+function removeLineBreaks(str){
+    return str.replace(/(\r\n|\n|\r)/gm,'');
+}
+
+function splitByLineBreak(str){
+    return str.split(/(\r\n|\n|\r)/gm);
 }
 
 function GlyphTextureInfo(){
@@ -48,8 +73,6 @@ function FontMetrics(){
     this.minLeftSideBearing = this.minRightSideBearing = 0;
 }
 
-// TextureFont
-
 function TextureFont(arraybuffer){
     this._glyphs = {};
     this._glyphMetrics = {};
@@ -57,6 +80,7 @@ function TextureFont(arraybuffer){
     this._charsSupported = null;
 
     this._fontSize    = this._scale = 0;
+    this._lineHeight  = 1.0;
     this._font        = opentype.parse(arraybuffer);
     this._fontMetrics = new FontMetrics();
 
@@ -154,6 +178,14 @@ TextureFont.prototype.setFontSize = function(fontSize){
 TextureFont.prototype.getFontSize = function(){
     return this._fontSize;
 };
+
+TextureFont.prototype.setLineHeight = function(lineHeight){
+    this._lineHeight = lineHeight;
+}
+
+TextureFont.prototype.getLineHeight = function(){
+    return this._lineHeight;
+}
 
 TextureFont.prototype._getKerningValue = function(leftChar,rightChar){
     if(leftChar == null || rightChar == null){
@@ -362,17 +394,7 @@ TextureFont.prototype._genMapGlyph = function(){
     gl.bindTexture(gl.TEXTURE_2D, texturePrev);
 };
 
-var COLOR_WHITE = Color.black();
-
-TextureFont.prototype.drawString = function(str,color){
-    var strLast = this._stringLast;
-    var strLastMax = this._stringLastMax;
-    var strLen = str.length;
-
-    if(strLen == 0){
-        return;
-    }
-
+TextureFont.prototype._validateInputStr = function(str){
     var strChars = removeDuplicates(str);
     var glyphs   = this._glyphs;
     var i = -1, l = strChars.length;
@@ -383,10 +405,17 @@ TextureFont.prototype.drawString = function(str,color){
             error++;
         }
     }
+    return error == 0;
+}
 
-    if(error > 0){
+TextureFont.prototype._drawText = function(str,color){
+    var strLen = str.length;
+    if(strLen == 0){
         return;
     }
+
+    var strLast = this._stringLast;
+    var strLastMax = this._stringLastMax;
 
     var gl      = this._gl,
         program = gl.getParameter(gl.CURRENT_PROGRAM);
@@ -424,11 +453,6 @@ TextureFont.prototype.drawString = function(str,color){
     var texture     = this._texture,
         prevTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
     var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
-
-    var bufferVertex   = this._bufferVertex,
-        bufferNormal   = this._bufferNormal,
-        bufferColor    = this._bufferColor,
-        bufferTexcoord = this._bufferTexcoord;
 
     var vertexDataOffset   = this._bufferVertexDataOffset,
         normalDataOffset   = this._bufferNormalDataOffset,
@@ -468,17 +492,13 @@ TextureFont.prototype.drawString = function(str,color){
             uv2 = this._uv2,
             uv3 = this._uv3;
 
-        var prevAdvance = 0;
+        var prevAdvance = -metrics[str[0]].leftSideBearing;;
 
         var colorR = color.r,
             colorG = color.g,
             colorB = color.b,
             colorA = color.a;
 
-        var kerning;
-        var prevAdvanceWidth = 0;
-
-        l = strLen;
 
         if(strLen > strLastMax.length){
             //reinit all buffers
@@ -493,9 +513,9 @@ TextureFont.prototype.drawString = function(str,color){
             colorData    = this._bufferColorData    = new Float32Array(colorDataLen);
             texcoordData = this._bufferTexcoordData = new Float32Array(texcoordDataLen);
 
+            var i = -1;
 
-            i = -1;
-            while(++i < l){
+            while(++i < strLen){
                 char = str[i];
 
                 textureInfo = textureInfos[char];
@@ -602,8 +622,6 @@ TextureFont.prototype.drawString = function(str,color){
 
                 texcoordData[k+10] = uv3.x;
                 texcoordData[k+11] = uv3.y;
-
-
             }
 
             vertexDataLen   = vertexData.byteLength;
@@ -627,7 +645,7 @@ TextureFont.prototype.drawString = function(str,color){
             //just update the vertex buffer & texcoord buffer
 
             i = -1;
-            while(++i < l){
+            while(++i < strLen){
                 char = str[i];
 
                 textureInfo = textureInfos[char];
@@ -708,40 +726,32 @@ TextureFont.prototype.drawString = function(str,color){
             gl.bufferSubData(gl.ARRAY_BUFFER,vertexDataOffset,vertexData);
             gl.bufferSubData(gl.ARRAY_BUFFER,texcoordDataOffset,texcoordData);
 
-            if(!color.equals(this._colorLast)){
-
+            if(!color.equals(this._colorLast) || strLen > strLast.length){
                 i = -1;
-                while(++i < l){
+                while(++i < strLen){
                     j = i * GLYPH_NUM_VERTICES * 4;
-                    colorData[j  ] = color.r;
-                    colorData[j+1] = color.g;
-                    colorData[j+2] = color.b;
-                    colorData[j+3] = color.a;
+                    colorData[j   ] = colorData[j+ 4]  = colorData[j+ 8]  = colorData[j+12]  = colorData[j+16] = colorData[j+20] = color.r;
+                    colorData[j+ 1] = colorData[j+ 5]  = colorData[j+ 9]  = colorData[j+13]  = colorData[j+17] = colorData[j+21] = color.g;
+                    colorData[j+ 2] = colorData[j+ 6]  = colorData[j+10]  = colorData[j+14]  = colorData[j+18] = colorData[j+22] = color.b;
+                    colorData[j+ 3] = colorData[j+ 7]  = colorData[j+11]  = colorData[j+15]  = colorData[j+19] = colorData[j+23] = color.a;
                 }
-
                 gl.bufferSubData(gl.ARRAY_BUFFER,colorDataOffset,colorData);
                 this._colorLast = !this._colorLast ? color.copy() : this._colorLast.set(color);
             }
         }
-    } else {
-
     }
-
 
     gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,vertexDataOffset)
 
     if(attribLocationVertexNormal != -1){
         gl.vertexAttribPointer(attribLocationVertexNormal,3,gl.FLOAT,false,0,normalDataOffset);
     }
-
     if(attribLocationVertexColor != -1){
         gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,colorDataOffset);
     }
-
     if(attribLocationTexcoord != -1){
         gl.vertexAttribPointer(attribLocationTexcoord,2,gl.FLOAT,false,0,texcoordDataOffset);
     }
-
 
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniformMatrix4fv(uniformLocationModelViewMatrix, false, glTrans.getModelViewMatrixF32());
@@ -749,15 +759,115 @@ TextureFont.prototype.drawString = function(str,color){
     gl.drawArrays(gl.TRIANGLES,0,numVertices);
     gl.bindTexture(gl.TEXTURE_2D, prevTexture);
 
-
     gl.bindBuffer(gl.ARRAY_BUFFER, prevVbo);
 
     this._stringLast = str;
     this._stringLastMax = str.length > strLastMax.length ? str : strLastMax;
+}
+
+TextureFont.prototype._getTextWidth = function(str){
+    var glyphMetrics = this._glyphMetrics,
+        metrics;
+    var width = 0;
+
+    var i = -1, l = str.length;
+    while(++i < l){
+        metrics = glyphMetrics[str[i]];
+        width  += metrics.advanceWidth + this._getKerningValue(str[i-1],str[i]);
+    }
+    return width;
+}
+
+TextureFont.prototype.drawText = function(str,color){
+    str = removeLineBreaks(str);
+    var strLen = str.length;
+    if(strLen == 0 || !this._validateInputStr(str)){
+        return;
+    }
+    this._drawText(str,color);
 };
 
-TextureFont.prototype.measureText = function(str){
+TextureFont.prototype.drawTextBox = function(str,size,color){
+    var str_ = removeLineBreaks(str);
+    if(str_.length == 0 || !this._validateInputStr(str_)){
+        return;
+    }
 
+    var lines = str.split("\n"), words;
+    var line, line_, line_width;
+    var lineHeight = this._fontSize * this._lineHeight;
+    var i = -1, l = lines.length, j, m;
+
+    var y = 0;
+
+    var self = this;
+    function newLine(){
+        y += lineHeight;
+        if(y > size.y){
+            return;
+        }
+
+        self._drawText(line,color);
+        glTrans.translate3f(0,lineHeight,0);
+
+    }
+
+    glTrans.pushMatrix();
+    while(++i < l) {
+        if(y > size.y){
+            break;
+        }
+
+        words = lines[i].split(CHAR_SP);
+        line = '';
+        j = -1; m = words.length;
+
+        while(++j < m){
+            line_      = line + words[j] + CHAR_SP;
+            line_width = this._getTextWidth(line_);
+            if (line_width > size.x && j > 0) {
+                newLine();
+                line = words[j] + CHAR_SP;
+            } else {
+                line = line_;
+            }
+        }
+        newLine();
+    }
+    glTrans.popMatrix();
+}
+
+TextureFont.prototype.getTextBounds = function(str,rect){
+    str = removeLineBreaks(str);
+    var strLen = str.length;
+    rect = rect || new Rect();
+    if(strLen == 0 || !this._validateInputStr(str)){
+        return rect ? rect.toZero() : new Rect();
+    }
+    var glyphMetrics = this._glyphMetrics,
+        metrics;
+    var size = new Vec2(0,-Number.MAX_VALUE);
+
+    var i = -1;
+    while(++i < strLen){
+        metrics = glyphMetrics[str[i]];
+        size.x += metrics.advanceWidth + this._getKerningValue(str[i-1],str[i]);
+        size.y  = Math.max(size.y, metrics.bounds.getHeight());
+    }
+    return rect.setSize(size);
+}
+
+TextureFont.prototype.getTextWidth = function(str){
+    str = removeLineBreaks(str);
+    var strLen = str.length;
+    if(strLen == 0 || !this._validateInputStr(str)){
+        return 0;
+    }
+    return this._getTextWidth(str);
+}
+
+TextureFont.prototype.deleteGlTexture = function(){
+    this._gl.deleteTexture(this._texture);
 }
 
 TextureFont.prototype.getGlyphTableGLTexture = function(){
