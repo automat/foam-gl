@@ -9,6 +9,9 @@ function Rect() {
     this.max = new Vec2();
 
     switch (arguments.length){
+        case 1:
+            this.setSize(arguments[0]);
+            break;
         case 2:
             this.setSizef(arguments[0],arguments[1]);
             break;
@@ -218,8 +221,8 @@ Rect.prototype.getAspectRatio = function(){
 
 Rect.prototype.draw = function(){
     glTrans.pushMatrix();
-    glTrans.translate3f(this.min.x,this.min.y);
-    glDraw.drawRect(this.getWidth(),this.getHeight());
+    glTrans.translate3f(this.min.x,this.min.y,0);
+    glDraw.drawRectStroked(this.getWidth(),this.getHeight());
     glTrans.popMatrix();
 }
 
