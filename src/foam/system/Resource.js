@@ -13,6 +13,132 @@ function strLogResourceNoPath(type,index) {
     return 'Warning: Resource ' + (type ? ('of type "' + type + '" ') : '') + (index != null ? ( ' at index ' + index )  : '"') + ' has no path.';
 }
 
+var OBJ_VERTEX = 'v',
+    OBJ_NORMAL = 'vn',
+    OBJ_TEX_COORD = 'vt',
+    OBJ_FACE = 'f',
+    OBJ_COMMENT = '#';
+
+function LoadObj(path,callbackSuccess,callbackError){
+    var request = new XMLHttpRequest();
+    request.open('GET',path);
+    request.responseType = 'text';
+    request.addEventListener('readystatechange', function () {
+        if(request.readyState == 4){
+            if(request.status == 200){
+                var data = request.response;
+                var vertices  = [],
+                    normals   = [],
+                    texcoords = [],
+                    indices   = [];
+
+                var obj_ = {
+                    vertices : [],
+                    normals : [],
+                    texcoords : [],
+                    indices : [],
+                    indicesHash : {}
+                }
+
+                var faceIndices,
+                    indexVertex,
+                    indexNormal,
+                    indexTexcoord,
+                    indexIndex = 0;
+
+                var lines = data.split('\n'), line;
+                var l = lines.length;
+
+                if(l == 0){
+                    console.log('Warning: Invalid obj file.');
+                    callbackError();
+                    return;
+                }
+
+                var i = -1;
+                var tokens, firstToken, numTokens;
+
+                var j;
+
+                while(++i < l){
+                    line       = lines[i];
+                    tokens     = line.split(' ');
+                    firstToken = tokens.shift();
+                    numTokens  = tokens.length;
+
+                    switch (firstToken){
+                        case OBJ_VERTEX :
+                            if(numTokens != 3){
+                                console.log('Warining: Invalid vertex length: ' + tokens.length);
+                                callbackError();
+                                return;
+                            }
+                            vertices.push(tokens[0],tokens[1],tokens[2]);
+                            break;
+                        case OBJ_NORMAL :
+                            if(numTokens!= 3){
+                                console.log('Warining: Invalid normal length: ' + tokens.length);
+                                callbackError();
+                                return;
+                            }
+                            normals.push(tokens[0],tokens[1],tokens[2]);
+                            break;
+                        case OBJ_TEX_COORD :
+                            if(numTokens != 2){
+                                console.log('Warining: Invalid texcoord length: ' + tokens.length);
+                                callbackError();
+                                return;
+                            }
+                            texcoords.push(tokens[0],tokens[1]);
+                            break;
+                        case OBJ_FACE :
+                            if(numTokens == 3){
+                                j = -1;
+                                while(++j < tokens.length){
+                                    faceIndices   = tokens[j].split('/');
+                                    indexVertex   = (faceIndices[0] - 1) * 3;
+                                    indexNormal   = (faceIndices[1] - 1) * 3;
+                                    indexTexcoord = (faceIndices[2] - 1) * 2;
+
+                                    obj_.vertices.push(vertices[indexVertex  ],
+                                                       vertices[indexVertex+1],
+                                                       vertices[indexVertex+2]);
+
+                                    obj_.texcoords.push(texcoords[indexTexcoord  ],
+                                                        texcoords[indexTexcoord+1]);
+
+                                    obj_.normals.push(normals[indexNormal  ],
+                                                      normals[indexNormal+1],
+                                                      normals[indexNormal+2]);
+
+                                    obj_.indicesHash[tokens[j]] = indexIndex;
+                                    obj_.indices.push(indexIndex);
+                                    indexIndex++;
+                                }
+                            } else {
+                                console.log('Warning: Quad faces not supported.');
+                                callbackError();
+                                return;
+                            }
+                            break;
+                        default  :
+                            break;
+                    }
+                }
+                obj_.vertices  = new Float32Array(obj_.vertices);
+                obj_.normals   = new Float32Array(obj_.normals);
+                obj_.texcoords = new Float32Array(obj_.texcoords);
+                obj_.indices   = new Uint16Array(obj_.indices);
+
+                callbackSuccess(obj_);
+            } else if(request.status == 404){
+                callbackError();
+            }
+        }
+    });
+    request.send();
+};
+
 function Load(resource,index,callbackSuccess,callbackError,strict){
     var path = resource.path;
     if(!path){
@@ -29,15 +155,15 @@ function Load(resource,index,callbackSuccess,callbackError,strict){
        type != ResourceType.BLOB &&
        type != ResourceType.DOCUMENT &&
        type != ResourceType.JSON &&
-       type != ResourceType.TEXT){
+       type != ResourceType.TEXT &&
+       type != ResourceType.OBJ){
         console.log(strLogResourceUnsupported(path,type,index));
         if(callbackError && strict){
             callbackError(path);
         }
         return;
     }
-
-    if(type == 'image'){
+    if(type == ResourceType.IMAGE){
         var image = new Image();
         image.addEventListener('load', function () {
             if(callbackSuccess){
@@ -51,7 +177,23 @@ function Load(resource,index,callbackSuccess,callbackError,strict){
             }
         });
         image.src = path;
-    }else {
+
+    } else if (type == ResourceType.OBJ){
+        LoadObj(resource.path,
+            function(resource){
+                if(callbackSuccess){
+                    callbackSuccess(resource);
+                }
+            },
+            function(){
+                console.log(strLogResourceLoadFail(path,type,index));
+                if(callbackError && strict){
+                    callbackError(resource.path);
+                }
+            }
+        );
+
+    } else {
         var request = new XMLHttpRequest();
         request.open('GET', path);
         request.responseType = type;

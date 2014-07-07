@@ -5,6 +5,7 @@ var ResourceType = {
     DOCUMENT     : 'document',
     JSON         : 'json',
     TEXT         : 'text',
+    OBJ          : 'obj'
 };
 
 module.exports = ResourceType;
