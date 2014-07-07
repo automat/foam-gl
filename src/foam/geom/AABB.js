@@ -41,6 +41,7 @@ AABB.prototype.set = function(aabb){
     this.min.set(aabb.min);
     this.max.set(aabb.max);
     this.size.set(aabb.size);
+    return this;
 };
 
 AABB.prototype.include = function(aabb){
@@ -57,6 +58,7 @@ AABB.prototype.include = function(aabb){
     max.z = Math.max(max.z,amax.z);
 
     this._update();
+    return this;
 };
 
 AABB.prototype._update = function(){
@@ -122,6 +124,7 @@ AABB.prototype.setFromPoints = function(points){
     }
 
     this._update();
+    return this;
 };
 
 AABB.prototype.setFromPointsf = function(points){
@@ -146,6 +149,7 @@ AABB.prototype.setFromPointsf = function(points){
     }
 
     this._update();
+    return this;
 };
 
 //http://cgvr.cs.uni-bremen.de/teaching/cg2_08/folien/05_culling_1up_2.pdf
@@ -182,6 +186,14 @@ AABB.prototype.draw = function(center){
     glTrans.scale(this.size);
     glDraw.drawCubeStroked();
     glTrans.popMatrix();
+};
+
+AABB.fromPoints = function(points,aabb){
+    return (aabb || new AABB()).setFromPoints(points);
+};
+
+AABB.fromPointsf = function(points,aabb){
+    return (aabb || new AABB()).setFromPointsf(points);
 };
 
 module.exports = AABB;
