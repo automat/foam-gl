@@ -4,6 +4,37 @@ var bound_0 = false;
 
 function Program(vertexShader, fragmentShader) {
     var gl = this._gl = _gl.get();
+    this.load(vertexShader,fragmentShader);
+}
+
+// Default shared shader vars - global, reassignable
+
+Program.UNIFORM_MODELVIEW_MATRIX  = 'uModelViewMatrix';
+Program.UNIFORM_PROJECTION_MATRIX = 'uProjectionMatrix';
+
+Program.ATTRIB_VERTEX_POSITION = 'aVertexPosition';
+Program.ATTRIB_VERTEX_NORMAL   = 'aVertexNormal';
+Program.ATTRIB_VERTEX_COLOR    = 'aVertexColor';
+Program.ATTRIB_TEXCOORD        = 'aTexcoord';
+
+Program.UNIFORM_COLOR      = 'uColor';
+Program.UNIFORM_TEXTURE    = 'uTexture';
+Program.UNIFORM_POINT_SIZE = 'uPointSize';
+
+Program._currentProgram = null;
+
+Program.getCurrentProgram = function(){
+    return Program._currentProgram;
+};
+
+Program.prototype.load = function(vertexShader,fragmentShader){
+    if(!vertexShader){
+        return;
+    }
+
+    this.delete();
+
+    var gl = this._gl;
 
     var prefixVertexShader = '',
         prefixFragmentShader = '';
@@ -59,28 +90,12 @@ function Program(vertexShader, fragmentShader) {
     }
 }
 
-// Default shared shader vars - global, reassignable
-
-Program.UNIFORM_MODELVIEW_MATRIX  = 'uModelViewMatrix';
-Program.UNIFORM_PROJECTION_MATRIX = 'uProjectionMatrix';
-
-Program.ATTRIB_VERTEX_POSITION = 'aVertexPosition';
-Program.ATTRIB_VERTEX_NORMAL   = 'aVertexNormal';
-Program.ATTRIB_VERTEX_COLOR    = 'aVertexColor';
-Program.ATTRIB_TEXCOORD        = 'aTexcoord';
-
-Program.UNIFORM_COLOR      = 'uColor';
-Program.UNIFORM_TEXTURE    = 'uTexture';
-Program.UNIFORM_POINT_SIZE = 'uPointSize';
-
-Program._currentProgram = null;
-Program.getCurrentProgram = function(){
-    return Program._currentProgram;
-};
-
-
 Program.prototype.delete = function(){
-   this._gl.deleteProgram(this._program);
+    if(!this._program){
+        return;
+    }
+    this._gl.deleteProgram(this._program);
+    this._program = null;
 };
 
 Program.prototype.getNumUniforms = function () {
