@@ -330,6 +330,24 @@ function glDraw_Internal(){
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, data);
 
     /*--------------------------------------------------------------------------------------------*/
+    //  Circle
+    /*--------------------------------------------------------------------------------------------*/
+
+    this._circleBuffer = gl.createBuffer();
+    this._circleVertices = null;
+    this._circleNormals = null;
+    this._circleColors = null;
+    this._circleTexcoords = null;
+
+    this._circleNumSegments = 16;
+    this._circleNumSegmentsLast = null;
+    this._circleBufferOffsetVertices  = 0;
+    this._circleBufferOffsetNormals   = null;
+    this._circleBufferOffsetColors    = null;
+    this._circleBufferOffsetTexcoords = null;
+    this._circleColorLast = Color.white();
+
+    /*--------------------------------------------------------------------------------------------*/
     //  Line
     /*--------------------------------------------------------------------------------------------*/
 
@@ -415,9 +433,6 @@ function glDraw_Internal(){
     gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(ArrayUtil.createArray(numHeadVertices + 2,1,1,1,1)),gl.STATIC_DRAW);
 
-
-
-
     /*--------------------------------------------------------------------------------------------*/
     //  Init
     /*--------------------------------------------------------------------------------------------*/
@@ -428,7 +443,7 @@ function glDraw_Internal(){
 }
 
 /*--------------------------------------------------------------------------------------------*/
-//  Vector
+//  Quaternion
 /*--------------------------------------------------------------------------------------------*/
 
 glDraw_Internal.prototype.drawQuat = function(q){
@@ -1032,7 +1047,7 @@ glDraw_Internal.prototype._drawRect_Internal = function(width,height,drawMode){
 
     if(drawMode == DrawMode.TRIANGLES){
         if(attribLocationVertexNormal != -1){
-            gl.vertexAttribPointer(attribLocationVertexNormal,4,gl.FLOAT,false,0,this._rectBufferOffsetNormals);
+            gl.vertexAttribPointer(attribLocationVertexNormal,3,gl.FLOAT,false,0,this._rectBufferOffsetNormals);
         }
         if(attribLocationTexcoord != -1){
             gl.vertexAttribPointer(attribLocationTexcoord,2,gl.FLOAT,false,0,this._rectBufferOffsetTexcoords);
@@ -1098,6 +1113,200 @@ glDraw_Internal.prototype.drawRectPoints = function(width,height){
 glDraw_Internal.prototype.drawRectStroked = function(width,height){
     this._drawRect_Internal(width,height,DrawMode.LINES);
 };
+
+
+/*--------------------------------------------------------------------------------------------*/
+//  Circle
+/*--------------------------------------------------------------------------------------------*/
+
+glDraw_Internal.prototype._drawCircle_Internal = function(radius, drawMode){
+    var gl = this._gl;
+
+    if(drawMode != gl.TRIANGLE_FAN &&
+        drawMode != gl.LINE_LOOP){
+        return;
+    }
+
+    this._updateProgramLocations();
+
+    var attribLocationVertexPos    = this._attribLocationVertexPos,
+        attribLocationVertexNormal = this._attribLocationVertexNormal,
+        attribLocationVertexColor  = this._attribLocationVertexColor,
+        attribLocationTexcoord     = this._attribLocationTexcoord;
+
+    if(attribLocationVertexPos == -1){
+        return;
+    }
+
+    var prevBuffer = gl.getParameter(gl.ARRAY_BUFFER_BINDING),
+        buffer     = this._circleBuffer;
+
+    if(prevBuffer != buffer){
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    }
+
+    var numSegments = this._circleNumSegments,
+        color4f     = this._color,
+        color       = this._circleColorLast;
+
+    var lenVertices  = numSegments * 3,
+        lenNormals   = numSegments * 3,
+        lenColors    = numSegments * 4,
+        lenTexcoords = numSegments * 2;
+    var lenTotal     = lenVertices + lenNormals + lenColors + lenTexcoords;
+
+    var offsetVertices  = this._circleBufferOffsetVertices,
+        offsetColors    = this._circleBufferOffsetColors,
+        offsetNormals   = this._circleBufferOffsetNormals,
+        offsetTexcoords = this._circleBufferOffsetTexcoords;
+
+    var vertices  = this._circleVertices,
+        normals   = this._circleNormals,
+        colors    = this._circleColors,
+        texcoords = this._circleTexcoords;
+
+    var i, j,len;
+
+    var r = color4f.r,
+        g = color4f.g,
+        b = color4f.b,
+        a = color4f.a;
+
+    var step = Math.PI * 2 / numSegments;
+
+    if(numSegments > this._circleNumSegmentsLast){
+        // reinit
+
+        vertices  = this._circleVertices = new Float32Array(lenVertices);
+        normals   = this._circleNormals  = new Float32Array(lenNormals);
+        colors    = this._circleColors   = new Float32Array(lenColors);
+        texcoords = this._circleTexcoords = new Float32Array(lenTexcoords);
+
+        offsetNormals   = this._circleBufferOffsetNormals   = offsetVertices + vertices.byteLength;
+        offsetColors    = this._circleBufferOffsetColors    = offsetNormals + normals.byteLength;
+        offsetTexcoords = this._circleBufferOffsetTexcoords = offsetColors + colors.byteLength;
+
+        i = -1;
+        while(++i < numSegments + 1){
+            j = i * 3;
+            vertices[j  ] = Math.cos(step * i);
+            vertices[j+1] = Math.sin(step * i);
+            vertices[j+2] = 0;
+
+            normals[j ] = 1.0;
+            normals[j+1] = normals[j+2] = 0.0;
+
+            j = i * 4;
+            colors[j  ] = r;
+            colors[j+1] = g;
+            colors[j+2] = b;
+            colors[j+3] = a;
+
+            j = i * 2;
+            texcoords[j  ] = 0.5 + vertices[j  ];
+            texcoords[j+1] = 0.5 + vertices[j+1];
+        }
+
+        gl.bufferData(gl.ARRAY_BUFFER,lenTotal * 4, gl.DYNAMIC_DRAW);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offsetVertices, vertices);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offsetNormals, normals);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offsetColors, colors);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offsetTexcoords, texcoords);
+
+        this._circleNumSegmentsLast = numSegments;
+        color.set(color4f);
+    } else {
+        //reassign
+
+        if(numSegments != this._circleNumSegmentsLast){
+            i = -1;
+            while(++i < numSegments){
+                j = i * 3;
+                vertices[j  ] = Math.cos(step * i);
+                vertices[j+1] = Math.sin(step * i);
+                vertices[j+2] = 0;
+
+                j = i * 2;
+                texcoords[j  ] = 0.5 + vertices[j  ];
+                texcoords[j+1] = 0.5 + vertices[j+1];
+            }
+
+            gl.bufferSubData(gl.ARRAY_BUFFER, offsetVertices, vertices);
+            gl.bufferSubData(gl.ARRAY_BUFFER, offsetTexcoords, texcoords);
+        }
+
+        if(!color.equals(color4f)){
+            i = -1;
+            while(++i < numSegments){
+                j = i * 4;
+                colors[j  ] = r;
+                colors[j+1] = g;
+                colors[j+2] = b;
+                colors[j+3] = a;
+            }
+            gl.bufferSubData(gl.ARRAY_BUFFER, offsetColors, colors);
+        }
+    }
+
+    gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,offsetVertices);
+
+    if(drawMode == gl.TRIANGLE_FAN){
+        if(attribLocationVertexNormal != -1){
+            gl.vertexAttribPointer(attribLocationVertexNormal, 3, gl.FLOAT, false, 0, offsetNormals);
+        }
+        if(attribLocationTexcoord != -1){
+            gl.vertexAttribPointer(attribLocationTexcoord, 2, gl.FLOAT, false, 0, offsetTexcoords);
+        }
+    }
+
+    if(drawMode == gl.LINE_LOOP){
+        if(attribLocationVertexNormal != -1){
+            gl.disableVertexAttribArray(attribLocationVertexNormal);
+        }
+        if(attribLocationTexcoord != -1){
+            gl.disableVertexAttribArray(attribLocationTexcoord);
+        }
+    }
+
+    if(attribLocationVertexColor != -1){
+        gl.vertexAttribPointer(attribLocationVertexColor, 4, gl.FLOAT, false, 0, offsetColors);
+    }
+
+    glTrans.pushMatrix();
+    glTrans.scale1f(radius);
+
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+
+    gl.drawArrays(drawMode, 0, numSegments);
+
+    glTrans.popMatrix();
+
+    if(drawMode == gl.LINE_LOOP){
+        if(attribLocationVertexNormal != -1){
+            gl.enableVertexAttribArray(attribLocationVertexNormal);
+        }
+        if(attribLocationTexcoord != -1){
+            gl.enableVertexAttribArray(attribLocationTexcoord);
+        }
+    }
+
+    if(prevBuffer != buffer){
+        gl.bindBuffer(gl.ARRAY_BUFFER, prevBuffer);
+    }
+}
+
+glDraw_Internal.prototype.drawCircle = function(radius){
+    this._drawCircle_Internal(radius,this._gl.TRIANGLE_FAN);
+};
+
+glDraw_Internal.prototype.drawCircleStroked = function(radius){
+    this._drawCircle_Internal(radius, this._gl.LINE_LOOP);
+}
+
+glDraw_Internal.prototype.setCircleSegments = function(numSegments){
+    this._circleNumSegments = numSegments;
+}
 
 
 /*--------------------------------------------------------------------------------------------*/
