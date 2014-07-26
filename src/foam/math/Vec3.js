@@ -293,22 +293,24 @@ Vec3.min = function(){
 };
 
 Vec3.randomPosition = function(){
-    var min, max;
-    if(arguments.length == 1){
-        min = 0;
-        max = arguments[0];
-    } else {
-        min = arguments[0];
-        max = arguments[1];
+    var min = 0, max = 1;
+    switch (arguments.length){
+        case 1:
+            max = arguments[0];
+            break;
+        case 2:
+            min = arguments[0];
+            max = arguments[1];
+            break;
     }
-
-    return new Vec3(min + ( 1 + max - min ) * Math.random(),
-                    min + ( 1 + max - min ) * Math.random(),
-                    min + ( 1 + max - min ) * Math.random());
+    var diff = max - min;
+    return new Vec3(min + diff * Math.random(),
+                    min + diff * Math.random(),
+                    min + diff * Math.random());
 };
 
 Vec3.randomDirection = function(){
-    return Vec3.randomPosition(arguments).normalize();
+    return Vec3.randomPosition.apply(arguments).normalize();
 };
 
 Vec3.prototype.toString = function(){
