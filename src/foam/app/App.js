@@ -84,9 +84,15 @@ function App(canvas) {
     canvas.setAttribute('tabindex','0');
     canvas.focus();
 
-    var _gl =  canvas.getContext('webkit-3d') ||
-               canvas.getContext("webgl") ||
-               canvas.getContext("experimental-webgl");
+    /**
+     * Reference to WebGLRenderingContext
+     * @type {CanvasRenderingContext2D}
+     * @protected
+     */
+
+    var _gl = this._gl = canvas.getContext('webkit-3d') ||
+                         canvas.getContext("webgl") ||
+                         canvas.getContext("experimental-webgl");
 
     if(!_gl){
         this.onWebGLContextNotAvailable();
