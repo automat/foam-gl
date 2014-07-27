@@ -1,6 +1,13 @@
 var ElementArrayUtil = {
-    genTriangleFan : function(start,end){
-        var arr = [],
+    /**
+     * Generate a set of triangle fan indices.
+     * @param start - The start index
+     * @param end - The end index
+     * @param {Array} [out] - The target array
+     * @returns {Array}
+     */
+    genTriangleFan : function(start,end,out){
+        var arr = out || [],
             len = end - start;
         if(len < 3){
             return arr;
@@ -20,7 +27,7 @@ var ElementArrayUtil = {
 
         return arr;
     },
-
+    /*
     genTriangle : function(start, end){
 
     },
@@ -28,6 +35,14 @@ var ElementArrayUtil = {
     genTriangleStrip : function(start,end){
 
     },
+    */
+
+    /**
+     * Generate a set of indices.
+     * @param start - The start index
+     * @param end - The start index
+     * @returns {Array}
+     */
 
     genPoints : function(start,end){
         var arr = [],
