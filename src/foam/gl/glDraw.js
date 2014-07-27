@@ -347,6 +347,33 @@ function glDraw_Internal(){
     this._circleBufferOffsetTexcoords = null;
     this._circleColorLast = Color.white();
 
+    this._circlesModelVertices = null;
+    this._circlesModelNormals = null;
+    this._circlesModelColors = null;
+    this._circlesModelTexcoords = null;
+    this._circlesModelIndices = [];
+    this._circlesModelNumSegments = 16;
+    this._circlesModelNumSegmentsLast = null;
+    this._circlesModelColorLast = Color.white();
+
+    this._circlesBuffer = gl.createBuffer();
+    this._circlesVertices = null;
+    this._circlesNormals = null;
+    this._circlesColors = null;
+    this._circlesTexcoords = null;
+    this._circlesBufferIndices = gl.createBuffer();
+    this._circlesIndices = null;
+
+
+    this._circlesTransform = new Matrix44();
+
+    this._circlesBufferOffsetVertices = 0;
+    this._circlesBufferOffsetNormals = null;
+    this._circlesBufferOffsetColors = null;
+    this._circlesBufferOffsetTexcoords = null;
+
+    this._circlesNumLast = null;
+
     /*--------------------------------------------------------------------------------------------*/
     //  Line
     /*--------------------------------------------------------------------------------------------*/
@@ -446,6 +473,11 @@ function glDraw_Internal(){
 //  Quaternion
 /*--------------------------------------------------------------------------------------------*/
 
+/**
+ * Draw a Quaternion.
+ * @param {Quat} q - The quaternion
+ */
+
 glDraw_Internal.prototype.drawQuat = function(q){
 
 };
@@ -453,6 +485,12 @@ glDraw_Internal.prototype.drawQuat = function(q){
 /*--------------------------------------------------------------------------------------------*/
 //  Vector
 /*--------------------------------------------------------------------------------------------*/
+
+/**
+ * Draw a vector from to.
+ * @param {Vec3} v0 - Point from
+ * @param {Vec3} v1 - Point to
+ */
 
 glDraw_Internal.prototype.drawVector = function(v0,v1){
     if(!v1){
@@ -462,6 +500,18 @@ glDraw_Internal.prototype.drawVector = function(v0,v1){
 
     this.drawVectorf(v0.x,v0.y,v0.z,v1.x,v1.y,v1.z);
 };
+
+/**
+ * Draw a vector from to.
+ * @param {Number} x0 - Point from x
+ * @param {Number} y0 - Point from y
+ * @param {Number} z0 - Point from z
+ * @param {Number} x1 - Point to x
+ * @param {Number} y1 - Point to y
+ * @param {Number} z1 - Point to z
+ * @param {Number} [headLength=0.125] - The arrow´s head length
+ * @param {Number} [headRadius=0.075] - The arrow´s head radius
+ */
 
 glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1, headLength, headRadius){
     if(x0 == x1 && y0 == y1 && z0 == z1){
@@ -612,6 +662,11 @@ glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1, headLength, 
 //  Points
 /*--------------------------------------------------------------------------------------------*/
 
+/**
+ * Draw a set of points.
+ * @param {Vec3[]|..Vec3} points - The line´s points
+ */
+
 glDraw_Internal.prototype.drawPoints = function(points){
     var args = arguments.length == 1 ? arguments[0] : arguments,
         arr  = this._pointsArrTemp;
@@ -632,10 +687,13 @@ glDraw_Internal.prototype.drawPoints = function(points){
     this.drawPointsf(arr);
 };
 
+/**
+ * Draw a set of points.
+ * @param {Number[]} points - The line´s points
+ */
+
 glDraw_Internal.prototype.drawPointsf = function(points){
     this._updateProgramLocations();
-
-
 
     var gl = this._gl;
     var attribLocationVertexPos    = this._attribLocationVertexPos,
@@ -724,6 +782,11 @@ glDraw_Internal.prototype.drawPointsf = function(points){
 //  Line strip
 /*--------------------------------------------------------------------------------------------*/
 
+/**
+ * Draw a continous line through a set of points.
+ * @param {Vec3[]|..Vec3} points - The line´s points
+ */
+
 glDraw_Internal.prototype.drawLines = function(){
     var args = arguments.length == 1 ? arguments[0] : arguments,
         arr  = this._linesArrTemp;
@@ -743,6 +806,11 @@ glDraw_Internal.prototype.drawLines = function(){
 
     this.drawLinesf(arr);
 };
+
+/**
+ * Draw a continous line through a set of points.
+ * @param {Array} lines - An array of arrays of line points.
+ */
 
 glDraw_Internal.prototype.drawLinesf = function(lines){
     this._updateProgramLocations();
@@ -826,6 +894,11 @@ glDraw_Internal.prototype.drawLinesf = function(lines){
         gl.bindBuffer(gl.ARRAY_BUFFER, prevABuffer);
     }
 };
+
+/**
+ * Draw a set of lines.
+ * @param {Array} lineStrip - An array of arrays of line points
+ */
 
 glDraw_Internal.prototype.drawLineStripf = function(lineStrip){
     this._updateProgramLocations();
@@ -922,6 +995,16 @@ glDraw_Internal.prototype.drawLineStripf = function(lineStrip){
 //  Lines
 /*--------------------------------------------------------------------------------------------*/
 
+/**
+ * Draw a line between two points.
+ * @param {Number} x0 - Point from x
+ * @param {Number} y0 - Point from y
+ * @param {Number} z0 - Point from z
+ * @param {Number} x1 - Point to x
+ * @param {Number} y1 - Point to y
+ * @param {Number} z1 - Point to z
+ */
+
 glDraw_Internal.prototype.drawLinef = function(x0,y0,z0,x1,y1,z1){
     this._updateProgramLocations();
 
@@ -1008,6 +1091,12 @@ glDraw_Internal.prototype.drawLinef = function(x0,y0,z0,x1,y1,z1){
         gl.bindBuffer(gl.ARRAY_BUFFER, prevABuffer);
     }
 };
+
+/**
+ * Draw a line between two points.
+ * @param {Vec3} v0 - Point from
+ * @param {Vec3} v1 - Point to
+ */
 
 glDraw_Internal.prototype.drawLine = function(v0,v1){
     this.drawLinef(v0.x,v0.y,v0.z,v1.x,v1.y,v1.z);
@@ -1102,13 +1191,31 @@ glDraw_Internal.prototype._drawRect_Internal = function(width,height,drawMode){
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,prevIbo);
 };
 
+/**
+ * Draw a solid rectangle.
+ * @param {Number} width - Rectangle´s width
+ * @param {Number} height - Rectangle´s height
+ */
+
 glDraw_Internal.prototype.drawRect = function(width,height){
     this._drawRect_Internal(width,height,DrawMode.TRIANGLES);
 };
 
+/**
+ * Draw the points of a rectangle.
+ * @param {Number} width - Rectangle´s width
+ * @param {Number} height - Rectangle´s height
+ */
+
 glDraw_Internal.prototype.drawRectPoints = function(width,height){
     this._drawRect_Internal(width,height,DrawMode.POINTS);
 };
+
+/**
+ * Draw a stroked rectangle.
+ * @param {Number} width - Rectangle´s width
+ * @param {Number} height - Rectangle´s height
+ */
 
 glDraw_Internal.prototype.drawRectStroked = function(width,height){
     this._drawRect_Internal(width,height,DrawMode.LINES);
@@ -1118,6 +1225,100 @@ glDraw_Internal.prototype.drawRectStroked = function(width,height){
 /*--------------------------------------------------------------------------------------------*/
 //  Circle
 /*--------------------------------------------------------------------------------------------*/
+
+/**
+ * Generate the geometry of a circle.
+ * @param {Float32Array} vertices
+ * @param {Float32Array} normals
+ * @param {Float32Array} colors
+ * @param {Float32Array} texcoords
+ * @param {Number} numSegments
+ * @param {Color} color
+ * @private
+ */
+
+glDraw_Internal.prototype._genCircleGeom = function(vertices,normals,colors,texcoords,
+                                                    numSegments,color){
+    var step = Math.PI * 2 / numSegments;
+    var r = color.r, g = color.g, b = color.b, a = color.a;
+    var i,j;
+    i = -1;
+    while(++i < numSegments){
+        j = i * 3;
+        vertices[j  ] = Math.cos(step * i);
+        vertices[j+1] = Math.sin(step * i);
+        vertices[j+2] = 0;
+
+        normals[j ] = 1.0;
+        normals[j+1] = normals[j+2] = 0.0;
+
+        j = i * 4;
+        colors[j  ] = r;
+        colors[j+1] = g;
+        colors[j+2] = b;
+        colors[j+3] = a;
+
+        j = i * 2;
+        texcoords[j  ] = 0.5 + vertices[j  ];
+        texcoords[j+1] = 0.5 + vertices[j+1];
+    }
+}
+
+/**
+ * Update the geometry of a circle.
+ * @param {Float32Array} vertices
+ * @param {Float32Array} texcoords
+ * @param {Number} numSegments
+ * @param {Number} [offsetVertices=0]
+ * @param {Number} [offsetTexcoords=0]
+ * @private
+ */
+
+glDraw_Internal.prototype._updateCircleGeom = function(vertices,texcoords,numSegments,
+                                                       offsetVertices,offsetTexcoords){
+    offset = offset || 0;
+    var step = Math.PI * 2 / numSegments;
+    var i = -1,j;
+    while(++i < numSegments){
+        j = offsetVertices + i * 3;
+        vertices[j  ] = Math.cos(step * i);
+        vertices[j+1] = Math.sin(step * i);
+        vertices[j+2] = 0;
+
+        j = offsetTexcoords + i * 2;
+        texcoords[j  ] = 0.5 + vertices[j  ];
+        texcoords[j+1] = 0.5 + vertices[j+1];
+    }
+}
+
+/**
+ * Update the color data of a circle.
+ * @param colors
+ * @param numSegments
+ * @param color
+ * @param offset
+ * @private
+ */
+
+glDraw_Internal.prototype._updateCircleColor = function(colors, numSegments, color, offset){
+    offset = offset || 0;
+    var r = color.r, g = color.g, b = color.b, a = color.a;
+    var i = -1,j;
+    while(++i < numSegments){
+        j = i * 4;
+        colors[j  ] = r;
+        colors[j+1] = g;
+        colors[j+2] = b;
+        colors[j+3] = a;
+    }
+}
+
+/**
+ * Draw a circle.
+ * @param radius
+ * @param drawMode
+ * @private
+ */
 
 glDraw_Internal.prototype._drawCircle_Internal = function(radius, drawMode){
     var gl = this._gl;
@@ -1149,12 +1350,6 @@ glDraw_Internal.prototype._drawCircle_Internal = function(radius, drawMode){
         color4f     = this._color,
         color       = this._circleColorLast;
 
-    var lenVertices  = numSegments * 3,
-        lenNormals   = numSegments * 3,
-        lenColors    = numSegments * 4,
-        lenTexcoords = numSegments * 2;
-    var lenTotal     = lenVertices + lenNormals + lenColors + lenTexcoords;
-
     var offsetVertices  = this._circleBufferOffsetVertices,
         offsetColors    = this._circleBufferOffsetColors,
         offsetNormals   = this._circleBufferOffsetNormals,
@@ -1165,17 +1360,12 @@ glDraw_Internal.prototype._drawCircle_Internal = function(radius, drawMode){
         colors    = this._circleColors,
         texcoords = this._circleTexcoords;
 
-    var i, j,len;
-
-    var r = color4f.r,
-        g = color4f.g,
-        b = color4f.b,
-        a = color4f.a;
-
-    var step = Math.PI * 2 / numSegments;
-
     if(numSegments > this._circleNumSegmentsLast){
         // reinit
+        var lenVertices  = numSegments * 3,
+            lenNormals   = numSegments * 3,
+            lenColors    = numSegments * 4,
+            lenTexcoords = numSegments * 2;
 
         vertices  = this._circleVertices = new Float32Array(lenVertices);
         normals   = this._circleNormals  = new Float32Array(lenNormals);
@@ -1186,28 +1376,9 @@ glDraw_Internal.prototype._drawCircle_Internal = function(radius, drawMode){
         offsetColors    = this._circleBufferOffsetColors    = offsetNormals + normals.byteLength;
         offsetTexcoords = this._circleBufferOffsetTexcoords = offsetColors + colors.byteLength;
 
-        i = -1;
-        while(++i < numSegments + 1){
-            j = i * 3;
-            vertices[j  ] = Math.cos(step * i);
-            vertices[j+1] = Math.sin(step * i);
-            vertices[j+2] = 0;
+        this._genCircleGeom(vertices,normals,colors,texcoords,numSegments,color4f);
 
-            normals[j ] = 1.0;
-            normals[j+1] = normals[j+2] = 0.0;
-
-            j = i * 4;
-            colors[j  ] = r;
-            colors[j+1] = g;
-            colors[j+2] = b;
-            colors[j+3] = a;
-
-            j = i * 2;
-            texcoords[j  ] = 0.5 + vertices[j  ];
-            texcoords[j+1] = 0.5 + vertices[j+1];
-        }
-
-        gl.bufferData(gl.ARRAY_BUFFER,lenTotal * 4, gl.DYNAMIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices.byteLength + normals.byteLength + colors.byteLength + texcoords.byteLength, gl.DYNAMIC_DRAW);
         gl.bufferSubData(gl.ARRAY_BUFFER, offsetVertices, vertices);
         gl.bufferSubData(gl.ARRAY_BUFFER, offsetNormals, normals);
         gl.bufferSubData(gl.ARRAY_BUFFER, offsetColors, colors);
@@ -1219,32 +1390,16 @@ glDraw_Internal.prototype._drawCircle_Internal = function(radius, drawMode){
         //reassign
 
         if(numSegments != this._circleNumSegmentsLast){
-            i = -1;
-            while(++i < numSegments){
-                j = i * 3;
-                vertices[j  ] = Math.cos(step * i);
-                vertices[j+1] = Math.sin(step * i);
-                vertices[j+2] = 0;
-
-                j = i * 2;
-                texcoords[j  ] = 0.5 + vertices[j  ];
-                texcoords[j+1] = 0.5 + vertices[j+1];
-            }
+            this._updateCircleGeom(vertices,texcoords,numSegments);
 
             gl.bufferSubData(gl.ARRAY_BUFFER, offsetVertices, vertices);
             gl.bufferSubData(gl.ARRAY_BUFFER, offsetTexcoords, texcoords);
         }
 
         if(!color.equals(color4f)){
-            i = -1;
-            while(++i < numSegments){
-                j = i * 4;
-                colors[j  ] = r;
-                colors[j+1] = g;
-                colors[j+2] = b;
-                colors[j+3] = a;
-            }
+            this._updateCircleColor(colors,numSegments,color4f);
             gl.bufferSubData(gl.ARRAY_BUFFER, offsetColors, colors);
+            color.set(color4f);
         }
     }
 
@@ -1296,16 +1451,402 @@ glDraw_Internal.prototype._drawCircle_Internal = function(radius, drawMode){
     }
 }
 
+/**
+ * Draw a solid circle.
+ * @param {Number} [radius=1.0] - The circle´s radius
+ */
+
 glDraw_Internal.prototype.drawCircle = function(radius){
-    this._drawCircle_Internal(radius,this._gl.TRIANGLE_FAN);
+    this._drawCircle_Internal(ObjectUtil.isUndefined(radius) ? 1.0 : radius,this._gl.TRIANGLE_FAN);
 };
 
+/**
+ * Draw a stroked circle
+ * @param {Number} [radius=1.0] - The circle´s radius
+ */
+
 glDraw_Internal.prototype.drawCircleStroked = function(radius){
-    this._drawCircle_Internal(radius, this._gl.LINE_LOOP);
+    this._drawCircle_Internal(ObjectUtil.isUndefined(radius) ? 1.0 : radius, this._gl.LINE_LOOP);
 }
 
+glDraw_Internal.prototype._drawCircles_Internal = function(positions, radii, drawMode){
+    var gl = this._gl;
+    var numCircles = positions.length;
+
+    if(drawMode != gl.TRIANGLE_FAN &&
+       drawMode != gl.LINE_LOOP ||
+       numCircles == 0){
+        return;
+    }
+
+    var uniformRadius = !ObjectUtil.isArray(radii);
+    if(!uniformRadius && radii.length != numCircles){
+        console.log('Warning: Radii length doesn´t match number of circles.');
+        return;
+    }
+
+    this._updateProgramLocations();
+
+    var attribLocationVertexPos    = this._attribLocationVertexPos,
+        attribLocationVertexNormal = this._attribLocationVertexNormal,
+        attribLocationVertexColor  = this._attribLocationVertexColor,
+        attribLocationTexcoord     = this._attribLocationTexcoord;
+
+    if(attribLocationVertexPos == -1){
+        return;
+    }
+
+    var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING),
+        vbo     = this._circlesBuffer;
+
+    var prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING),
+        ibo     = this._circlesBufferIndices;
+
+    if(prevVbo != vbo){
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    }
+
+    if(prevIbo != ibo){
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+    }
+
+    var numSegments = this._circlesModelNumSegments,
+        color4f     = this._color,
+        color       = this._circlesModelColorLast;
+
+    var vertices  = this._circlesModelVertices,
+        normals   = this._circlesModelNormals,
+        colors    = this._circlesModelColors,
+        texcoords = this._circlesModelTexcoords,
+        indices   = this._circlesModelIndices;
+
+    var offsetVertices  = this._circlesBufferOffsetVertices,
+        offsetNormals   = this._circlesBufferOffsetNormals,
+        offsetColors    = this._circlesBufferOffsetColors,
+        offsetTexcoords = this._circlesBufferOffsetTexcoords;
+
+
+    if(numSegments > this._circlesModelNumSegmentsLast){
+        //reinit model
+        var lenVertices  = numSegments * 3,
+            lenNormals   = numSegments * 3,
+            lenColors    = numSegments * 4,
+            lenTexcoords = numSegments * 2;
+
+        vertices  = this._circlesModelVertices  = new Float32Array(lenVertices);
+        normals   = this._circlesModelNormals   = new Float32Array(lenNormals);
+        colors    = this._circlesModelColors    = new Float32Array(lenColors);
+        texcoords = this._circlesModelTexcoords = new Float32Array(lenTexcoords);
+
+        offsetNormals   = this._circlesBufferOffsetNormals   = offsetVertices + vertices.byteLength;
+        offsetColors    = this._circlesBufferOffsetColors    = offsetNormals + normals.byteLength;
+        offsetTexcoords = this._circlesBufferOffsetTexcoords = offsetColors + colors.byteLength;
+
+        this._genCircleGeom(vertices,normals,colors,texcoords,numSegments,color4f);
+
+        ElementArrayUtil.genTriangleFan(0,numSegments,indices);
+
+        this._circlesModelNumSegmentsLast = numSegments;
+        color.set(color4f);
+    } else {
+        //reassign model
+        if(numSegments != this._circlesModelNumSegmentsLast){
+            this._updateCircleGeom(vertices,texcoords,numSegments);
+        }
+        if(!color.equals(color4f)){
+            this._updateCircleColor(colors,numSegments,color4f);
+            color.set(color4f);
+        }
+    }
+
+    var i, j, k, m, n, o;
+
+    var offsetCirclesVertices  = this._circlesBufferOffsetVertices,
+        offsetCirclesColors    = this._circlesBufferOffsetColors,
+        offsetCirclesNormals   = this._circlesBufferOffsetNormals,
+        offsetCirclesTexcoords = this._circlesBufferOffsetTexcoords;
+
+    var circlesVertices  = this._circlesVertices,
+        circlesNormals   = this._circlesNormals,
+        circlesColors    = this._circlesColors,
+        circlesTexcoords = this._circlesTexcoords,
+        circlesIndices   = this._circlesIndices;
+
+    var position, radius;
+    var x, y, z;
+
+    var numElements = numCircles * numSegments;
+
+    if(numCircles > this._circlesNumLast || numSegments > this._circlesModelNumSegmentsLast){
+        //reinit buffer
+        var lenCirclesVertices  = numElements * 3,
+            lenCirclesNormals   = numElements * 3,
+            lenCirclesColors    = numElements * 4,
+            lenCirclesTexcoords = numElements * 2;
+
+        circlesVertices  = this._circlesVertices = new Float32Array(lenCirclesVertices);
+        circlesNormals   = this._circlesNormals  = new Float32Array(lenCirclesNormals);
+        circlesColors    = this._circlesColors   = new Float32Array(lenCirclesColors);
+        circlesTexcoords = this._circlesTexcoords = new Float32Array(lenCirclesTexcoords);
+
+        offsetCirclesNormals   = this._circlesBufferOffsetNormals   = offsetCirclesVertices + circlesVertices.byteLength;
+        offsetCirclesColors    = this._circlesBufferOffsetColors    = offsetCirclesNormals + circlesNormals.byteLength;
+        offsetCirclesTexcoords = this._circlesBufferOffsetTexcoords = offsetCirclesColors + circlesColors.byteLength;
+
+        if(!uniformRadius){
+            // circle model: translate by positions and scale by radii
+            i = -1;
+            while(++i < numCircles){
+                j = i * numSegments;
+                k = -1;
+
+                position = positions[i];
+                radius   = radii[i];
+
+                x = position.x;
+                y = position.y;
+                z = position.z;
+
+                while(++k < numSegments){
+                    m = j + k;
+                    n = m * 3;
+                    o = k * 3;
+                    circlesVertices[n  ] = x + vertices[o  ] * radius;
+                    circlesVertices[n+1] = y + vertices[o+1] * radius;
+                    circlesVertices[n+2] = z + vertices[o+2] * radius;
+
+                    circlesNormals[n  ] = normals[o  ];
+                    circlesNormals[n+1] = normals[o+1];
+                    circlesNormals[n+2] = normals[o+2];
+
+                    n = m * 4;
+                    circlesColors[n  ] = colors[o  ];
+                    circlesColors[n+1] = colors[o+1];
+                    circlesColors[n+2] = colors[o+2];
+                    circlesColors[n+3] = colors[o+3];
+
+                    n = m * 2;
+                    circlesTexcoords[n  ] = texcoords[o  ];
+                    circlesTexcoords[n+1] = texcoords[o+1];
+                }
+            }
+        } else {
+            // circle model: translate by positions and scale by uniform radius
+            radius = radii;
+
+            i = -1;
+            while(++i < numCircles){
+                j = i * numSegments;
+                k = -1;
+
+                position = positions[i];
+
+                x = position.x;
+                y = position.y;
+                z = position.z;
+
+                while(++k < numSegments){
+                    m = j + k;
+                    n = m * 3;
+                    o = k * 3;
+                    circlesVertices[n  ] = x + vertices[o  ] * radius;
+                    circlesVertices[n+1] = y + vertices[o+1] * radius;
+                    circlesVertices[n+2] = z + vertices[o+2] * radius;
+
+                    circlesNormals[n  ] = normals[o  ];
+                    circlesNormals[n+1] = normals[o+1];
+                    circlesNormals[n+2] = normals[o+2];
+
+                    n = m * 4;
+                    circlesColors[n  ] = colors[o  ];
+                    circlesColors[n+1] = colors[o+1];
+                    circlesColors[n+2] = colors[o+2];
+                    circlesColors[n+3] = colors[o+3];
+
+                    n = m * 2;
+                    circlesTexcoords[n  ] = texcoords[o  ];
+                    circlesTexcoords[n+1] = texcoords[o+1];
+                }
+            }
+        }
+
+        var lenBuffer = circlesVertices.byteLength + circlesNormals.byteLength + circlesColors.byteLength + circlesTexcoords.byteLength;
+
+        gl.bufferData(gl.ARRAY_BUFFER,lenBuffer, gl.DYNAMIC_DRAW);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offsetCirclesVertices, circlesVertices);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offsetCirclesNormals, circlesNormals);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offsetCirclesColors, circlesColors);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offsetCirclesTexcoords, circlesTexcoords);
+
+        var numIndices = indices.length;
+        circlesIndices = this._circlesIndices = new Uint16Array(numIndices * numCircles);
+
+        // gen indices
+        i = -1;
+        while(++i < numCircles){
+            j = i * numIndices;
+            k = i * numSegments;
+            o = -1;
+            while(++o < numIndices){
+                circlesIndices[j + o] = indices[o] + k;
+            }
+        }
+
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, circlesIndices, gl.DYNAMIC_DRAW);
+
+        this._circlesNumLast = numCircles;
+        color.set(color4f);
+    } else {
+        //reassign buffer
+
+        if(!uniformRadius){
+            i = -1;
+            while(++i < numCircles){
+                j = i * numSegments;
+                k = -1;
+
+                position = positions[i];
+                radius   = radii[i];
+
+                x = position.x;
+                y = position.y;
+                z = position.z;
+
+                while(++k < numSegments){
+                    m = j + k;
+                    n = m * 3;
+                    o = k * 3;
+
+                    circlesVertices[n  ] = x + vertices[o  ] * radius;
+                    circlesVertices[n+1] = y + vertices[o+1] * radius;
+                    circlesVertices[n+2] = z + vertices[o+2] * radius;
+                }
+            }
+        } else {
+            radius = radii;
+
+            i = -1;
+            while(++i < numCircles){
+                j = i * numSegments;
+                k = -1;
+
+                position = positions[i];
+
+                x = position.x;
+                y = position.y;
+                z = position.z;
+
+                while(++k < numSegments){
+                    m = j + k;
+                    n = m * 3;
+                    o = k * 3;
+                    circlesVertices[n  ] = x + vertices[o  ] * radius;
+                    circlesVertices[n+1] = y + vertices[o+1] * radius;
+                    circlesVertices[n+2] = z + vertices[o+2] * radius;
+                }
+            }
+        }
+
+        gl.bufferSubData(gl.ARRAY_BUFFER, offsetCirclesVertices, circlesVertices);
+
+        if(!color.equals(color4f)){
+            i = -1;
+            while(++i < numCircles){
+                j = i * numSegments;
+                k = -1;
+                while(++k < numSegments){
+                    m = j + k;
+                    n = m * 4;
+                    o = k * 4;
+
+                    circlesColors[n  ] = colors[o  ];
+                    circlesColors[n+1] = colors[o+1];
+                    circlesColors[n+2] = colors[o+2];
+                    circlesColors[n+3] = colors[o+3];
+                }
+            }
+            gl.bufferSubData(gl.ARRAY_BUFFER, offsetCirclesColors, circlesColors);
+            color.set(color4f);
+        }
+    }
+
+    gl.vertexAttribPointer(attribLocationVertexPos, 3, gl.FLOAT, false, 0, offsetCirclesVertices);
+
+    if(drawMode == gl.TRIANGLE_FAN){
+        if(attribLocationVertexNormal != -1){
+            gl.vertexAttribPointer(attribLocationVertexNormal, 3, gl.FLOAT, false, 0, offsetCirclesNormals);
+        }
+        if(attribLocationTexcoord != -1){
+            gl.vertexAttribPointer(attribLocationTexcoord, 2, gl.FLOAT, false, 0, offsetCirclesTexcoords);
+        }
+    }
+
+    /*
+    if(drawMode == gl.LINE_LOOP){
+        if(attribLocationVertexNormal != -1){
+            gl.disableVertexAttribArray(attribLocationVertexNormal);
+        }
+        if(attribLocationTexcoord != -1){
+            gl.disableVertexAttribArray(attribLocationTexcoord);
+        }
+    }*/
+
+    if(attribLocationVertexColor != -1){
+        gl.vertexAttribPointer(attribLocationVertexColor, 4, gl.FLOAT, false, 0, offsetCirclesColors);
+    }
+
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+
+    gl.drawElements(gl.TRIANGLES,indices.length * numCircles,gl.UNSIGNED_SHORT,0);
+
+    if(drawMode == gl.LINE_LOOP){
+        if(attribLocationVertexNormal != -1){
+            gl.enableVertexAttribArray(attribLocationVertexNormal);
+        }
+        if(attribLocationTexcoord != -1){
+            gl.enableVertexAttribArray(attribLocationTexcoord);
+        }
+    }
+
+    if(prevVbo != vbo){
+        gl.bindBuffer(gl.ARRAY_BUFFER, prevVbo);
+    }
+
+    if(prevIbo != ibo){
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, prevIbo);
+    }
+
+}
+
+/**
+ * Draw a set of circles.
+ * @param {Vec3[]} positions
+ * @param {Number[]|Number} radii
+ */
+
+glDraw_Internal.prototype.drawCircles = function(positions, radii){
+    this._drawCircles_Internal(positions,radii,this._gl.TRIANGLE_FAN);
+}
+
+/**
+ * Draw a set of stroked circles.
+ * @param {Vec3[]} positions
+ * @param |Number[]|Number} radii
+ */
+
+/*
+glDraw_Internal.prototype.drawCirclesStroked = function(positions,radii){
+}
+*/
+
+/**
+ * Set the number of segments used for drawing a circle and circles in a circle set.
+ * @param {Number} numSegments - The number of segments
+ */
+
 glDraw_Internal.prototype.setCircleSegments = function(numSegments){
-    this._circleNumSegments = numSegments;
+    this._circleNumSegments = this._circlesModelNumSegments = numSegments;
 }
 
 
@@ -1420,17 +1961,37 @@ glDraw_Internal.prototype._drawCube_Internal = function(size,drawMode){
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,prevEBuffer);
 };
 
+/**
+ * Draw a solid cube.
+ * @param {Number} [size=1.0] - The cube´s size
+ */
+
 glDraw_Internal.prototype.drawCube = function(size){
     this._drawCube_Internal(size, DrawMode.TRIANGLES);
 };
+
+/**
+ * Draw the points of a cube.
+ * @param {Number} [size=1.0] - The cube´s size
+ */
 
 glDraw_Internal.prototype.drawCubePoints = function(size){
     this._drawCube_Internal(size, DrawMode.POINTS);
 };
 
+/**
+ * Draw a stroked cube.
+ * @param {Number} [size=1.0] - The cube´s size
+ */
+
 glDraw_Internal.prototype.drawCubeStroked = function(size){
     this._drawCube_Internal(size, DrawMode.LINES);
 };
+
+/**
+ * Draw a colored cube.
+ * @param {Number} [size=1.0] - The cube´s size
+ */
 
 glDraw_Internal.prototype.drawCubeColored = function(size){
     this._drawCube_Internal(size, DrawMode.COLORED);
@@ -1501,6 +2062,11 @@ glDraw_Internal.prototype._updateGridGeom = function(subdivs){
     this._gridIboLength = indices.length;
 };
 
+/**
+ * Draw a grid on the xz-plane.
+ * @param {Number} [size=1.0] - The grids´s size
+ * @param {Number} [subdivs=1] - The number of subdivisions
+ */
 
 glDraw_Internal.prototype.drawGrid = function(size, subdivs){
     size    = ObjectUtil.isUndefined(size)    ? 1.0 : (size < 0) ? 0.0 : size;
@@ -1655,6 +2221,12 @@ glDraw_Internal.prototype._updatePivotGeom = function(axisLength, headLength, he
     this._pivotHeadRadius = headRadius;
 };
 
+/**
+ * Draw a pivot.
+ * @param {Number} [axisLength=1.0] - The length of the xyz-axes
+ * @param {Number} [headLength=0.125] - The length of the xyz-axes head
+ * @param {Number} [headRadius=0.075] - The radius of the xyz-axes head
+ */
 
 glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadius){
     axisLength = ObjectUtil.isUndefined(axisLength) ? 1.0   : axisLength;
@@ -1717,6 +2289,12 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
 /*--------------------------------------------------------------------------------------------*/
 //  Mesh
 /*--------------------------------------------------------------------------------------------*/
+
+/**
+ *
+ * @param mesh
+ * @param length
+ */
 
 glDraw_Internal.prototype.drawMesh = function(mesh, length){
     var gl = this._gl;
@@ -1889,20 +2467,41 @@ glDraw_Internal.prototype._updateProgramLocations = function(){
     this._program = program;
 };
 
+/**
+ * Set the color used by all glDraw draw methods.
+ * @param {Number} r - r
+ * @param {Number} [g=0.0] - g
+ * @param {Number} [b=0.0] - b
+ * @param {Number} [a=1.0] - a
+ */
 
 glDraw_Internal.prototype.colorf = function(r,g,b,a){
     this._color.setf(r, g || 0, b || 0, ObjectUtil.isUndefined(a) ? 1.0 : a);
 };
 
+/**
+ * Set the color used by all glDraw draw methods.
+ * @param {Color} color - color
+ */
+
 glDraw_Internal.prototype.color = function(color){
     this._color.set(color);
 };
+
+/**
+ * Set the color´s alpha used by all glDraw draw methods.
+ * @param alpha - alpha
+ */
 
 glDraw_Internal.prototype.alpha = function(alpha){
     this._color.a = alpha;
 };
 
-
+/**
+ * Get the current color used by all glDraw draw methods.
+ * @param {Color} [color] - Color to be set
+ * @returns {Color}
+ */
 
 glDraw_Internal.prototype.getColor = function(color){
     return (color || new Color()).set(this._color);
@@ -1930,15 +2529,22 @@ glDraw_Internal.prototype.getColor = function(color){
  glDraw.draw = function(obj){};
 
 */
-var glDraw = {
-    _obj : null,
 
-    init : function(){
-        this._obj = new glDraw_Internal();
-    },
-    get : function(){
-        return this._obj;
-    }
+var glDraw = {
+    _obj: null
+};
+
+glDraw.init = function(){
+    this._obj = new glDraw_Internal();
+};
+
+/**
+ * Get an instance of glDraw.
+ * @returns {glDraw}
+ */
+
+glDraw.get = function(){
+    return this._obj;
 };
 
 module.exports = glDraw;
