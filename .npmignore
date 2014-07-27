@@ -1,0 +1,10 @@
+.git*
+.temp/
+.templates/
+.tests
+build
+docs
+examples
+scripts
+tests
+.DS_Store

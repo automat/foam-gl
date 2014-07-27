@@ -1,0 +1,9 @@
+{
+    "name": "foam",
+    "version": "0.0.1",
+    "description": "A WebGL toolkit",
+    "author": "Henryk Wollik",
+    "main" : "src/foam/Foam.js",
+    "repository" : "automat/Foam",
+    "license": "MIT"
+}
