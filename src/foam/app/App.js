@@ -198,13 +198,13 @@ function App(canvas) {
         keyboard._ctrlKey = e.ctrlKey;
         keyboard._shiftKey = e.shiftKey;
 
-        keyboard.__keyCodePrev = keyboard.__keyCode;
-        keyboard.__keyCode = e.keyCode;
+        keyboard._keyCodePrev = keyboard._keyCode;
+        keyboard._keyCode = e.keyCode;
 
-        keyboard.__timestampLast = keyboard.__timestamp;
-        keyboard.__timestamp = e.timeStamp;
+        keyboard._timestampLast = keyboard._timestamp;
+        keyboard._timestamp = e.timeStamp;
 
-        if(keyboard.__timestamp - keyboard.__timestampLast < KEY_PRESS_THRESHOLD) {
+        if(keyboard._timestamp - keyboard._timestampLast < KEY_PRESS_THRESHOLD) {
             if(keyboard.hasEventListener(KeyEvent.KEY_PRESS)) {
                 keyboard.dispatchEvent(new Event(keyboard, KeyEvent.KEY_PRESS));
             }
