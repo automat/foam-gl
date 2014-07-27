@@ -1,4 +1,10 @@
 var Random = {
+    /**
+     * Generate a random float.
+     * @param {Number} [min=0] - min
+     * @param {Number} [max=1] - max
+     * @returns {Number}
+     */
     randomFloat: function () {
         var r;
 
@@ -16,6 +22,13 @@ var Random = {
 
         return r;
     },
+
+    /**
+     * Generate a random Integer
+     * @param {Number} [min=0] - min
+     * @param {Number} [max=1] - max
+     * @returns {Number}
+     */
 
     randomInteger: function () {
         var r;
