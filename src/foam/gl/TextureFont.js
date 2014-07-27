@@ -73,6 +73,12 @@ function FontMetrics(){
     this.minLeftSideBearing = this.minRightSideBearing = 0;
 }
 
+/**
+ * A glyphmap representation of a font.
+ * @param {ArrayBuffer} arraybuffer - The font data
+ * @constructor
+ */
+
 function TextureFont(arraybuffer){
     this._glyphs = {};
     this._glyphMetrics = {};
@@ -141,14 +147,29 @@ function TextureFont(arraybuffer){
     this._uniformLocationTexture = null;
 }
 
+/**
+ * Set the renderable characters.
+ * @param {String} chars - The characters
+ */
+
 TextureFont.prototype.setCharsSupported = function(chars){
     this._charsSupported = removeDuplicates(chars);
     this._genMapGlyph();
 };
 
+/**
+ * Return the currently renderable characters.
+ * @returns {String}
+ */
+
 TextureFont.prototype.getCharsSupported = function(){
     return this._charsSupported;
 };
+
+/**
+ * Return the default renderable chracters.
+ * @returns {String}
+ */
 
 TextureFont.getSupportedCharsDefault = function(){
     return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.?!,;:'\"()&*=+-/\\@#_[]<>% ";
@@ -170,18 +191,38 @@ TextureFont.prototype._setFontSize_Internal = function(fontSize){
     this._fontSize = fontSize;
 };
 
+/**
+ * Set the fontsize.
+ * @param {Number} fontSize - The size
+ */
+
 TextureFont.prototype.setFontSize = function(fontSize){
     this._setFontSize_Internal(fontSize);
     this._genMapGlyph();
 };
 
+/**
+ * Return the current fontsize;
+ * @returns {Number}
+ */
+
 TextureFont.prototype.getFontSize = function(){
     return this._fontSize;
 };
 
+/**
+ * Set the line height.
+ * @param {Number} lineHeight - The height
+ */
+
 TextureFont.prototype.setLineHeight = function(lineHeight){
     this._lineHeight = lineHeight;
 }
+
+/**
+ * Return the current line height.
+ * @returns {Number}
+ */
 
 TextureFont.prototype.getLineHeight = function(){
     return this._lineHeight;
@@ -778,6 +819,11 @@ TextureFont.prototype._getTextWidth = function(str){
     return width;
 }
 
+/**
+ * Draw a string on the xy-plane.
+ * @param {String} str - The string
+ * @param {Color} [color=Color.white()] - The color send to the shader.
+ */
 TextureFont.prototype.drawText = function(str,color){
     str = removeLineBreaks(str);
     var strLen = str.length;
@@ -786,6 +832,13 @@ TextureFont.prototype.drawText = function(str,color){
     }
     this._drawText(str,color);
 };
+
+/**
+ * Draw a size constrained string on the xy-plane.
+ * @param {String} str - The string
+ * @param {Vec2} size - The size of the bounding box
+ * @param {Color} [color=Color.white()]  - The color send to the shader
+ */
 
 TextureFont.prototype.drawTextBox = function(str,size,color){
     var str_ = removeLineBreaks(str);
@@ -837,6 +890,13 @@ TextureFont.prototype.drawTextBox = function(str,size,color){
     glTrans.popMatrix();
 }
 
+/**
+ * Return the bounding box of a string
+ * @param {String} str - The string
+ * @param {Rect} rect - Out rect
+ * @returns {Rect}
+ */
+
 TextureFont.prototype.getTextBounds = function(str,rect){
     str = removeLineBreaks(str);
     var strLen = str.length;
@@ -857,6 +917,12 @@ TextureFont.prototype.getTextBounds = function(str,rect){
     return rect.setSize(size);
 }
 
+/**
+ * Return the width of a string.
+ * @param {String} str - The string
+ * @returns {Number}
+ */
+
 TextureFont.prototype.getTextWidth = function(str){
     str = removeLineBreaks(str);
     var strLen = str.length;
@@ -866,17 +932,31 @@ TextureFont.prototype.getTextWidth = function(str){
     return this._getTextWidth(str);
 }
 
+/**
+ * Delete the glyphmap texture.
+ */
+
 TextureFont.prototype.deleteGlTexture = function(){
     this._gl.deleteTexture(this._texture);
 }
+
+/**
+ * Return the glyphmap texture.
+ * @returns {WebGLTexture}
+ */
 
 TextureFont.prototype.getGlyphTableGLTexture = function(){
     return this._texture;
 }
 
+/**
+ * Return the current glyphmap texture size.
+ * @param {Vec2} [v] - Out size
+ * @returns {Vec2}
+ */
+
 TextureFont.prototype.getGlyphTableGLTextureSize = function(v){
     return this._textureSize.copy(v);
 }
-
 
 module.exports = TextureFont;
