@@ -12,6 +12,11 @@ function File(path) {
 
 File.prototype = Object.create(EventDispatcher.prototype);
 
+/**
+ * A basic filewatcher.
+ * @constructor
+ */
+
 function FileWatcher() {
     this._files = [];
     this._timer = null;
@@ -65,6 +70,15 @@ FileWatcher.prototype._watch = function(){
     }
     this._timer = setTimeout(this._watch.bind(this),this._delay);
 }
+
+/**
+ * Add a file to watch.
+ * @param {String} path - The filepath
+ * @param {Function} callbackModfied - Callback if watched file is modified
+ * @param {Function} [callbackAdded] - Callback
+ * @param {Function} [callbackRemoved] - Callback if watched file has been removed
+ * @param {Function} [callbackNotValid] - Callback if path isnt valid
+ */
 
 FileWatcher.prototype.addFile = function(path,callbackModfied,
                                               callbackAdded,
@@ -133,6 +147,11 @@ FileWatcher.prototype.addFile = function(path,callbackModfied,
     }
 };
 
+/**
+ * Remove a file from the watcher.
+ * @param {String} path - The file path
+ */
+
 FileWatcher.prototype.removeFile = function(path){
     if(!this.hasFile(path)){
         console.log('File not added to watcher. File: ' + path);
@@ -148,6 +167,12 @@ FileWatcher.prototype.removeFile = function(path){
     }
 }
 
+/**
+ * Return if the watcher is currentky watching this file.
+ * @param {String} path = The file path
+ * @returns {Boolean}
+ */
+
 FileWatcher.prototype.hasFile = function(path){
     var files = this._files;
     var i = -1, l = files.length;
@@ -159,12 +184,20 @@ FileWatcher.prototype.hasFile = function(path){
     return false;
 }
 
+/**
+ * Restart the watcher if stopped.
+ */
+
 FileWatcher.prototype.restart = function(){
     if(this._files.length == 0){
         return;
     }
     this._watch();
 }
+
+/**
+ * Stop the watcher.
+ */
 
 FileWatcher.prototype.stop = function(){
     clearTimeout(this._timer);

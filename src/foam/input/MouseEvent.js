@@ -1,3 +1,7 @@
+/**
+ * Basic mouse events
+ * @type {{MOUSE_DOWN: string, MOUSE_PRESSED: string, MOUSE_UP: string, MOUSE_MOVE: string, MOUSE_STOP: string, MOUSE_DRAG: string, MOUSE_OUT: string, MOUSE_ENTER: string, MOUSE_LEAVE: string, MOUSE_WHEEL: string}}
+ */
 var MouseEvent = {
     MOUSE_DOWN : 'mousedown',
     MOUSE_PRESSED : 'mousepressed',
