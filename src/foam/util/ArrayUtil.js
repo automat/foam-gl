@@ -1,6 +1,17 @@
 var ObjectUtil = require('./ObjectUtil');
 
 var ArrayUtil = {
+    /**
+     * Creates an array of elements of a certain length,
+     * if only length is passed an array of undefined is created.
+     *
+     * var array = createArray(10,0,1,2,3);
+     * [0,1,2,3,0,1,2,3,0,1,2,3,...]
+     *
+     * @param {Number} length - The length
+     * @param {...} objs
+     * @returns {Array}
+     */
     createArray: function (length) {
         var args = Array.prototype.slice.call(arguments, 1);
 
@@ -18,6 +29,13 @@ var ArrayUtil = {
         return arr;
     },
 
+    /**
+     * Creates an array with obj instances of a certain length.
+     * @param {Number} length - The length
+     * @param {Class} classObj - The class
+     * @returns {Array}
+     */
+
     createObjArray : function(length,classObj){
         var arr = new Array(length);
         var i = -1;while(++i < length){
@@ -25,6 +43,14 @@ var ArrayUtil = {
         }
         return arr;
     },
+
+    /**
+     * Creates an array of obj instances of a certain length.
+     * Instances are created via factory method.
+     * @param {Number} length - The length
+     * @param {Function} factMethod - The factory method
+     * @returns {Array}
+     */
 
     createFactObjArray : function(length,factMethod){
         var arr = new Array(length);
@@ -34,15 +60,29 @@ var ArrayUtil = {
         return arr;
     },
 
+    /**
+     * Appends an array to another array.
+     * @param {Array} a - The array
+     * @param {Array} b - The array to be appended
+     * @returns {*}
+     */
+
     appendArray: function (a, b) {
         a.push.apply(a, b);
         return a;
     },
 
+    /**
+     * Transforms an object to an array.
+     * @param {Object} a - The object
+     * @returns {Array}
+     */
+
     toArray: function (a) {
         return Array.prototype.slice.call(a);
     },
 
+    /*
     setArrayObj : function (arr, index) {
         var args = Array.prototype.slice.call(arguments, 2);
         var argsLen = args.length;
@@ -116,8 +156,14 @@ var ArrayUtil = {
             i += 4;
         }
     },
+    */
 
-    //check for content not object equality, object is number
+    /**
+     * Returns true if the content of two arrays are equal.
+     * @param {Array} a - One array
+     * @param {Array} b - Another array
+     * @returns {Boolean}
+     */
     equalContent: function (a, b) {
         if (!a || !b || (!a && !b)) {
             return false;
@@ -132,13 +178,18 @@ var ArrayUtil = {
         return true;
     },
 
-    toFloat32Array : function(points){
-        var array = new Float32Array(points.length * 3);
-        var i = -1, l = points.length;
+    /**
+     * Transforms an array of vec3s to a flat Float32Array.
+     * @param vec3Array
+     * @returns {Float32Array}
+     */
+    toFloat32Array : function(vec3Array){
+        var array = new Float32Array(vec3Array.length * 3);
+        var i = -1, l = vec3Array.length;
         var i3, point;
         while(++i < l){
             i3 = i * 3;
-            point = points[i];
+            point = vec3Array[i];
             array[i3  ] = point.x;
             array[i3+1] = point.y;
             array[i3+2] = point.z;
@@ -146,5 +197,6 @@ var ArrayUtil = {
         return array;
     }
 };
+
 
 module.exports = ArrayUtil;
