@@ -18,6 +18,13 @@ var DEFAULT_FPS = 60.0;
 
 var KEY_PRESS_THRESHOLD = 100;
 
+/**
+ * Base class for all Foam applications.
+ * @param {HTMLCanvasElement} [canvas] - Target canvas
+ * @returns {App}
+ * @constructor
+ */
+
 function App(canvas) {
     if (App.__instance) {
         throw new Error(Error.CLASS_IS_SINGLETON);
@@ -31,39 +38,39 @@ function App(canvas) {
     //
     //  Context & Window
     //
-    this._windowBounds = new Rect();
-    this._windowRatio = 0;
-    this._windowScale = 1.0;
+    this.__windowBounds = new Rect();
+    this.__windowRatio = 0;
+    this.__windowScale = 1.0;
 
     //
     //  input
     //
-    this._keyDown = false;
-    this._keyStr = '';
-    this._keyCode = '';
+    this.__keyDown = false;
+    this.__keyStr = '';
+    this.__keyCode = '';
 
-    this._hideCursor = false;
+    this.__hideCursor = false;
 
-    this._mouseTimer = null;
-    this._mouse = new Mouse();
-    this._mousePosTemp = new Vec2();
-    this._mousePosLastTemp = new Vec2();
-    this._mousePosition = {position:new Vec2(),positionLast:new Vec2()};
+    this.__mouseTimer = null;
+    this.__mouse = new Mouse();
+    this.__mousePosTemp = new Vec2();
+    this.__mousePosLastTemp = new Vec2();
+    this.__mousePosition = {position:new Vec2(),positionLast:new Vec2()};
 
     this._keyboard = new Keyboard();
 
     //
     //  time
     //
-    this._framenum = 0;
-    this._time = 0;
-    this._timeStart = Date.now();
-    this._timeNext = 0;
-    this._targetFPS = -1;
-    this._timeInterval = -1;
-    this._timeDelta = 0;
-    this._timeElapsed = 0;
-    this._loop = true;
+    this.__framenum = 0;
+    this.__time = 0;
+    this.__timeStart = Date.now();
+    this.__timeNext = 0;
+    this.__targetFPS = -1;
+    this.__timeInterval = -1;
+    this.__timeDelta = 0;
+    this.__timeElapsed = 0;
+    this.__loop = true;
 
     this.setFPS(DEFAULT_FPS);
 
@@ -105,7 +112,7 @@ function App(canvas) {
 
     document.body.appendChild(canvas);
 
-    var mouse    = this._mouse,
+    var mouse    = this.__mouse,
         keyboard = this._keyboard;
     var self = this;
 
@@ -131,8 +138,8 @@ function App(canvas) {
         mouse._position.y = e.offsetY;
         mouse._positionLastNormalized.x = mouse._positionNormalized.x;
         mouse._positionLastNormalized.y = mouse._positionNormalized.y;
-        mouse._positionNormalized.x = mouse._position.x / self._windowBounds.getWidth();
-        mouse._positionNormalized.y = mouse._position.y / self._windowBounds.getHeight();
+        mouse._positionNormalized.x = mouse._position.x / self.__windowBounds.getWidth();
+        mouse._positionNormalized.y = mouse._position.y / self.__windowBounds.getHeight();
 
         if(mouse._down){
             if(mouse.hasEventListener(MouseEvent.MOUSE_DRAG)){
@@ -140,8 +147,8 @@ function App(canvas) {
             }
         }
 
-        clearTimeout(self._mouseTimer);
-        self._mouseTimer = setTimeout(onMouseStopped,100);
+        clearTimeout(self.__mouseTimer);
+        self.__mouseTimer = setTimeout(onMouseStopped,100);
 
         if(mouse.hasEventListener(MouseEvent.MOUSE_MOVE)){
             mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_MOVE));
@@ -191,13 +198,13 @@ function App(canvas) {
         keyboard._ctrlKey = e.ctrlKey;
         keyboard._shiftKey = e.shiftKey;
 
-        keyboard._keycodePrev = keyboard._keycode;
-        keyboard._keycode = e.keyCode;
+        keyboard.__keyCodePrev = keyboard.__keyCode;
+        keyboard.__keyCode = e.keyCode;
 
-        keyboard._timestampLast = keyboard._timestamp;
-        keyboard._timestamp = e.timeStamp;
+        keyboard.__timestampLast = keyboard.__timestamp;
+        keyboard.__timestamp = e.timeStamp;
 
-        if(keyboard._timestamp - keyboard._timestampLast < KEY_PRESS_THRESHOLD) {
+        if(keyboard.__timestamp - keyboard.__timestampLast < KEY_PRESS_THRESHOLD) {
             if(keyboard.hasEventListener(KeyEvent.KEY_PRESS)) {
                 keyboard.dispatchEvent(new Event(keyboard, KeyEvent.KEY_PRESS));
             }
@@ -225,27 +232,27 @@ function App(canvas) {
 
     this.setup();
 
-    if(this._loop){
+    if(this.__loop){
         var time, timeDelta;
-        var timeInterval = this._timeInterval;
+        var timeInterval = this.__timeInterval;
         var timeNext;
 
         function update_Internal() {
             requestAnimationFrame(update_Internal, null);
 
-            time = self._time = Date.now();
-            timeDelta = time - self._timeNext;
+            time = self.__time = Date.now();
+            timeDelta = time - self.__timeNext;
 
-            self._timeDelta = Math.min(timeDelta / timeInterval, 1);
+            self.__timeDelta = Math.min(timeDelta / timeInterval, 1);
 
 
             if (timeDelta > timeInterval) {
-                timeNext = self._timeNext = time - (timeDelta % timeInterval);
+                timeNext = self.__timeNext = time - (timeDelta % timeInterval);
 
                 self.update();
 
-                self._timeElapsed = (timeNext - self._timeStart) / 1000.0;
-                self._framenum++;
+                self.__timeElapsed = (timeNext - self.__timeStart) / 1000.0;
+                self.__framenum++;
             }
 
             mouse._downLast = mouse._down;
@@ -258,21 +265,34 @@ function App(canvas) {
     }
 }
 
+/**
+ * Get an instance of the current program.
+ * @returns {App}
+ */
 App.getInstance = function () {
     return App.__instance;
 };
 
-// override
+/**
+ * Setup
+ * @virtual
+ */
 App.prototype.setup = function () {
     throw new Error(Error.APP_NO_SETUP);
 };
 
-// override
+/**
+ * Update
+ * @virtual
+ */
 App.prototype.update = function () {
     throw new Error(Error.APP_NO_UPDATE);
 };
 
-// override
+/**
+ * Callback if webgl is not available.
+ * @virtual
+ */
 App.prototype.onWebGLContextNotAvailable = function(){
     console.log('FOAM: WebGLContext not available.');
 };
@@ -281,9 +301,16 @@ App.prototype.onWebGLContextNotAvailable = function(){
 //  window
 /*--------------------------------------------------------------------------------------------*/
 
+/**
+ * Set the window size.
+ * @param {Number} width - The width
+ * @param {Number} height - The height
+ * @param {Number} [scale] - The ratio of pixels per window pixel (default: 1:1)
+ */
+
 App.prototype.setWindowSize = function (width, height, scale) {
-    var windowScale  = this._windowScale = scale || this._windowScale,
-        windowBounds = this._windowBounds;
+    var windowScale  = this.__windowScale = scale || this.__windowScale,
+        windowBounds = this.__windowBounds;
 
     width  *= windowScale;
     height *= windowScale;
@@ -295,14 +322,14 @@ App.prototype.setWindowSize = function (width, height, scale) {
     windowBounds.setWidth(width);
     windowBounds.setHeight(height);
 
-    this._windowRatio = windowBounds.getAspectRatio();
+    this.__windowRatio = windowBounds.getAspectRatio();
     this._updateCanvasSize();
 };
 
 App.prototype._updateCanvasSize = function(){
-    var windowWidth = this._windowBounds.getWidth(),
-        windowHeight = this._windowBounds.getHeight(),
-        windowScale = this._windowScale;
+    var windowWidth = this.__windowBounds.getWidth(),
+        windowHeight = this.__windowBounds.getHeight(),
+        windowScale = this.__windowScale;
 
     var canvas = this._canvas;
         canvas.style.width = windowWidth / windowScale + 'px';
@@ -311,69 +338,144 @@ App.prototype._updateCanvasSize = function(){
         canvas.height = windowHeight;
 };
 
+/**
+ * Return the current window's bounds.
+ * @param {Rect} rect - Out rect
+ * @returns {Rect}
+ */
+
 App.prototype.getWindowBounds = function(rect){
-    return (rect || new Rect()).set(this._windowBounds);
+    return (rect || new Rect()).set(this.__windowBounds);
 }
 
+/**
+ * Return the window´s current size.
+ * @param {Vec2} [v] - Out size
+ * @returns {Vec2}
+ */
+
 App.prototype.getWindowSize = function (v) {
-    return (v || new Vec2()).setf(this._windowBounds.getWidth(),this._windowBounds.getHeight());
+    return (v || new Vec2()).setf(this.__windowBounds.getWidth(),this.__windowBounds.getHeight());
 };
+
+/**
+ * Return the window´s current width.
+ * @returns {Number}
+ */
 
 App.prototype.getWindowWidth = function () {
-    return this._windowBounds.getWidth();
+    return this.__windowBounds.getWidth();
 };
+
+/**
+ * Return the window´s current height.
+ * @returns {Number}
+ */
 
 App.prototype.getWindowHeight = function () {
-    return this._windowBounds.getHeight();
+    return this.__windowBounds.getHeight();
 };
+
+/**
+ * Return the current window aspect ratio.
+ * @returns {number}
+ */
 
 App.prototype.getWindowAspectRatio = function () {
-    return this._windowRatio;
+    return this.__windowRatio;
 };
+
+/**
+ * Return the current window scale.
+ * @returns {number}
+ */
 
 App.prototype.getWindowScale = function(){
-    return this._windowScale;
+    return this.__windowScale;
 };
 
-//override
-App.prototype.onWindowResize = function (e) {};
+/**
+ * Callback on window resize.
+ */
+
+App.prototype.onWindowResize = function () {};
 
 
 /*--------------------------------------------------------------------------------------------*/
 //  framerate / time
 /*--------------------------------------------------------------------------------------------*/
 
+/**
+ * Set the target framerate.
+ * @param {Number} fps - The framerate
+ */
+
 App.prototype.setFPS = function (fps) {
-    this._targetFPS = fps;
-    this._timeInterval = this._targetFPS / 1000.0;
+    this.__targetFPS = fps;
+    this.__timeInterval = this.__targetFPS / 1000.0;
 };
+
+/**
+ * Return the current target framerate
+ * @returns {Number}
+ */
 
 App.prototype.getFPS = function () {
-    return this._targetFPS;
+    return this.__targetFPS;
 };
+
+/**
+ * Return the number of frames elapsed since the program started.
+ * @returns {Number}
+ */
 
 App.prototype.getFramesElapsed = function () {
-    return this._framenum;
+    return this.__framenum;
 };
+
+/**
+ * Return the number of seconds elapsed since the program started.
+ * @returns {Number}
+ */
 
 App.prototype.getSecondsElapsed = function () {
-    return this._timeElapsed;
+    return this.__timeElapsed;
 };
+
+/**
+ * Return the current time.
+ * @returns {Number}
+ */
 
 App.prototype.getTime = function () {
-    return this._time
+    return this.__time
 };
+
+/**
+ * Return the time at program start.
+ * @returns {Number}
+ */
 
 App.prototype.getTimeStart = function () {
-    return this._timeStart;
+    return this.__timeStart;
 };
+
+/**
+ * Return the time the between now and the last update call.
+ * @returns {Number}
+ */
 
 App.prototype.getTimeDelta = function () {
-    return this._timeDelta;
+    return this.__timeDelta;
 };
 
+/**
+ * Set if the program should continously call update.
+ * @param {Boolean} loop
+ */
+
 App.prototype.loop = function(loop){
-    this._loop = loop;
+    this.__loop = loop;
 };
 
 /*--------------------------------------------------------------------------------------------*/
@@ -400,17 +502,40 @@ App._newObj = function(obj,resource){
     return new App_();
 }
 
+/**
+ * Factory method. Inititates a program. Called on window load.
+ * @param {Object} obj - A program object {setup,update}
+ */
+
 App.newOnLoad = function(obj){
     window.addEventListener('load',function(){
         App._newObj(obj);
     });
 }
 
+/**
+ * Factory method. Initiates a program providing loaded resources.
+ * @param {Object|Object[]} resource - The resource / resource-bundle {path, type} to be loaded
+ * @param {Object} obj - A program object {setup,update}
+ * @param {Function} [callbackError] - Callback if an error occured
+ * @param {Function) [callbackProcess] - Callback on load
+ * @param {bool} [strict=true] - Abort if at least one resource could not be loaded
+ */
+
 App.newOnResource = function(resource, obj, callbackError, callbackProcess, strict){
     Resource.load(resource,function(resource){
         App._newObj(obj,resource);
     }, callbackError, callbackProcess, strict);
 }
+
+/**
+ * Factory method. Initiates a program providing loaded resources. Called on window load.
+ * @param {Object|Object[]} resource - The resource / resource-bundle {path, type} to be loaded
+ * @param {Object} obj - A program object {setup,update}
+ * @param {Function} [callbackError] - Callback if an error occured
+ * @param {Function) [callbackProcess] - Callback on load
+ * @param {bool} [strict=true] - Abort if at least one resource could not be loaded
+ */
 
 App.newOnLoadWithResource = function(resource, obj, callbackError, callbackProcess, strict){
     window.addEventListener('load',function(){
@@ -420,8 +545,15 @@ App.newOnLoadWithResource = function(resource, obj, callbackError, callbackProce
     });
 }
 
-App.new = function(obj,resources){
-    return App._newObj(obj,resources);
+
+/**
+ * Factory method. Inititates a program.
+ * @param {Object|Object[]} resource - The resource / resource-bundle {path, type} to be loaded
+ * @param {Object} obj - A program object {setup,update}
+ */
+
+App.new = function(resource, obj){
+    return App._newObj(obj,resource);
 }
 
 module.exports = App;
