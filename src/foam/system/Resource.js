@@ -216,6 +216,16 @@ function Load(resource,index,callbackSuccess,callbackError,strict){
 }
 
 var Resource = {
+
+    /**
+     * Load a resource.
+     * @param {Object|Object[]} resource - The resource / resource-bundle {path, type} to be loaded
+     * @param {Function} callbackSuccess - Callback if succesfully loaded (function(resource))
+     * @param {Function} [callbackError] - Callback if an error occured
+     * @param {Function) [callbackProcess] - Callback on load
+     * @param {bool} [strict=true] - Abort if at least one resource could not be loaded
+     */
+
     load : function(resource, callbackSuccess, callbackError, callbackProcess, strict){
         strict = ObjectUtil.isUndefined(strict) ? true : strict;
         var keys = ObjectUtil.getKeys(resource),
