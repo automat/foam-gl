@@ -1,3 +1,4 @@
+
 var WorkerConsole = {
     ObjectUtil : {
         getFunctionBody : function(func){
@@ -212,6 +213,10 @@ var WorkerConsole = {
 
     __MSG_LOG : 'worker_console_log',
 
+    /**
+     * A console for webworkers
+     */
+
     console : {
         format:function(data,detailed){
             return WorkerConsole.format(data,detailed);
@@ -220,6 +225,11 @@ var WorkerConsole = {
             self.postMessage({msg:WorkerConsole.__MSG_LOG,data:this.format(data,detailed)});
         }
     },
+
+    /**
+     * Setup console listener for worker.
+     * @param {Worker} worker - The worker
+     */
 
     addListener : function(worker){
         worker.addEventListener('message',function(e){
