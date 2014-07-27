@@ -1,37 +1,75 @@
 var ObjectUtil = {
-
+    /**
+     * Returns true if an object is undefined.
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
     isUndefined: function (obj) {
         return typeof obj === 'undefined';
     },
 
-    isFloat32Array: function (arr) {
-        return arr instanceof  Float32Array;
+    /**
+     * Returns true if an object is a Float32Array.
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
+
+    isFloat32Array: function (obj) {
+        return obj instanceof  Float32Array;
     },
+
+    /**
+     * Ensures that an array is of type Float32Array.
+     * @param {Array|Float32Array} arr - The array
+     * @returns {Float32Array}
+     */
 
     safeFloat32Array: function (arr) {
         return arr instanceof Float32Array ? arr : new Float32Array(arr);
     },
 
+    /**
+     * Ensures that an array is of type Uint16Array.
+     * @param arr
+     * @returns {*}
+     */
+
     safeUint16Array: function (arr) {
         return arr instanceof Uint16Array ? arr : new Uint16Array(arr);
     },
+
+    /**
+     * Returns a copy of a Float32Array. (mainly cosmetic)
+     * @param {Float32Array} arr - The array
+     * @returns {Float32Array}
+     */
 
     copyFloat32Array: function (arr) {
         return new Float32Array(arr);
     },
 
-    arrayResized: function (arr, len) {
-        arr.length = len;
-        return arr;
-    },
+    /**
+     * Returns a copy of an array.
+     * @param {Array} arr - The array
+     * @param {Array} [out] - Out array
+     * @returns {Array}
+     */
 
-    copyArray: function (arr) {
-        var i = -1, l = arr.length, out = new Array(l);
+    copyArray: function (arr,out) {
+        var i = -1, l = arr.length;
+        out = out || [];
+        out.length = l;
         while (++i < l) {
             out[i] = arr[i];
         }
         return out;
     },
+
+    /**
+     * Moves the content of one array to another.
+     * @param {Array} a - To array
+     * @param {Array} b - Fform array
+     */
 
     setArray: function (a, b) {
         var i = -1, l = a.length;
@@ -40,54 +78,109 @@ var ObjectUtil = {
         }
     },
 
-    setArrayOffsetIndex: function (arr, offset, len) {
+    /**
+     * Shifts the indices within an index array by a certain offset.
+     * @param {Array} arr - The array
+     * @param {Nummber} offset - The offset to be shifted
+     * @param {Array} [len] - The number of elements to be shifted
+     */
+
+    shiftIndexArray: function (arr, offset, len) {
         var i = -1, l = len || arr.length;
         while (++i < l) {
             arr[i] += offset;
         }
     },
 
-
-    getFunctionBody: function (func) {
-        return (func).toString().match(/function[^{]+\{([\s\S]*)\}$/)[1];
-    },
-
     __toString: function (obj) {
         return Object.prototype.toString.call(obj);
     },
+
+    /**
+     * Returns true if oject is array.
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
 
     isArray: function (obj) {
         return this.__toString(obj) == '[object Array]';
     },
 
+    /**
+     * Returns true if object is object.
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
+
     isObject: function (obj) {
         return obj === Object(obj)
     },
+
+    /**
+     * Returns true if object is function.
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
 
     isFunction: function (obj) {
         return this.__toString(obj) == '[object Function]';
     },
 
+    /**
+     * Returns true if object is string..
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
+
     isString: function (obj) {
         return this.__toString(obj) == '[object String]';
     },
 
+    /**
+     * Returns true if object is Float64Array.
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
 
     isFloat64Array: function (obj) {
         return this.__toString(obj) == '[object Float64Array]'
     },
 
+    /**
+     * Returns true if object is Uint8Array.
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
+
     isUint8Array: function (obj) {
         return this.__toString(obj) == '[object Uint8Array]';
     },
+
+    /**
+     * Returns true if object is Uint16Array.
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
 
     isUint16Array: function (obj) {
         return this.__toString(obj) == '[object Uint16Array]'
     },
 
+    /**
+     * Returns true if object is Uint16Array.
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
+
     isUint32Array: function (obj) {
         return this.__toString(obj) == '[object Uint32Array]'
     },
+
+    /**
+     * Returns true if object is a typed array.
+     * @param {Object} obj - The object
+     * @returns {Boolean}
+     */
 
     isTypedArray: function (obj) {
         return this.isUint8Array(obj) ||
@@ -97,51 +190,11 @@ var ObjectUtil = {
             this.isFloat32Array(obj);
     },
 
-    toString: function (obj) {
-        return this.isFunction(obj) ? this.getFunctionString(obj) :
-            this.isArray(obj) ? this.getArrayString(obj) :
-                this.isString(obj) ? this.getString(obj) :
-                    this.isTypedArray(obj) ? this.getTypedArrayString(obj) :
-                        this.isObject(obj) ? this.getObjectString(obj) :
-                            obj;
-    },
-
-    getTypedArrayString: function (obj) {
-        if (!this.isFloat32Array(obj)) {
-            throw new TypeError('Object must be of type Float32Array');
-        }
-
-        if (obj.byteLength == 0)return '[]';
-        var out = '[';
-
-        for (var p in obj) {
-            out += obj[p] + ',';
-        }
-
-        return out.substr(0, out.lastIndexOf(',')) + ']';
-
-    },
-
-    getString: function (obj) {
-        return '"' + obj + '"';
-    },
-
-    getArrayString: function (obj) {
-        if (!this.isArray(obj)) {
-            throw new TypeError('Object must be of type array.');
-        }
-        var out = '[';
-        if (obj.length == 0) {
-            return out + ']';
-        }
-
-        var i = -1;
-        while (++i < obj.length) {
-            out += this.toString(obj[i]) + ',';
-        }
-
-        return out.substr(0, out.lastIndexOf(',')) + ']';
-    },
+    /**
+     * Returns an object keys.
+     * @param {Object} obj - The object
+     * @returns {Array}
+     */
 
     getKeys : function(obj){
         if(Object.keys){
@@ -156,85 +209,6 @@ var ObjectUtil = {
         return keys;
     },
 
-    getObjectString: function (obj) {
-        if (!this.isObject(obj)) {
-            throw new TypeError('Object must be of type object.')
-        }
-        var out = '{';
-        if (Object.keys(obj).length == 0) {
-            return out + '}';
-        }
-
-        for (var p in obj) {
-            out += p + ':' + this.toString(obj[p]) + ',';
-        }
-
-        return out.substr(0, out.lastIndexOf(',')) + '}';
-    },
-
-    //
-    //  Parses func to string,
-    //  must satisfy (if 'class'):
-    //
-    //  function ClassB(){
-    //      ClassB.apply(this,arguments);ClassB.call...
-    //  }
-    //
-    //  ClassB.prototype = Object.create(ClassA.prototype)
-    //
-    //  ClassB.prototype.method = function(){};
-    //
-    //  ClassB.STATIC = 1;
-    //  ClassB.STATIC_OBJ = {};
-    //  ClassB.STATIC_ARR = [];
-    //
-
-    getFunctionString: function (obj) {
-        if (!this.isFunction(obj)) {
-            throw new TypeError('Object must be of type function.');
-        }
-
-        var out = '';
-
-        var name = obj.name,
-            constructor = obj.toString(),
-            inherited = 1 + constructor.indexOf('.call(this') || 1 + constructor.indexOf('.apply(this');
-
-        out += constructor;
-
-        if (inherited) {
-            out += '\n\n';
-            inherited -= 2;
-
-            var baseClass = '';
-            var char = '',
-                i = 0;
-            while (char != ' ') {
-                baseClass = char + baseClass;
-                char = constructor.substr(inherited - i, 1);
-                ++i;
-            }
-            out += name + '.prototype = Object.create(' + baseClass + '.prototype);';
-        }
-
-        for (var p in obj) {
-            out += '\n\n' + name + '.' + p + ' = ' + this.toString(obj[p]) + ';';
-        }
-
-        var prototype = obj.prototype;
-        for (var p in prototype) {
-            if (prototype.hasOwnProperty(p)) {
-                out += '\n\n' + name + '.prototype.' + p + ' = ' + this.toString(prototype[p]) + ';';
-
-            }
-        }
-
-        return out;
-    },
-
-    toArray: function (float32Array) {
-        return Array.prototype.slice.call(float32Array);
-    },
 
     setVec3Array : function(float32Array, index, vec3){
         index = index * 3;
