@@ -1,6 +1,7 @@
 var ObjectUtil       = require('../util/ObjectUtil'),
     ArrayUtil        = require('../util/ArrayUtil'),
     ElementArrayUtil = require('../util/ElementArrayUtil'),
+    Vec2     = require('../math/Vec2'),
     Vec3     = require('../math/Vec3'),
     Quat     = require('../math/Quat'),
     Matrix44 = require('../math/Matrix44'),
@@ -16,6 +17,8 @@ var DrawMode = {
     POINTS : 2,
     COLORED : 3
 };
+
+var Vec2One = Vec2.one();
 
 /*--------------------------------------------------------------------------------------------*/
 //  Constructor
@@ -2024,8 +2027,8 @@ glDraw_Internal.prototype._updateGridGeom = function(subdivs){
         while(++j < subdivs1){
             k = (i * subdivs1 + j) * 3;
             vertices[k  ] = -0.5 + step * j;
-            vertices[k+1] = 0;
-            vertices[k+2] = -0.5 + step * i;
+            vertices[k+1] = -0.5 + step * i;
+            vertices[k+2] = 0;
         }
     }
 
@@ -2063,13 +2066,13 @@ glDraw_Internal.prototype._updateGridGeom = function(subdivs){
 };
 
 /**
- * Draw a grid on the xz-plane.
- * @param {Number} [size=1.0] - The grids´s size
+ * Draw a grid on the xy-plane.
+ * @param {Vec2} [size=Vec2.one()] - The grids´s size
  * @param {Number} [subdivs=1] - The number of subdivisions
  */
 
 glDraw_Internal.prototype.drawGrid = function(size, subdivs){
-    size    = ObjectUtil.isUndefined(size)    ? 1.0 : (size < 0) ? 0.0 : size;
+    size    = ObjectUtil.isUndefined(size)    ? Vec2One : (size.x < 0 || size.y < 0) ? Vec2One : size;
     subdivs = ObjectUtil.isUndefined(subdivs) ? 1.0 : (subdivs < 0) ? 0 : subdivs;
 
     var gl = this._gl;
@@ -2092,7 +2095,7 @@ glDraw_Internal.prototype.drawGrid = function(size, subdivs){
     var ibo = this._gridIbo;
 
     glTrans.pushMatrix();
-    glTrans.scale3f(size,1.0,size);
+    glTrans.scale3f(size.x,size.y,1.0);
 
     if(prevVbo != vbo){
         gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
