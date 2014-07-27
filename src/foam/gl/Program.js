@@ -2,30 +2,102 @@ var _gl = require('./gl');
 
 var bound_0 = false;
 
+/**
+ * GLSL shader program wrapper.
+ * @param {String} vertexShader - The vertex shader or mixed vertex/fragment shader string
+ * @param {String} [fragmentShader] - The fragment shader string
+ * @constructor
+ */
+
 function Program(vertexShader, fragmentShader) {
     var gl = this._gl = _gl.get();
     this.load(vertexShader,fragmentShader);
 }
 
-// Default shared shader vars - global, reassignable
+/**
+ * The default shader modelview matrix uniform. (reassignable)
+ * @type {string}
+ * @static
+ */
 
 Program.UNIFORM_MODELVIEW_MATRIX  = 'uModelViewMatrix';
+
+/**
+ * The default shader projection matrix uniform. (reassignable)
+ * @type {string}
+ * @static
+ */
+
 Program.UNIFORM_PROJECTION_MATRIX = 'uProjectionMatrix';
 
-Program.ATTRIB_VERTEX_POSITION = 'aVertexPosition';
-Program.ATTRIB_VERTEX_NORMAL   = 'aVertexNormal';
-Program.ATTRIB_VERTEX_COLOR    = 'aVertexColor';
-Program.ATTRIB_TEXCOORD        = 'aTexcoord';
+/**
+ * The default shader vertex position attribute. (reassignable)
+ * @type {string}
+ * @static
+ */
 
-Program.UNIFORM_COLOR      = 'uColor';
-Program.UNIFORM_TEXTURE    = 'uTexture';
+Program.ATTRIB_VERTEX_POSITION = 'aVertexPosition';
+
+/**
+ * The default shader vertex normal attribute. (reassignable)
+ * @type {string}
+ * @static
+ */
+
+Program.ATTRIB_VERTEX_NORMAL = 'aVertexNormal';
+
+/**
+ * The default shader vertex color attribute. (reassignable)
+ * @type {string}
+ * @static
+ */
+
+Program.ATTRIB_VERTEX_COLOR = 'aVertexColor';
+
+/**
+ * The default shader texcoord attribute. (reassignable)
+ * @type {string}
+ */
+
+Program.ATTRIB_TEXCOORD = 'aTexcoord';
+
+/**
+ * The default shader color uniform. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_COLOR = 'uColor';
+
+/**
+ * The default shader sampler2d uniform. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_TEXTURE = 'uTexture';
+
+/**
+ * The default shader point size uniform. (reassignable)
+ * @type {string}
+ */
+
 Program.UNIFORM_POINT_SIZE = 'uPointSize';
 
 Program._currentProgram = null;
 
+/**
+ * Return the currently bound program.
+ * @returns {null|Progam}
+ */
+
 Program.getCurrentProgram = function(){
     return Program._currentProgram;
 };
+
+/**
+ * Reload the program
+ * @param {String} vertexShader - The vertex shader or mixed vertex/fragment shader string
+ * @param {String} [fragmentShader] - The fragment shader string
+ */
 
 Program.prototype.load = function(vertexShader,fragmentShader){
     if(!vertexShader){
@@ -90,6 +162,10 @@ Program.prototype.load = function(vertexShader,fragmentShader){
     }
 }
 
+/**
+ * Delete the program.
+ */
+
 Program.prototype.delete = function(){
     if(!this._program){
         return;
@@ -98,13 +174,27 @@ Program.prototype.delete = function(){
     this._program = null;
 };
 
+/**
+ * Get the number of active uniforms
+ * @returns {Number}
+ */
+
 Program.prototype.getNumUniforms = function () {
     return this._numUniforms;
 };
 
+/**
+ * Get the number of active attributes.
+ * @returns {Number}
+ */
+
 Program.prototype.getNumAttributes = function () {
     return this._numAttributes;
 };
+
+/**
+ * Activate the program.
+ */
 
 Program.prototype.bind = function () {
     var gl = this._gl;
@@ -117,6 +207,10 @@ Program.prototype.bind = function () {
     }
     Program._currentProgram = this;
 };
+
+/**
+ * Deactivate the program.
+ */
 
 Program.prototype.unbind = function () {
     var gl = this._gl;
