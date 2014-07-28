@@ -667,7 +667,7 @@ glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1, headLength, 
 
 /**
  * Draw a set of points.
- * @param {Vec3[]|..Vec3} points - The line´s points
+ * @param {Vec3[]} points - The line´s points or args
  */
 
 glDraw_Internal.prototype.drawPoints = function(points){
@@ -787,7 +787,7 @@ glDraw_Internal.prototype.drawPointsf = function(points){
 
 /**
  * Draw a continous line through a set of points.
- * @param {Vec3[]|..Vec3} points - The line´s points
+ * @param {Vec3[]} points - The line´s points or args
  */
 
 glDraw_Internal.prototype.drawLines = function(){

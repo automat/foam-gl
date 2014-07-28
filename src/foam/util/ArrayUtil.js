@@ -9,7 +9,7 @@ var ArrayUtil = {
      * [0,1,2,3,0,1,2,3,0,1,2,3,...]
      *
      * @param {Number} length - The length
-     * @param {...} objs
+     * @param ... objs
      * @returns {Array}
      */
     createArray: function (length) {
