@@ -2,11 +2,38 @@ var Vec3            = require('../math/Vec3'),
     glTrans         = require('../gl/glTrans'),
     glDraw, _glDraw = require('../gl/glDraw');
 
+/**
+ * Representation of an axis aligned bounding box,
+ * @constructor
+ */
+
 function AABB() {
+    /**
+     * The minimal point.
+     * @type {Vec3}
+     */
     var min  = this.min = Vec3.max(),
+    /**
+     * The maximal point
+     * @type {Vec3}
+    */
         max  = this.max = Vec3.min();
+
+    /**
+     * The center of the box.
+     * @type {Vec3}
+     */
     this.center = new Vec3();
+    /**
+     * The size of the box. (max - min)
+     * @type {Vec3}
+     */
     this.size = new Vec3();
+
+    /**
+     * The 8 defining points of the box.
+     * @type {Array}
+     */
     this.points = new Array(8);
 
     switch (arguments.length){
@@ -36,6 +63,11 @@ function AABB() {
 
     glDraw = glDraw || _glDraw.get();
 }
+/**
+ * Sets box from another box
+ * @param {AABB} aabb - Another box
+ * @returns {AABB}
+ */
 
 AABB.prototype.set = function(aabb){
     this.min.set(aabb.min);
@@ -43,6 +75,12 @@ AABB.prototype.set = function(aabb){
     this.size.set(aabb.size);
     return this;
 };
+
+/**
+ * Adjusts the box size to include anoterh box.
+ * @param {AABB} aabb - Another box
+ * @returns {AABB}
+ */
 
 AABB.prototype.include = function(aabb){
     var min = this.min,
@@ -102,6 +140,12 @@ AABB.prototype._update = function(){
     center.z = min.z + sizeZ * 0.5;
 };
 
+/**
+ * Returns an axis aligned bounding box from a set of points.
+ * @param {Vec3[]} points - N points
+ * @returns {AABB}
+ */
+
 AABB.prototype.setFromPoints = function(points){
     var min = this.min.toMax(),
         max = this.max.toMin();
@@ -126,6 +170,12 @@ AABB.prototype.setFromPoints = function(points){
     this._update();
     return this;
 };
+
+/**
+ * Returns an axis aligned bounding box from a set of points.
+ * @param {Number[]} points - N points
+ * @returns {AABB}
+ */
 
 AABB.prototype.setFromPointsf = function(points){
     var min = this.min.toMax(),
@@ -153,6 +203,7 @@ AABB.prototype.setFromPointsf = function(points){
 };
 
 //http://cgvr.cs.uni-bremen.de/teaching/cg2_08/folien/05_culling_1up_2.pdf
+// http://jesper.kalliope.org/blog/library/vfcullbox.pdf
 AABB.prototype.getNPoint = function(normal,point){
     point = point || new Vec3();
     var min = this.min,
