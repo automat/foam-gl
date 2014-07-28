@@ -2,9 +2,9 @@ var Vec2 = require('./Vec2');
 
 /**
  * 3d Vector
- * @param x
- * @param y
- * @param z
+ * @param {Number} x - x component
+ * @param {Number} y - y component
+ * @param {Number} z - z component
  * @constructor
  */
 
