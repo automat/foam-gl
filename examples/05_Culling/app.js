@@ -1,4 +1,4 @@
-var Foam         = require('../../src/foam/Foam.js'),
+var Foam         = require('Foam'),
     glTrans      = Foam.glTrans,
     glDraw       = Foam.glDraw,
     System       = Foam.System,
@@ -27,7 +27,7 @@ Cluster.prototype.updateAABB = function(){
 
 Foam.App.newOnLoadWithResource(
     {
-        path :  '../.tests/Culling/program.glsl'
+        path :  '../.tests/Culling/program.glsl' // bundle.js relative
     },
     {
         setup : function (resource) {

@@ -1,6 +1,4 @@
-var resources  = require('./resources');
-
-var Foam        = require('../../src/foam/Foam.js'),
+var Foam        = require('Foam'),
     glTrans     = Foam.glTrans,
     glDraw      = Foam.glDraw,
     System      = Foam.System,
@@ -10,8 +8,23 @@ var Foam        = require('../../src/foam/Foam.js'),
     Texture     = Foam.Texture,
     Ease        = Foam.Ease;
 
-var app = {}, gl;
+var resources = { // bundle.js relative
+    shader: {
+        path: '../examples/02_Texture/program.glsl'
+    },
 
+    image0: {
+        path: '../examples/02_Texture/texture.jpg',
+        type: 'image'
+    },
+
+    image1: {
+        path: '../examples/02_Texture/texture.png',
+        type: 'image'
+    }
+};
+
+var app = {}, gl;
 
 app.setup = function(resources){
     this.setFPS(60);

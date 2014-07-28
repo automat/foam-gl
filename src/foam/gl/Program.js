@@ -4,7 +4,7 @@ var bound_0 = false;
 
 /**
  * GLSL shader program wrapper.
- * @param {String} vertexShader - The vertex shader or mixed vertex/fragment shader string
+ * @param {String} [vertexShader] - The vertex shader or mixed vertex/fragment shader string
  * @param {String} [fragmentShader] - The fragment shader string
  * @constructor
  */

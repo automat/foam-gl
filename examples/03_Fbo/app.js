@@ -1,4 +1,4 @@
-var Foam        = require('../../src/foam/Foam.js'),
+var Foam        = require('Foam'),
     glTrans     = Foam.glTrans,
     glDraw      = Foam.glDraw,
     System      = Foam.System,
@@ -12,7 +12,7 @@ var gl;
 var resource = {}, app = {};
 
 resource.shader = {
-    path : '../examples/03_Fbo/program.glsl'
+    path : '../examples/03_Fbo/program.glsl' // bundle.js relative
 };
 
 app.setup = function(resource){

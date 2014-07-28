@@ -129,7 +129,7 @@ Fbo.prototype.getHeight = function(){
  */
 
 Fbo.prototype.getSize = function(v){
-    return (v || new Vec2()).set(this._width,this._height);
+    return (v || new Vec2()).setf(this._width,this._height);
 };
 
 /**

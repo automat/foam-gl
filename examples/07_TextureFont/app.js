@@ -1,4 +1,4 @@
-var Foam        = require('../../src/foam/Foam.js'),
+var Foam        = require('Foam'),
     glTrans     = Foam.glTrans,
     glDraw      = Foam.glDraw,
     System      = Foam.System,
@@ -10,7 +10,7 @@ var Foam        = require('../../src/foam/Foam.js'),
     Rect        = Foam.Rect;
 
 var gl;
-var dir = '../examples/07_TextureFont/',
+var dir = '../examples/07_TextureFont/', // bundle.js relative
     resources = {},
     app = {};
 
