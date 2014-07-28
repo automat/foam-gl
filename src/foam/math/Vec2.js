@@ -1,7 +1,29 @@
+/**
+ * 2d Vector
+ * @param {Number} x - x component
+ * @param {Number} y - y component
+ * @constructor
+ */
+
 function Vec2(x,y){
+    /**
+     * x component
+     * @type {Number}
+     */
     this.x = x || 0;
+    /**
+     * y component
+     * @type {Number}
+     */
     this.y = y || 0;
 }
+
+/**
+ * Sets the vector from another vector.
+ * @param {Vec2} v
+ * @returns {Vec2}
+ */
+
 
 Vec2.prototype.set = function(v){
     this.x = v.x;
@@ -9,15 +31,34 @@ Vec2.prototype.set = function(v){
     return this;
 };
 
+/**
+ * Sets the vector from xy components.
+ * @param x
+ * @param y
+ * @returns {Vec2}
+ */
+
 Vec2.prototype.setf = function(x,y){
     this.x = x;
     this.y = y;
     return this;
 };
 
+/**
+ * Return a copy of the vector.
+ * @param {Vec2} [v] - Out vector
+ * @returns {Vec2}
+ */
+
 Vec2.prototype.copy = function(v){
     return (v || new Vec2()).setf(this.x,this.y);
 };
+
+/**
+ * Adds a vector.
+ * @param {Vec2} v - Another vector
+ * @returns {Vec2}
+ */
 
 Vec2.prototype.add = function(v){
     this.x += v.x;
@@ -25,11 +66,25 @@ Vec2.prototype.add = function(v){
     return this;
 };
 
+/**
+ * Adds xyz components.
+ * @param {Number} x - x component
+ * @param {Number} y - y component
+ * @returns {Vec2}
+ */
+
 Vec2.prototype.addf = function(x,y){
     this.x += x;
     this.y += y;
     return this;
 };
+
+/**
+ * Substracts a vector.
+ * @param {Number} x - x component
+ * @param {Number} y - y component
+ * @returns {Vec2}
+ */
 
 Vec2.prototype.sub = function(v){
     this.x -= v.x;
@@ -37,11 +92,26 @@ Vec2.prototype.sub = function(v){
     return this;
 };
 
+/**
+ * Subs xy components
+ * @param {Number} x - x component
+ * @param {Number} y - y component
+ * @returns {Vec2}
+ */
+
+
 Vec2.prototype.subf = function(x,y){
     this.x -= x;
     this.y -= y;
     return this;
 };
+
+
+/**
+ * Scales the vector.
+ * @param {Number} n - The scalar
+ * @returns {Vec2}
+ */
 
 Vec2.prototype.scale = function(n){
     this.x *= n;
