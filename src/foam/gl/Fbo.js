@@ -1,7 +1,16 @@
 var _gl = require('./gl'),
     _Math = require('../math/Math'),
+    Vec2 = require('../math/Vec2'),
     ObjectUtil = require('../util/ObjectUtil'),
     Texture = require('./Texture');
+
+/**
+ * Framebuffer object for offscreen rendering.
+ * @param {Number} width - The width
+ * @param |Number} height - The height
+ * @param {Fbo.Format} [format] - The format
+ * @constructor
+ */
 
 function Fbo(width,height,format){
     format = format || new Fbo.Format();
@@ -81,31 +90,60 @@ function Fbo(width,height,format){
     gl.bindFramebuffer(gl.FRAMEBUFFER,prevFbo);
 }
 
+/**
+ * Format for fbo.
+ * @constructor
+ */
 
 Fbo.Format = function(){
     Texture.Format.call(this);
+
     this.dataFormat = _gl.get().RGBA;
     this.depthBuffer = false;
     this.stencilBuffer = false;
-    this.numColorBuffers = 1;
+    //this.numColorBuffers = 1;
 };
+
+/**
+ * Returns the width of the fbo.
+ * @returns {Number}
+ */
 
 Fbo.prototype.getWidth = function(){
     return this._width;
 };
 
+/**
+ * Returns the height of the fbo.
+ * @returns {Number}
+ */
+
 Fbo.prototype.getHeight = function(){
     return this._height;
 };
 
-Fbo.prototype.getSize = function(){
-    return [this._width,this._height];
+/**
+ * Returns the size of the fbo.
+ * @param {Vec2} [v] - Out size
+ * @returns {Vec2}
+ */
+
+Fbo.prototype.getSize = function(v){
+    return (v || new Vec2()).set(this._width,this._height);
 };
+
+/**
+ * Binds the fbo.
+ */
 
 Fbo.prototype.bind = function(){
     var gl = this._gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._frameBuffer);
 };
+
+/**
+ * Unbinds the fbo.
+ */
 
 Fbo.prototype.unbind = function(){
     var gl = this._gl;
@@ -128,6 +166,11 @@ Fbo.prototype.bindTexture = function(attachment, unit){
     gl.bindTexture(gl.TEXTURE_2D, this._colorBuffers[attachment]);
 };*/
 
+/**
+ * Binds the texture rendered to.
+ * @param {Number} [unit] - The texture unit
+ */
+
 Fbo.prototype.bindTexture = function(unit){
     var gl = this._gl;
     if(!ObjectUtil.isUndefined(unit)){
@@ -135,6 +178,11 @@ Fbo.prototype.bindTexture = function(unit){
     }
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
 };
+
+/**
+ * Unbinds the texture rendered to.
+ * @param {Number} [unit] - The texture unit
+ */
 
 Fbo.prototype.unbindTexture = function(unit){
     var gl = this._gl;
@@ -157,6 +205,10 @@ Fbo.prototype.delete = function(){
     gl.deleteFramebuffer(this._frameBuffer);
     gl.deleteRenderbuffer(this._renderBuffer);
 };*/
+
+/**
+ * Deletes the fbo.
+ */
 
 Fbo.prototype.delete = function(){
     var gl = this._gl;
