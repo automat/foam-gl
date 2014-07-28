@@ -1,16 +1,18 @@
-var fError     = require('../system/common/Error'),
-    ObjectUtil = require('../util/ObjectUtil'),
-    Event      = require('../system/Event'),
-    System     = require('../system/System'),
-    Resource   = require('../system/Resource'),
-    Vec2       = require('../math/Vec2'),
-    Rect       = require('../geom/Rect'),
-    Mouse      = require('../input/Mouse'),
-    MouseEvent = require('../input/MouseEvent'),
-    Keyboard   = require('../input/Keyboard'),
-    KeyEvent   = require('../input/KeyEvent'),
-    gl         = require('../gl/gl'),
-    glDraw     = require('../gl/glDraw');
+var fError       = require('../system/common/Error'),
+    ObjectUtil   = require('../util/ObjectUtil'),
+    Event        = require('../system/Event'),
+    System       = require('../system/System'),
+    Resource     = require('../system/Resource'),
+    Vec2         = require('../math/Vec2'),
+    Rect         = require('../geom/Rect'),
+    Mouse        = require('../input/Mouse'),
+    MouseEvent   = require('../input/MouseEvent'),
+    Keyboard     = require('../input/Keyboard'),
+    KeyEvent     = require('../input/KeyEvent'),
+    gl           = require('../gl/gl'),
+    glDraw       = require('../gl/glDraw'),
+    glTrans      = require('../gl/glTrans'),
+    glExtensions = require('../gl/glExtensions');
 
 var DEFAULT_WINDOW_WIDTH = 800,
     DEFAULT_WINDOW_HEIGHT = 600;
@@ -84,15 +86,9 @@ function App(canvas) {
     canvas.setAttribute('tabindex','0');
     canvas.focus();
 
-    /**
-     * Reference to WebGLRenderingContext
-     * @type {CanvasRenderingContext2D}
-     * @protected
-     */
-
-    var _gl = this._gl = canvas.getContext('webkit-3d') ||
-                         canvas.getContext("webgl") ||
-                         canvas.getContext("experimental-webgl");
+    var _gl = canvas.getContext('webkit-3d') ||
+              canvas.getContext("webgl") ||
+              canvas.getContext("experimental-webgl");
 
     if(!_gl){
         this.onWebGLContextNotAvailable();
@@ -108,6 +104,32 @@ function App(canvas) {
     _gl.activeTexture(_gl.TEXTURE0);
     gl.set(_gl);
     glDraw.init();
+
+    /**
+     * Reference to WebGLRenderingContext
+     * @type {CanvasRenderingContext2D}
+     * @protected
+     */
+    this._gl = _gl;
+
+    /**
+     * Reference to glDraw.
+     * @type {glDraw}
+     * @protected
+     */
+    this._glDraw = glDraw.get();
+
+    /**
+     * Reference to glTrans
+     * @type {glTrans}
+     * @protected
+     */
+
+    this._glTrans = glTrans;
+
+    for(var ext in glExtensions){
+        glExtensions[ext] = _gl.getExtension(ext);
+    }
 
     window.requestAnimationFrame = window.requestAnimationFrame ||
                                    window.webkitRequestAnimationFrame ||
