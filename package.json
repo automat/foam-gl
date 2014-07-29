@@ -4,6 +4,7 @@
     "description": "A WebGL toolkit",
     "author": "Henryk Wollik",
     "main" : "src/foam/Foam.js",
+    "private" : true,
     "repository" : "automat/Foam",
     "license": "MIT"
 }
