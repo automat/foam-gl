@@ -1,6 +1,8 @@
-var _gl = require('./gl'),
+var _gl        = require('./gl'),
     ObjectUtil = require('../util/ObjectUtil'),
-    fMath = require('../math/Math');
+    fMath      = require('../math/Math'),
+    Vec2       = require('../math/Vec2'),
+    Random     = require('../math/Random');
 
 /**
  * Texture
@@ -48,6 +50,7 @@ function Texture(data,width,height,format){
     this._width = width;
     this._height = height;
     this._format = format || new Texture.Format();
+    this._unit = 0;
 
     if(data instanceof HTMLImageElement||
        data instanceof HTMLCanvasElement||
@@ -111,6 +114,16 @@ Texture.prototype.getHeight = function(){
 };
 
 /**
+ * Returns the size of the texture.
+ * @param {Vec2} [v] - Out size
+ * @returns {Vec2}
+ */
+
+Texture.prototype.getSize = function(v){
+    return (v || new Vec2()).setf(this._width,this._height);
+}
+
+/**
  * Activates & binds the texture.
  * @param {Number} [unit] - The texture unit
  */
@@ -120,6 +133,7 @@ Texture.prototype.bind = function(unit){
 
     if(!ObjectUtil.isUndefined(unit)){
         gl.activeTexture(gl.TEXTURE0 + unit);
+        this._unit = unit;
     }
     gl.bindTexture(gl.TEXTURE_2D, this._obj);
 };
@@ -133,6 +147,8 @@ Texture.prototype.unbind = function(unit){
     var gl = this._gl;
     if(!ObjectUtil.isUndefined(unit)){
         gl.activeTexture(gl.TEXTURE0 + unit);
+    } else {
+        gl.activeTexture(gl.TEXTURE0 + this._unit);
     }
     gl.bindTexture(gl.TEXTURE_2D, null);
 };
@@ -148,11 +164,20 @@ Texture.prototype.unbind = function(unit){
 
 Texture.prototype.writeData = function(data,offsetX,offsetY,width,height){
     var gl = this._gl;
+    var prevActive = gl.getParameter(gl.ACTIVE_TEXTURE);
+    var unit = gl.TEXTURE0 + this._unit;
+    if(unit != prevActive){
+        gl.activeTexture(unit);
+    }
     gl.texSubImage2D(gl.TEXTURE_2D, 0, offsetX || 0,
                                        offsetY || 0,
                                        ObjectUtil.isUndefined(width) ? this._width : width,
                                        ObjectUtil.isUndefined(height) ? this._height : height,
                                        this._format.dataFormat, this._format.dataType, data);
+
+    if(unit != prevActive){
+        gl.activeTexture(prevActive);
+    }
 };
 
 
@@ -187,6 +212,71 @@ Texture.createBlank = function(){
 Texture.createFromImage = function(image,format){
     return new Texture(image,image.width,image.height,format);
 };
+
+/**
+ * Returns a randomly pixelated texture.
+ * @param {Number} width - The width
+ * @param {Number} height - The height
+ * @param {Texture.Format} [format] - The format
+ * @param {Number} [valueR] - Optional fixed red value, random if null
+ * @param {Number} [valueG] - Optional fixed green value, random if null
+ * @param {Number} [valueB] - Optional fixed blue value, random if null
+ * @param {Number} [valueA] - Optional fixed alpha value, random if null
+ * @returns {Texture}
+ */
+
+Texture.createRandom = function(width,height,format,valueR,valueG,valueB,valueA){
+    format = format || new Texture.Format();
+
+    var gl   = _gl.get(),
+        size = width * height,
+        data;
+    var validValueR = !ObjectUtil.isUndefined(valueR) && valueR != null,
+        validValueG = !ObjectUtil.isUndefined(valueG) && valueG != null,
+        validValueB = !ObjectUtil.isUndefined(valueB) && valueB != null,
+        validValueA = !ObjectUtil.isUndefined(valueA) && valueA != null;
+
+    var i = -1;
+
+    //TODO: split
+
+    if(format.dataFormat == gl.RGBA){
+        if(format.dataType == gl.FLOAT){
+            data = new Float32Array(size * 4);
+            while(++i < size){
+                data[i * 4    ] = validValueR ? valueR : Random.randomFloat();
+                data[i * 4 + 1] = validValueG ? valueG : Random.randomFloat();
+                data[i * 4 + 2] = validValueB ? valueB : Random.randomFloat();
+                data[i * 4 + 3] = validValueA ? valueA : Random.randomFloat();
+            }
+        } else {
+            data = new Uint8Array(size * 4);
+            while(++i < size){
+                data[i * 4    ] = validValueR ? valueR : Random.randomInteger(0,255);
+                data[i * 4 + 1] = validValueG ? valueG : Random.randomInteger(0,255);
+                data[i * 4 + 2] = validValueB ? valueB : Random.randomInteger(0,255);
+                data[i * 4 + 3] = validValueA ? valueA : Random.randomInteger(0,255);
+            }
+        }
+    } else {
+        if(format.dataType == gl.FLOAT){
+            data = new Float32Array(size * 3);
+            while(++i < size){
+                data[i * 3    ] = validValueR ? valueR : Random.randomFloat();
+                data[i * 3 + 1] = validValueG ? valueG : Random.randomFloat();
+                data[i * 3 + 2] = validValueB ? valueB : Random.randomFloat();
+            }
+        } else {
+            data = new Uint8Array(size * 3);
+            while(++i < size){
+                data[i * 3    ] = validValueR ? valueR : Random.randomInteger(0,255);
+                data[i * 3 + 1] = validValueG ? valueG : Random.randomInteger(0,255);
+                data[i * 3 + 2] = validValueB ? valueB : Random.randomInteger(0,255);
+            }
+        }
+    }
+    return new Texture(data,width,height,format);
+}
 
 /*
 Texture.createFromCanvas = function(canvas){
