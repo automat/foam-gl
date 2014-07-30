@@ -55,9 +55,9 @@ module.exports = {
     glTrans : require('./gl/glTrans'),
     glDraw :  require('./gl/glDraw'),
     glu :     require('./gl/glu'),
+    glExtensions : require('./gl/glExtensions'),
 
     TextureFont : require('./gl/TextureFont'),
-
 
     Program : require('./gl/Program'),
     CameraPersp :   require('./gl/CameraPersp'),
@@ -81,16 +81,15 @@ module.exports = {
     Keyboard :   require('./input/Keyboard'),
     KeyEvent :   require('./input/KeyEvent'),
 
-//
-//    Light            : require('./gl/gl/light/fLight'),
-//    PointLight       : require('./gl/gl/light/fPointLight'),
-//    DirectionalLight : require('./gl/gl/light/fDirectionalLight'),
-//    SpotLight        : require('./gl/gl/light/fSpotLight'),
-//
-//    Material      : require('./gl/gl/fMaterial'),
+    //PointLight       : require('./gl/light/PointLight'),
+    //DirectionalLight : require('./gl/light/DirectionalLight'),
+    //SpotLight        : require('.gl/SpotLight'),
 
-    ObjectUtil :  require('./util/ObjectUtil'),
-    ArrayUtil :   require('./util/ArrayUtil'),
+    //Material : require('.gl/Material'),
+
+    ObjectUtil : require('./util/ObjectUtil'),
+    StringUtil : require('./util/StringUtil'),
+    ArrayUtil  :   require('./util/ArrayUtil'),
     ElementArrayUtil : require('./util/ElementArrayUtil')
 
 

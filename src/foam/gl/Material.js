@@ -1,11 +1,11 @@
-var Color = require('../../util/Color');
+var Color = require('../util/Color');
 
 function Material(ambient, diffuse, specular, shininess, emission) {
-    ambient = ambient || Color.create(1.0, 0.5, 0.5, 1.0);
-    diffuse = diffuse || Color.BLACK();
-    specular = specular || Color.BLACK();
+    ambient   = ambient || Color.create(1.0, 0.5, 0.5, 1.0);
+    diffuse   = diffuse   || Color.BLACK();
+    specular  = specular || Color.BLACK();
     shininess = shininess || 10.0;
-    emission = emission || Color.BLACK;
+    emission  = emission || Color.BLACK;
 
     this.emission = emission;
     this.ambient = ambient;
@@ -47,11 +47,13 @@ Material.prototype.setAmbient4f = function (r, g, b, a) {
 Material.prototype.setDiffuse = function (color) {
     this.diffuse = color;
 };
+
 Material.prototype.setDiffuse3f = function (r, g, b) {
     this.diffuse[0] = r;
     this.diffuse[1] = g;
     this.diffuse[2] = b;
 };
+
 Material.prototype.setDiffuse4f = function (r, g, b, a) {
     this.diffuse[0] = r;
     this.diffuse[1] = g;
@@ -73,7 +75,6 @@ Material.prototype.setSpecular4f = function (r, g, b, a) {
     this.specular[2] = b;
     this.specular[3] = a;
 };
-
 
 Material.prototype.getEmission = function () {
     return Color.copy(this.emission);
