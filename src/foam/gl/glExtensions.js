@@ -1,9 +1,9 @@
 var Extensions = {};
 
-Extensions.OES_texture_float = false;
-Extensions.OES_element_index_uint = false;
-Extensions.WEBKIT_WEBGL_depth_texture = false;
-Extensions.WEBGL_depth_texture = false;
+Extensions.OES_texture_float = null;
+Extensions.OES_element_index_uint = null;
+Extensions.WEBGL_depth_texture = null;
+Extensions.ANGLE_instanced_arrays = null;
 
 module.exports = Extensions;
 
