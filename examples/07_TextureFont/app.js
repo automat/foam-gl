@@ -7,7 +7,8 @@ var Foam        = require('Foam'),
     Random      = Foam.Random,
     Color       = Foam.Color,
     Vec2        = Foam.Vec2,
-    Rect        = Foam.Rect;
+    Rect        = Foam.Rect,
+    Texture     = Foam.Texture;
 
 var gl;
 var dir = '../examples/07_TextureFont/', // bundle.js relative
@@ -22,6 +23,11 @@ resources.shader = {
 resources.fontData = {
     path : dir + 'Roboto-Black.ttf',
     type : 'arraybuffer'
+};
+
+resources.image = {
+    path : dir + 'texture.png',
+    type : 'image'
 };
 
 app.setup = function(resources){
@@ -43,7 +49,12 @@ app.setup = function(resources){
     this._textureFont96 = new TextureFont(resources.fontData);
     this._textureFont96.setFontSize(96);
 
+    this._texture = Texture.createRandom(10,10,null,null,0,0,255);
+    this._texture.bind();
+
     this._string = "Drop it, Mr. Data and attack the Romulans.\n Well, that's certainly good to know. How long can two people talk about nothing? Congratulations - you just destroyed the Enterprise. Flair is what marks the difference between artistry and mere competence. When has justice ever been as simple as a rule book?";
+
+
 
     gl.disable(gl.DEPTH_TEST);
     gl.uniform1f(program['uUseTexture'],1.0);
@@ -72,6 +83,13 @@ app.update = function(){
 
     gl.uniform1f(program['uUseTexture'],1.0);
 
+    glTrans.pushMatrix();
+    glTrans.translate3f(windowSize.x * 0.5 - 100, windowSize.y * 0.5 - 100,0);
+    glDraw.colorf(1,1,1,1)
+    glDraw.drawRect(200,200);
+    glTrans.popMatrix();
+
+
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -85,6 +103,7 @@ app.update = function(){
     gl.disable(gl.BLEND);
 
     gl.uniform1f(program['uUseTexture'],0.0);
+
 
 
     glTrans.pushMatrix();
