@@ -158,6 +158,19 @@ Color.blue = function(){
 };
 
 /**
+ * Create a new color from integer rbg, float a
+ * @param {Integer} [r] - Red value
+ * @param {Integer} [g] - Green value
+ * @param {Integer} [b] - Blue value
+ * @param {Float} [a] - Alpha value
+ * @returns {Color}
+ */
+
+Color.fromInt = function(r,g,b,a){
+    return new Color(r / 255 || 0, g / 255 || 0, b / 255 || 0, ObjectUtil.isUndefined(a) ? 1.0 : a);
+}
+
+/**
  * Return a string representation of the color.
  * @returns {String}
  */
