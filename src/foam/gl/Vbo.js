@@ -25,8 +25,8 @@ Vbo.prototype.bufferSubData = function(offset,data){
 	return this;
 };
 
-Vbo.prototype.bufferData = function(size,usage){
-	this._gl.bufferData(this._target,size,usage);
+Vbo.prototype.bufferData = function(sizeOrData,usage){
+	this._gl.bufferData(this._target,sizeOrData,usage);
 	return this;
 };
 
