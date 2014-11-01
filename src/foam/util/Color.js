@@ -99,6 +99,20 @@ Color.prototype.toFloat32Array = function(arr){
 };
 
 /**
+ * Returns a Float32Array representation of the color´s rgb components;
+ * @param {Float32Array} [arr] - The out Float32Array
+ * @returns {Float32Array}
+ */
+
+Color.prototype.toFloat32ArrayRGB = function(arr){
+    arr = arr || new Float32Array(3);
+    arr[0] = this.r;
+    arr[1] = this.g;
+    arr[2] = this.b;
+    return arr;
+}
+
+/**
  * Create a new color with r=1,g=1,b=1,a=1
  * @returns {Color}
  */
