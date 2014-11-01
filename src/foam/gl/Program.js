@@ -39,6 +39,14 @@ Program.UNIFORM_PROJECTION_MATRIX = 'uProjectionMatrix';
 Program.ATTRIB_VERTEX_POSITION = 'aVertexPosition';
 
 /**
+ * The default shader vertex position offset attribute (reassignable)
+ * @type {string}
+ * @static
+ */
+
+Program.ATTRIB_VERTEX_OFFSET = 'aVertexOffset';
+
+/**
  * The default shader vertex normal attribute. (reassignable)
  * @type {string}
  * @static
@@ -81,6 +89,7 @@ Program.UNIFORM_TEXTURE = 'uTexture';
  */
 
 Program.UNIFORM_POINT_SIZE = 'uPointSize';
+
 
 Program._currentProgram = null;
 
