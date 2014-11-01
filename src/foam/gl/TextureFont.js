@@ -1,11 +1,12 @@
-var opentype = require('../../lib/opentype.js'),
-    _gl      = require('./gl'),
-    glTrans  = require('./glTrans'),
-    Program  = require('./Program'),
-    Rect     = require('../geom/Rect'),
-    Vec2     = require('../math/Vec2'),
-    Vec3     = require('../math/Vec3'),
-    Color    = require('../util/Color');
+var opentype   = require('../../lib/opentype.js'),
+    ObjectUtil = require('../util/ObjectUtil'),
+    _gl        = require('./gl'),
+    glTrans    = require('./glTrans'),
+    Program    = require('./Program'),
+    Rect       = require('../geom/Rect'),
+    Vec2       = require('../math/Vec2'),
+    Vec3       = require('../math/Vec3'),
+    Color      = require('../util/Color');
 
 
 var GLYPH_TABLE_TEX_MAX_WIDTH = 2048;
@@ -76,6 +77,7 @@ function FontMetrics(){
 /**
  * A glyphmap representation of a font.
  * @param {ArrayBuffer} arraybuffer - The font data
+ * @param {Number} [textureUnit] - The target texture unit
  * @constructor
  */
 
@@ -90,9 +92,10 @@ function TextureFont(arraybuffer){
     this._font        = opentype.parse(arraybuffer);
     this._fontMetrics = new FontMetrics();
 
+
     var gl = this._gl = _gl.get();
-    var texture       = this._texture = gl.createTexture(),
-        texturePrev   = gl.getParameter(gl.TEXTURE_BINDING_2D);
+    var texture         = this._texture = gl.createTexture(),
+        texturePrev     = gl.getParameter(gl.TEXTURE_BINDING_2D);
     this._textureSize = new Vec2();
 
     gl.bindTexture(gl.TEXTURE_2D,texture);
@@ -145,6 +148,8 @@ function TextureFont(arraybuffer){
     this._uniformLocationModelViewMatrix = null;
     this._uniformLocationProjectionMatrix = null;
     this._uniformLocationTexture = null;
+
+
 }
 
 /**
@@ -433,6 +438,7 @@ TextureFont.prototype._genMapGlyph = function(){
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
     gl.bindTexture(gl.TEXTURE_2D, texturePrev);
+
 };
 
 TextureFont.prototype._validateInputStr = function(str){
@@ -449,7 +455,7 @@ TextureFont.prototype._validateInputStr = function(str){
     return error == 0;
 }
 
-TextureFont.prototype._drawText = function(str,color){
+TextureFont.prototype._drawText = function(str,color,textureUnit){
     var strLen = str.length;
     if(strLen == 0){
         return;
@@ -492,7 +498,8 @@ TextureFont.prototype._drawText = function(str,color){
     var numVertices = strLen * GLYPH_NUM_VERTICES;
 
     var texture     = this._texture,
-        prevTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+        prevTexture = gl.getParameter(gl.TEXTURE_BINDING_2D),
+        prevTextureUnit;
     var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
 
     var vertexDataOffset   = this._bufferVertexDataOffset,
@@ -794,11 +801,25 @@ TextureFont.prototype._drawText = function(str,color){
         gl.vertexAttribPointer(attribLocationTexcoord,2,gl.FLOAT,false,0,texcoordDataOffset);
     }
 
+    var textureUnitIsUndefined = ObjectUtil.isUndefined(textureUnit);
+
+    if(!textureUnitIsUndefined){
+        prevTextureUnit = gl.getParameter(gl.ACTIVE_TEXTURE);
+        gl.activeTexture(gl.TEXTURE0 + textureUnit);
+        gl.uniform1i(uniformLocationTexture,textureUnit);
+    }
+
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniformMatrix4fv(uniformLocationModelViewMatrix, false, glTrans.getModelViewMatrixF32());
     gl.uniformMatrix4fv(uniformLocationProjectionMatrix,false, glTrans.getProjectionMatrixF32());
     gl.drawArrays(gl.TRIANGLES,0,numVertices);
     gl.bindTexture(gl.TEXTURE_2D, prevTexture);
+
+    if(!textureUnitIsUndefined){
+        gl.activeTexture(prevTextureUnit);
+    }
+
+
 
     gl.bindBuffer(gl.ARRAY_BUFFER, prevVbo);
 
@@ -824,13 +845,13 @@ TextureFont.prototype._getTextWidth = function(str){
  * @param {String} str - The string
  * @param {Color} [color=Color.white()] - The color send to the shader.
  */
-TextureFont.prototype.drawText = function(str,color){
+TextureFont.prototype.drawText = function(str,color,textureUnit){
     str = removeLineBreaks(str);
     var strLen = str.length;
     if(strLen == 0 || !this._validateInputStr(str)){
         return;
     }
-    this._drawText(str,color);
+    this._drawText(str,color,textureUnit);
 };
 
 /**
@@ -840,7 +861,7 @@ TextureFont.prototype.drawText = function(str,color){
  * @param {Color} [color=Color.white()]  - The color send to the shader
  */
 
-TextureFont.prototype.drawTextBox = function(str,size,color){
+TextureFont.prototype.drawTextBox = function(str,size,color,textureUnit){
     var str_ = removeLineBreaks(str);
     if(str_.length == 0 || !this._validateInputStr(str_)){
         return;
@@ -860,7 +881,7 @@ TextureFont.prototype.drawTextBox = function(str,size,color){
             return;
         }
 
-        self._drawText(line,color);
+        self._drawText(line,color,textureUnit);
         glTrans.translate3f(0,lineHeight,0);
 
     }
