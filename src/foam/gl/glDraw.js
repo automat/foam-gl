@@ -1024,6 +1024,7 @@ glDraw_Internal.prototype.drawLinef = function(x0,y0,z0,x1,y1,z1){
     if(attribLocationVertexNormal != -1){
         gl.disableVertexAttribArray(attribLocationVertexNormal);
     }
+
     if(attribLocationTexcoord != -1){
         gl.disableVertexAttribArray(attribLocationTexcoord);
     }
@@ -2079,11 +2080,15 @@ glDraw_Internal.prototype.drawGrid = function(size, subdivs){
     this._updateProgramLocations();
 
     var attribLocationVertexPos   = this._attribLocationVertexPos,
+        attribLocationVertexNormal= this._attribLocationVertexNormal,
         attribLocationVertexColor = this._attribLocationVertexColor,
         attribLocationTexcoord    = this._attribLocationTexcoord;
 
     if(attribLocationVertexPos == -1){
         return;
+    }
+    if(attribLocationVertexNormal != -1){
+        gl.disableVertexAttribArray(attribLocationVertexNormal);
     }
     if(attribLocationTexcoord != -1){
         gl.disableVertexAttribArray(attribLocationTexcoord);
@@ -2106,8 +2111,6 @@ glDraw_Internal.prototype.drawGrid = function(size, subdivs){
 
     this._updateGridGeom(subdivs);
 
-
-
     gl.vertexAttribPointer(this._attribLocationVertexPos , 3, gl.FLOAT, false, 0, 0);
     if(attribLocationVertexColor != -1){
         gl.vertexAttribPointer(this._attribLocationVertexColor, 4, gl.FLOAT, false, 0, this._gridVboOffsetColors);
@@ -2118,6 +2121,10 @@ glDraw_Internal.prototype.drawGrid = function(size, subdivs){
     gl.drawElements(gl.LINES,this._gridIboLength,gl.UNSIGNED_SHORT,0);
 
     glTrans.popMatrix();
+
+    if(attribLocationVertexNormal != -1){
+        gl.enableVertexAttribArray(attribLocationVertexNormal);
+    }
 
     if(attribLocationTexcoord != -1){
         gl.enableVertexAttribArray(attribLocationTexcoord);
@@ -2241,12 +2248,16 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
     var gl = this._gl;
     this._updateProgramLocations();
 
-    var attribLocationVertexPos   = this._attribLocationVertexPos,
-        attribLocationVertexColor = this._attribLocationVertexColor,
-        attribLocationTexcoord    = this._attribLocationTexcoord;
+    var attribLocationVertexPos    = this._attribLocationVertexPos,
+        attribLocationVertexNormal = this._attribLocationVertexNormal,
+        attribLocationVertexColor  = this._attribLocationVertexColor,
+        attribLocationTexcoord     = this._attribLocationTexcoord;
 
     if(attribLocationVertexPos == -1){
         return;
+    }
+    if(attribLocationVertexNormal != -1){
+        gl.disableVertexAttribArray(attribLocationVertexNormal);
     }
     if(attribLocationTexcoord != -1){
         gl.disableVertexAttribArray(attribLocationTexcoord);
@@ -2278,6 +2289,10 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
 
     gl.drawArrays(gl.LINES,0,6);
     gl.drawElements(gl.TRIANGLES,this._pivotIndexBufferLength,gl.UNSIGNED_SHORT,0);
+
+    if(attribLocationVertexNormal != -1){
+        gl.enableVertexAttribArray(attribLocationVertexNormal);
+    }
 
     if(attribLocationTexcoord != -1){
         gl.enableVertexAttribArray(attribLocationTexcoord);
