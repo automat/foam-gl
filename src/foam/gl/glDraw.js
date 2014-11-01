@@ -2027,8 +2027,8 @@ glDraw_Internal.prototype._updateGridGeom = function(subdivs){
         while(++j < subdivs1){
             k = (i * subdivs1 + j) * 3;
             vertices[k  ] = -0.5 + step * j;
-            vertices[k+1] = -0.5 + step * i;
-            vertices[k+2] = 0;
+            vertices[k+1] = 0;
+            vertices[k+2] = -0.5 + step * i;
         }
     }
 
@@ -2095,7 +2095,7 @@ glDraw_Internal.prototype.drawGrid = function(size, subdivs){
     var ibo = this._gridIbo;
 
     glTrans.pushMatrix();
-    glTrans.scale3f(size.x,size.y,1.0);
+    glTrans.scale3f(size.x,1.0,size.y);
 
     if(prevVbo != vbo){
         gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
@@ -2105,6 +2105,8 @@ glDraw_Internal.prototype.drawGrid = function(size, subdivs){
     }
 
     this._updateGridGeom(subdivs);
+
+
 
     gl.vertexAttribPointer(this._attribLocationVertexPos , 3, gl.FLOAT, false, 0, 0);
     if(attribLocationVertexColor != -1){

@@ -2,6 +2,7 @@ var Foam        = require('Foam'),
     glTrans     = Foam.glTrans,
     glDraw      = Foam.glDraw,
     System      = Foam.System,
+    Vec2        = Foam.Vec2,
     Vec3        = Foam.Vec3,
     Matrix44    = Foam.Matrix44,
     Program     = Foam.Program,
@@ -51,6 +52,9 @@ Foam.App.newOnLoadWithResource(
             this._camera3.lookAt(Vec3.one(),Vec3.zero());
             this._camera3.updateMatrices();
 
+            this._gridSize0 = new Vec2(20,20);
+            this._gridSize1 = new Vec2(10,10);
+
             gl.enable(gl.SCISSOR_TEST);
             gl.enable(gl.DEPTH_TEST);
             gl.uniform1f(program['uPointSize'],4.0);
@@ -65,7 +69,6 @@ Foam.App.newOnLoadWithResource(
             var windowHeight   = this.getWindowHeight();
             var windowHeight_2 = windowHeight * 0.5;
 
-            var gridSize = 10;
             var gridSubDivs = 20;
 
             //  tl
@@ -82,7 +85,7 @@ Foam.App.newOnLoadWithResource(
             camera.updateMatrices();
             glTrans.setMatricesCamera(camera);
 
-            glDraw.drawGrid(gridSize,gridSubDivs);
+            glDraw.drawGrid(this._gridSize0,gridSubDivs);
             glDraw.drawPivot();
 
             glTrans.pushMatrix();
@@ -108,7 +111,7 @@ Foam.App.newOnLoadWithResource(
             camera.updateMatrices();
             glTrans.setMatricesCamera(camera);
 
-            glDraw.drawGrid(gridSize,gridSubDivs);
+            glDraw.drawGrid(this._gridSize0,gridSubDivs);
             glDraw.drawPivot();
 
             glTrans.pushMatrix();
@@ -130,13 +133,13 @@ Foam.App.newOnLoadWithResource(
             camera = this._camera2;
             glTrans.setMatricesCamera(camera);
 
-            glDraw.drawGrid(gridSize,gridSubDivs);
+            glDraw.drawGrid(this._gridSize0,gridSubDivs);
             glDraw.drawPivot();
 
             glTrans.pushMatrix();
             glTrans.translate3f(Math.sin(t),0,0);
             glTrans.rotate3f(Ease.stepSmoothInvSquared(0.5 + Math.sin(t) * 0.5) * Math.PI * 2,0,0);
-            glDraw.drawGrid(2,gridSubDivs);
+            glDraw.drawGrid(this._gridSize0,gridSubDivs);
             glDraw.drawPivot(1.5);
 
             var scaleY  = Ease.stepInvCubed(0.5 + Math.sin(t * 4) * 0.5) * 1.75 + 0.25;
@@ -162,7 +165,7 @@ Foam.App.newOnLoadWithResource(
             camera.updateMatrices();
             glTrans.setMatricesCamera(camera);
 
-            glDraw.drawGrid(30,gridSubDivs);
+            glDraw.drawGrid(this._gridSize0,gridSubDivs);
             glDraw.drawPivot(2.0);
 
             glTrans.pushMatrix();
