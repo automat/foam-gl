@@ -57,6 +57,8 @@ module.exports = {
     glu :     require('./gl/glu'),
     glExtensions : require('./gl/glExtensions'),
 
+    Vbo : require('./gl/Vbo'),
+
     TextureFont : require('./gl/TextureFont'),
 
     Program : require('./gl/Program'),
