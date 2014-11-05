@@ -1,15 +1,23 @@
-var _gl = require('./gl');
+var ObjectUtil = require('../util/ObjectUtil'),
+	_gl 	   = require('./gl');
 
 /**
  * Buffer object representation
  * @param {Number} [target=gl.ARRAY_BUFFER] - Target buffer, gl.ARRAY_BUFFER, gl.ELEMENT_ARRAY_BUFFER
+ * @param {Number|ArrayBufferView} [sizeOrData=null] - Size or data
+ * @param {Number} [usage=gl.STATIC_DRAW] - gl.STREAM_DRAW, gl.STATIC_DRAW, gl.DYNAMIC_DRAW
  * @constructor
  */
 
-function Vbo(target){
-	this._gl     = _gl.get();
-	this._obj    = this._gl.createBuffer();
-	this._target = target || this._gl.ARRAY_BUFFER;
+function Vbo(target,sizeOrData,usage){
+	var gl = this._gl = _gl.get();
+
+	this._obj    = gl.createBuffer();
+	this._target = target || gl.ARRAY_BUFFER;
+
+	if(!ObjectUtil.isUndefined(sizeOrData)){
+		gl.bufferData(target,sizeOrData,usage || gl.STATIC_DRAW);
+	}
 }
 
 /**
