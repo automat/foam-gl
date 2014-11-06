@@ -1,9 +1,10 @@
-var Id     = require('../system/Id'),
-    Vec2   = require('../math/Vec2'),
-    Vec3   = require('../math/Vec3'),
-    AABB   = require('../geom/AABB'),
-    Color  = require('../util/Color'),
-    glDraw = require('./glDraw');
+var ObjectUtil = require('../util/ObjectUtil'),
+    Id = require('../system/Id'),
+    Vec2 = require('../math/Vec2'),
+    Vec3 = require('../math/Vec3'),
+    AABB = require('../geom/AABB'),
+    Color = require('../util/Color'),
+    _glDraw = require('./glDraw');
 
 function Mesh(format,size) {
     this._format = format || new Mesh.Format();
@@ -17,8 +18,16 @@ function Mesh(format,size) {
     this.texcoords = new Float32Array(size * format.texcoordSize);
     this.indices   = new Uint16Array(0);
 
-    glDraw = glDraw || glDraw.get();
+    this._glDraw = _glDraw.get();
 }
+
+Mesh.Format = function(){
+    this.vertexSize   = 3;
+    this.normalSize   = 3;
+    this.colorSize    = 4;
+    this.texcoordSize = 2;
+};
+
 
 Mesh.prototype.reserveSize = function(size){
     if(this._size >= size){
@@ -26,13 +35,36 @@ Mesh.prototype.reserveSize = function(size){
     }
     var format = this.format;
 
-    this.vertices  = (new Float32Array(size * format.vertexSize)).set(this.vertices);
-    this.normals   = (new Float32Array(size * format.normalSize)).set(this.normals);
-    this.colors    = (new Float32Array(size * format.colorSize)).set(this.colors);
-    this.texcoords = (new Float32Array(size * format.texcoordSize)).set(this.texcoords);
+    var vertices  = this.vertices,
+        normals   = this.normals,
+        colors    = this.colors,
+        texcoords = this.texcoords;
+
+    this.vertices  = new Float32Array(size * format.vertexSize);
+    this.vertices.set(vertices);
+
+    this.normals  = new Float32Array(size * format.normalSize);
+    this.normals.set(normals);
+
+    this.colors  = new Float32Array(size * format.colorSize);
+    this.colors.set(colors);
+
+    this.texcoords = new Float32Array(size * format.texcoordSize);
+    this.texcoords.set(texcoords);
 
     this._size = size;
 };
+
+
+
+Mesh.prototype.setVertices = function(vertices){
+    var vertices_ = this.vertices;
+    this.vertices = vertices.length > vertices_.length ?
+                    new Float32Array(vertices.length) :
+                    vertices_;
+    this.vertices.set(vertices);
+};
+
 
 Mesh.prototype.setVertex = function(index,vec){
     var vertexSize = this.format.vertexSize;
@@ -43,7 +75,6 @@ Mesh.prototype.setVertex = function(index,vec){
     if(index > this._size - vertexSize){
         return;
     }
-
     var vertices   = this.vertices;
     vertices[index  ] = vec.x;
     vertices[index+1] = vec.y;
@@ -95,6 +126,16 @@ Mesh.prototype.setVertex2f = function(index,x,y){
     vertices[index+1] = y;
 };
 
+
+
+Mesh.prototype.setNormals = function(normals){
+    var normals_ = this.normals;
+    this.normals = normals.length > normals_.length ?
+        new Float32Array(normals.length) :
+        normals_;
+    this.normals.set(normals);
+};
+
 Mesh.prototype.setNormal = function(index,normal){
     var normals = this.normals;
     if(normals.length == 0){
@@ -117,12 +158,32 @@ Mesh.prototype.setNormal3f = function(index,x,y,z){
     normals[index+2] = z;
 };
 
+Mesh.prototype.setColors = function(colors){
+    var colors_ = this.colors;
+    this.colors = colors.length > colors_.length ?
+        new Float32Array(colors.length) :
+        colors_;
+    this.colors.set(colors);
+};
+
+Mesh.prototype.setTexcoords = function(texcoords){
+    var texcoords_ = this.texcoords;
+    this.colors = texcoords.length > texcoords_.length ?
+        new Float32Array(texcoords.length) :
+        texcoords_;
+    this.texcoords.set(texcoords);
+};
+
+
+
 
 Mesh.prototype.reserveIndices = function(size){
     if(this.indices.length >= size){
         return;
     }
-    this.indices = (new Uint16Array(size)).set(this.indices);
+    var indices = new Uint16Array(size);
+        indices.set(this.indices);
+    this.indices = indices;
 };
 
 Mesh.prototype.clear = function(){
@@ -232,23 +293,77 @@ Mesh.prototype.caculateNormals = function(){
     }
 };
 
+/**
+ * Returns the mesh format.
+ * @returns {Mesh.Format}
+ */
+
 Mesh.prototype.getFormat = function(){
     return this._format;
 };
+
+/**
+ * Returns true if vertices have been added.
+ * @returns {boolean}
+ */
+
+Mesh.prototype.hasVertices = function(){
+    return this.vertices.length != 0;
+};
+
+/**
+ * Returns true if colors have been added.
+ * @returns {boolean}
+ */
+
+Mesh.prototype.hasColors = function(){
+    return this.colors.length != 0;
+};
+
+/**
+ * Returns true if normals have been added.
+ * @returns {boolean}
+ */
+
+Mesh.prototype.hasNormals = function(){
+    return this.normals.length != 0;
+};
+
+/**
+ * Returns true if texcoords have been added.
+ * @returns {boolean}
+ */
+
+Mesh.prototype.hasTexcoords = function(){
+    return this.texcoords.length != 0;
+};
+
+/**
+ * Returns true if indices have been added.
+ * @returns {boolean}
+ */
+
+Mesh.prototype.hasIndices = function(){
+    return this.indices.length != 0;
+};
+
+/**
+ * Returns a unique id assigned to the mesh.
+ * @returns {Number}
+ */
 
 Mesh.prototype.getId = function(){
     return this._id;
 };
 
-Mesh.prototype.draw = function(){
-    glDraw.drawMesh(this);
-};
+/**
+ * Displays the mesh.
+ * @param {Number} [usage=gl.TRIANGLES]
+ * @param {Number} [length]
+ */
 
-Mesh.Format = function(){
-    this.vertexSize   = 3;
-    this.normalSize   = 3;
-    this.colorSize    = 4;
-    this.texcoordSize = 2;
+Mesh.prototype.draw = function(usage, length){
+    this._glDraw.drawMesh(this,length,usage);
 };
 
 module.exports = Mesh;
