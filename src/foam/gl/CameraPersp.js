@@ -19,6 +19,7 @@ function CameraPersp() {
 }
 
 CameraPersp.prototype = Object.create(CameraAbstract.prototype);
+CameraPersp.prototype.constructor = CameraPersp;
 
 CameraPersp.prototype.setPerspective = function (fov, windowAspectRatio, near, far) {
     this._fov = fov;

@@ -6,6 +6,7 @@ function FrustumPersp() {
 }
 
 FrustumPersp.prototype = Object.create(Frustum.prototype);
+FrustumPersp.prototype.constructor = FrustumPersp;
 
 FrustumPersp.prototype.set = function(camera, frustumScale){
     frustumScale = frustumScale || 1.0;

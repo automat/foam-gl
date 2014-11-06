@@ -6,6 +6,7 @@ function FrustumOrtho(){
 }
 
 FrustumOrtho.prototype = Object.create(Frustum.prototype);
+FrustumOrtho.prototype.constructor = FrustumOrtho;
 
 FrustumOrtho.prototype.set = function(camera, frustumScale){
     frustumScale = frustumScale || 1.0;

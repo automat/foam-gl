@@ -15,6 +15,7 @@ function CameraOrtho() {
 }
 
 CameraOrtho.prototype = Object.create(CameraAbstract.prototype);
+CameraOrtho.prototype.constructor = CameraOrtho;
 
 CameraOrtho.prototype.setOrtho = function (left, right, bottom, top, near, far) {
     this._frustumLeft = this._frustumLeftInit = left;
