@@ -2311,7 +2311,7 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
  * @param length
  */
 
-glDraw_Internal.prototype.drawMesh = function(mesh, length){
+glDraw_Internal.prototype.drawMesh = function(mesh, length, usage){
     var gl = this._gl;
     this._updateProgramLocations();
 
@@ -2325,6 +2325,8 @@ glDraw_Internal.prototype.drawMesh = function(mesh, length){
     if(attribLocationVertexPos == -1 || format.vertexSize == 0 || mesh.vertices.length == 0){
         return;
     }
+
+    usage = usage || gl.TRIANGLES;
 
     var attribNormalValid   = attribLocationVertexNormal != -1,
         attribColorValid    = attribLocationVertexColor  != -1,
@@ -2407,9 +2409,9 @@ glDraw_Internal.prototype.drawMesh = function(mesh, length){
             }
             gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, mesh.indices);
         }
-        gl.drawElements(gl.TRIANGLES,(length || mesh.indices.length),gl.UNSIGNED_SHORT,0);
+        gl.drawElements(usage,(length || mesh.indices.length),gl.UNSIGNED_SHORT,0);
     } else {
-        gl.drawArrays(gl.POINTS,0,length || (vertices.length / 3));
+        gl.drawArrays(usage,0,length || (vertices.length / 3));
     }
 
     if(bufferMesh != prevVbo){
