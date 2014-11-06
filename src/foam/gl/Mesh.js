@@ -222,14 +222,11 @@ Mesh.prototype.caculateNormals = function(){
         y = normals[i+1];
         z = normals[i+2];
 
-        l = Math.sqrt(x*x+y*y+z*z);
+        l = Math.sqrt(x*x+y*y+z*z) || 1.0;
 
-        if(l){
-            l = 1.0 / l;
-            normals[i  ] *= l;
-            normals[i+1] *= l;
-            normals[i+2] *= l;
-        }
+        normals[i  ] *= l;
+        normals[i+1] *= l;
+        normals[i+2] *= l;
 
         i+=3;
     }

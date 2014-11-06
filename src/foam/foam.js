@@ -61,12 +61,13 @@ module.exports = {
 
     TextureFont : require('./gl/TextureFont'),
 
-    Program : require('./gl/Program'),
-    CameraPersp :   require('./gl/CameraPersp'),
-    CameraOrtho :   require('./gl/CameraOrtho'),
-    Arcball : require('./gl/Arcball'),
-    FrustumOrtho : require('./gl/FrustumOrtho'),
-    FrustumPersp : require('./gl/FrustumPersp'),
+    Program       : require('./gl/Program'),
+    ProgramPreset : require('./gl/ProgramPreset'),
+    CameraPersp   : require('./gl/CameraPersp'),
+    CameraOrtho   : require('./gl/CameraOrtho'),
+    Arcball       : require('./gl/Arcball'),
+    FrustumOrtho  : require('./gl/FrustumOrtho'),
+    FrustumPersp  : require('./gl/FrustumPersp'),
 
     Texture: require('./gl/Texture'),
     Fbo: require('./gl/Fbo'),
@@ -82,6 +83,8 @@ module.exports = {
     MouseEvent : require('./input/MouseEvent'),
     Keyboard :   require('./input/Keyboard'),
     KeyEvent :   require('./input/KeyEvent'),
+
+    Mesh : require('./gl/Mesh'),
 
     //PointLight       : require('./gl/light/PointLight'),
     //DirectionalLight : require('./gl/light/DirectionalLight'),
