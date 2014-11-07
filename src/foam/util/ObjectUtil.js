@@ -136,6 +136,11 @@ var ObjectUtil = {
         return this.__toString(obj) == '[object String]';
     },
 
+
+    isNumber : function(obj){
+        return this.__toString(obj) == '[object Number]';
+    },
+
     /**
      * Returns true if object is Float64Array.
      * @param {Object} obj - The object
