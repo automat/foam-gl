@@ -72,5 +72,14 @@ Vbo.prototype.bufferData = function(sizeOrData,usage){
 	return this;
 };
 
+/**
+ * Returns true if the underlying gl buffer object equals the specified gl buffer object.
+ * @param {WebGLBuffer} buffer - The buffer
+ * @returns {boolean}
+ */
+
+Vbo.prototype.equalsGLObject = function(buffer){
+	return this._obj == buffer;
+};
 
 module.exports = Vbo;
