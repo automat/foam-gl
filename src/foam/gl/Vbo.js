@@ -14,9 +14,11 @@ function Vbo(target,sizeOrData,usage){
 
 	this._obj    = gl.createBuffer();
 	this._target = target || gl.ARRAY_BUFFER;
+	this._size   = 0;
 
 	if(!ObjectUtil.isUndefined(sizeOrData)){
 		gl.bufferData(target,sizeOrData,usage || gl.STATIC_DRAW);
+		this._size = ObjectUtil.isUndefined(sizeOrData.byteLength) ? sizeOrData : sizeOrData.byteLength;
 	}
 }
 
@@ -69,7 +71,17 @@ Vbo.prototype.bufferSubData = function(offset,data){
 
 Vbo.prototype.bufferData = function(sizeOrData,usage){
 	this._gl.bufferData(this._target,sizeOrData,usage);
+	this._size = ObjectUtil.isUndefined(sizeOrData.byteLength) ? sizeOrData : sizeOrData.byteLength;
 	return this;
+};
+
+/**
+ * Returns the current byteLength;
+ * @returns {number}
+ */
+
+Vbo.prototype.getSize = function(){
+	return this._size;
 };
 
 /**
