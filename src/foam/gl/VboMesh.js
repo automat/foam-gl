@@ -17,18 +17,18 @@ function VboMesh(usage,format,size){
 	this._glDraw  	  = obj._glDraw;
 	this._glTrans 	  = obj._glTrans;
 
-	this._usage = usage = usage || gl.TRIANGLES;
+	this._usage = usage || gl.TRIANGLES;
 
-	this._vbo = new Vbo(usage);
+	this._vbo = new Vbo(gl.ARRAY_BUFFER);
 	this._ibo = null;
 
 	this._vboUsage = gl.DYNAMIC_DRAW;
 	this._iboUsage = gl.STATIC_DRAW;
 
-	this._verticesDirty  = false;
-	this._normalsDirty   = false;
-	this._colorsDirty    = false;
-	this._texcoordsDirty = false;
+	this._verticesDirty  = true;
+	this._normalsDirty   = true;
+	this._colorsDirty    = true;
+	this._texcoordsDirty = true;
 	this._indicesDirty   = false;
 
 	this._offsetVertices = 0;
@@ -38,6 +38,11 @@ function VboMesh(usage,format,size){
 }
 
 VboMesh.Format = Mesh.Format;
+
+VboMesh.prototype.setUsage = function(usage){
+	this._usage = usage;
+};
+
 
 VboMesh.prototype.setDataUsage = function(usage){
 	this._vboUsage = usage;
@@ -69,45 +74,8 @@ VboMesh.prototype.updateIndexBuffer = function(){
 
 //friend class glDraw
 
-VboMesh.prototype._prepareBuffers = function(normalsValid,colorsValid,texcoordsValid){
-	var obj = this._obj;
-	var vbo = this._vbo,
-		ibo = this._ibo;
-
-	this._updateOffsets();
-
-	if(this._verticesDirty){
-		vbo.bufferSubData(this._offsetVertices,obj.vertices);
-		this._verticesDirty = false;
-	}
-
-	if(normalsValid && this._normalsDirty){
-		vbo.bufferSubData(this._offsetNormals,obj.normals);
-		this._normalsDirty = false;
-	}
-
-	if(colorsValid && this._colorsDirty){
-		vbo.bufferSubData(this._offsetColors,obj.colors);
-		this._colorsDirty = false;
-	}
-
-	if(texcoordsValid && this._texcoordsDirty){
-		vbo.bufferSubData(this._offsetTexcoords,obj.texcoords);
-		this._texcoordsDirty = false;
-	}
-
-	if(this._indicesDirty){
-		ibo.bufferData(obj.indices,this._iboUsage);
-		this._indicesDirty = false;
-	}
-};
-
-
-VboMesh.prototype._updateOffsets = function(){
-	var mesh = this._obj;
-	this._offsetColors    = mesh.vertices.byteLength;
-	this._offsetNormals   = this._offsetColors + mesh.colors.byteLength;
-	this._offsetTexcoords = this._offsetNormals + mesh._offsetNormals.byteLength;
+VboMesh.prototype.draw = function(length){
+	this._glDraw.drawVboMesh(this,length);
 };
 
 VboMesh.prototype._updateVboSize = function(){
@@ -158,7 +126,7 @@ VboMesh.prototype._updateIboSize = function(){
 	this._indicesDirty = true;
 
 	if(iboDiffers){
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ibo);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,prevIbo);
 	}
 };
 
@@ -251,6 +219,7 @@ VboMesh.prototype.setTexcoords = function(texcoords){
 
 VboMesh.prototype.setIndices = function(indices){
 	this._obj.indices = ObjectUtil.safeUint16Array(indices);
+	this._ibo = this._ibo || new Vbo(this._gl.ELEMENT_ARRAY_BUFFER);
 	this._updateIboSize();
 };
 
@@ -272,10 +241,6 @@ VboMesh.prototype.getBoundingBox = function(){
 VboMesh.prototype.calculateNormals = function(){
 	this._obj.caculateNormals();
 	this._normalsDirty = true;
-};
-
-VboMesh.prototype.draw = function(){
-	this._glDraw.drawMesh(this);
 };
 
 VboMesh.prototype.isDirty = function(){
