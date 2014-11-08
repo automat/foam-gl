@@ -232,7 +232,7 @@ Mesh.prototype.setColor1f = function(index,k){
 
 Mesh.prototype.setTexcoords = function(texcoords){
     var texcoords_ = this.texcoords;
-    this.colors = texcoords.length > texcoords_.length ?
+    this.texcoords = texcoords.length > texcoords_.length ?
         new Float32Array(texcoords.length) :
         texcoords_;
     this.texcoords.set(texcoords);
