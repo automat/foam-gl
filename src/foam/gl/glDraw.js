@@ -446,6 +446,12 @@ function glDraw_Internal(){
     this._bufferMeshIndicesLength  = 0;
 
     /*--------------------------------------------------------------------------------------------*/
+    //  VboMesh
+    /*--------------------------------------------------------------------------------------------*/
+
+
+
+    /*--------------------------------------------------------------------------------------------*/
     //  Quaternion
     /*--------------------------------------------------------------------------------------------*/
 
@@ -2433,6 +2439,152 @@ glDraw_Internal.prototype.drawMesh = function(mesh, length, usage){
         gl.enableVertexAttribArray(attribLocationTexcoord);
     }
 };
+
+/*--------------------------------------------------------------------------------------------*/
+//  VboMesh
+/*--------------------------------------------------------------------------------------------*/
+
+glDraw_Internal.prototype.drawVboMesh = function(mesh,length){
+    var gl = this._gl;
+    this._updateProgramLocations();
+
+    var attribLocationVertexPos    = this._attribLocationVertexPos,
+        attribLocationVertexNormal = this._attribLocationVertexNormal,
+        attribLocationVertexColor  = this._attribLocationVertexColor,
+        attribLocationTexcoord     = this._attribLocationTexcoord;
+
+    var attribNormalValid   = attribLocationVertexNormal != -1,
+        attribColorValid    = attribLocationVertexColor  != -1,
+        attribTexcoordValid = attribLocationTexcoord     != -1;
+
+    var vbo = mesh._vbo,
+        ibo = mesh._ibo,
+        obj = mesh._obj;
+
+    var format = obj.getFormat();
+
+    var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING),
+        prevIbo = null;
+
+    var vboDiffers = !vbo.equalsGLObject(prevVbo),
+        iboDiffers = false;
+
+    if(ibo){
+        prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
+        iboDiffers = !ibo.equalsGLObject(prevIbo);
+    }
+
+    if(vboDiffers){
+        vbo.bind();
+    }
+    if(iboDiffers){
+        ibo.bind();
+    }
+
+    var vertices = obj.vertices,
+        normals  = obj.normals,
+        colors   = obj.colors,
+        texcoords= obj.texcoords;
+
+    var verticesLen = vertices.byteLength,
+        normalsLen  = normals.byteLength,
+        colorsLen   = colors.byteLength,
+        texcoordsLen= texcoords.byteLength;
+
+    if(mesh.isDirty()){
+        mesh._offsetNormals   = mesh._offsetVertices + verticesLen;
+        mesh._offsetColors    = mesh._offsetNormals + normalsLen;
+        mesh._offsetTexcoords = mesh._offsetColors + colorsLen;
+    }
+
+    var offsetVertices = mesh._offsetVertices,
+        offsetNormals  = mesh._offsetNormals,
+        offsetColors   = mesh._offsetColors,
+        offsetTexcoords= mesh._offsetTexcoords;
+
+    if(mesh._verticesDirty){
+        vbo.bufferSubData(offsetVertices,vertices);
+        mesh._verticesDirty = false;
+    }
+
+    gl.vertexAttribPointer(attribLocationVertexPos,format.vertexSize,gl.FLOAT,false,0,offsetVertices);
+
+    if(attribNormalValid){
+        if(normalsLen == 0){
+            gl.disableVertexAttribArray(attribLocationVertexNormal);
+        } else {
+            if(mesh._normalsDirty){
+                vbo.bufferSubData(offsetNormals,normals);
+                mesh._normalsDirty = false;
+            }
+            gl.vertexAttribPointer(attribLocationVertexNormal,format.normalSize,gl.FLOAT,false,0,offsetNormals);
+        }
+    }
+
+    if(attribColorValid){
+        if(colorsLen == 0){
+            gl.disableVertexAttribArray(attribLocationVertexColor);
+        } else {
+            if(mesh._colorsDirty){
+                vbo.bufferSubData(offsetColors,colors);
+                mesh._colorsDirty = false;
+            }
+            gl.vertexAttribPointer(attribLocationVertexColor,format.colorSize,gl.FLOAT,false,0,offsetColors);
+        }
+    }
+
+    if(attribTexcoordValid){
+        if(texcoordsLen == 0){
+            gl.disableVertexAttribArray(attribLocationTexcoord);
+        } else {
+            if(mesh._texcoordsDirty){
+                vbo.bufferSubData(offsetTexcoords,texcoords);
+                mesh._texcoordsDirty = false;
+            }
+            gl.vertexAttribPointer(attribLocationTexcoord,format.texcoordSize,gl.FLOAT,false,0,offsetTexcoords);
+        }
+    }
+
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+
+    if(ibo){
+        var indices = obj.indices;
+
+        if(mesh._indicesDirty){
+            ibo.bufferSubData(0,indices);
+            mesh._indicesDirty = false;
+        }
+        gl.drawElements(mesh._usage,length || indices.length,gl.UNSIGNED_SHORT,0);
+    } else {
+        gl.drawArrays(mesh._usage,0,length || (vertices.length / format.vertexSize));
+    }
+
+    if(attribNormalValid && normalsLen == 0){
+        gl.enableVertexAttribArray(attribLocationVertexNormal);
+    }
+
+    if(attribColorValid && colorsLen == 0){
+        gl.enableVertexAttribArray(attribLocationVertexColor);
+    }
+
+    if(attribTexcoordValid && texcoordsLen == 0){
+        gl.enableVertexAttribArray(attribLocationTexcoord);
+    }
+
+    if(vboDiffers){
+        gl.bindBuffer(gl.ARRAY_BUFFER, prevVbo);
+    }
+    if(iboDiffers){
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, prevIbo);
+    }
+}
+
+glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
+
+
+}
+
 
 /*--------------------------------------------------------------------------------------------*/
 //  Helper
