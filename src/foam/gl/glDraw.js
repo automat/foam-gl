@@ -2581,8 +2581,650 @@ glDraw_Internal.prototype.drawVboMesh = function(mesh,length){
 }
 
 glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
+    var gl = this._gl;
+    this._updateProgramLocations();
+
+    var attribLocationVertexPos    = this._attribLocationVertexPos,
+        attribLocationVertexNormal = this._attribLocationVertexNormal,
+        attribLocationVertexColor  = this._attribLocationVertexColor,
+        attribLocationTexcoord     = this._attribLocationTexcoord;
+
+    if(attribLocationVertexPos == -1 || vboMeshes.length == 0){
+        return;
+    }
+
+    var attribNormalValid   = attribLocationVertexNormal != -1,
+        attribColorValid    = attribLocationVertexColor  != -1,
+        attribTexcoordValid = attribLocationTexcoord     != -1;
+
+    var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING),
+        prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
 
 
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+
+    var mesh, meshVbo, meshIbo, meshObj, meshFormat;
+
+    var vertices,colors,normals,texcoords,indices;
+    var verticesLen,colorsLen,normalsLen,texcoordsLen,indicesLen;
+    var offsetVertices,offsetNormals,offsetColors,offsetTexcoords;
+
+    var i = -1, l = vboMeshes.length;
+
+    var attribNormalEnabled,attribColorEnabled,attribTexcoordEnabled;
+
+    if(attribNormalValid && attribColorValid && attribTexcoordValid){
+        attribNormalEnabled = attribColorEnabled = attribTexcoordEnabled = true;
+        while(++i < l){
+            mesh = vboMeshes[i];
+
+            meshVbo    = mesh._vbo;
+            meshIbo    = mesh._ibo;
+            meshObj    = mesh._obj;
+            meshFormat = meshObj.getFormat();
+
+            vertices  = meshObj.vertices;
+            normals   = meshObj.normals;
+            colors    = meshObj.colors;
+            texcoords = meshObj.texcoords;
+
+            verticesLen  = vertices.byteLength;
+            normalsLen   = normals.byteLength;
+            colorsLen    = colors.byteLength;
+            texcoordsLen = texcoords.byteLength;
+
+            if(verticesLen == 0){
+                continue;
+            }
+
+
+            meshVbo.bind();
+            if(meshIbo){
+                meshIbo.bind();
+            }
+
+            if(mesh.isDirty()){
+                mesh._offsetNormals   = mesh._offsetVertices + verticesLen;
+                mesh._offsetColors    = mesh._offsetNormals + normalsLen;
+                mesh._offsetTexcoords = mesh._offsetColors + colorsLen;
+            }
+
+            offsetVertices = mesh._offsetVertices;
+            offsetNormals  = mesh._offsetNormals;
+            offsetColors   = mesh._offsetColors;
+            offsetTexcoords= mesh._offsetTexcoords;
+
+            if(mesh._verticesDirty){
+                meshVbo.bufferSubData(offsetVertices,vertices);
+                mesh._verticesDirty = false;
+            }
+
+            gl.vertexAttribPointer(attribLocationVertexPos,meshFormat.vertexSize,gl.FLOAT,false,0,offsetVertices);
+
+            if(normalsLen == 0){
+                gl.disableVertexAttribArray(attribLocationVertexNormal);
+            } else {
+                if(!attribNormalEnabled){
+                    gl.enableVertexAttribArray(attribLocationVertexNormal);
+                }
+                if(mesh._normalsDirty){
+                    meshVbo.bufferSubData(offsetNormals,normals);
+                    mesh._normalsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationVertexNormal,meshFormat.normalSize,gl.FLOAT,false,0,offsetNormals);
+            }
+
+            if(colorsLen == 0){
+                gl.disableVertexAttribArray(attribLocationVertexNormal);
+            } else {
+                if(!attribColorEnabled){
+                    gl.enableVertexAttribArray(attribLocationVertexColor);
+                }
+                if(mesh._colorsDirty){
+                    meshVbo.bufferSubData(offsetColors,colors);
+                    mesh._colorsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationVertexColor,meshFormat.colorSize,gl.FLOAT,false,0,offsetColors);
+            }
+
+            if(texcoordsLen == 0){
+                gl.disableVertexAttribArray(attribLocationTexcoord);
+            } else {
+                if(!attribTexcoordEnabled){
+                    gl.enableVertexAttribArray(attribLocationTexcoord);
+                }
+                if(mesh._texcoordsDirty){
+                    meshVbo.bufferSubData(offsetTexcoords,texcoords);
+                    mesh._texcoordsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationTexcoord,meshFormat.texcoordSize,gl.FLOAT,false,0,offsetTexcoords);
+            }
+
+            if(meshIbo){
+                indices = meshObj.indices;
+                if(mesh._indicesDirty){
+                    meshIbo.bufferSubData(0,indices);
+                    mesh._indicesDirty = false;
+                }
+                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+            } else {
+                gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            attribNormalEnabled   = normalsLen != 0;
+            attribColorEnabled    = colorsLen  != 0;
+            attribTexcoordEnabled = texcoordsLen != 0;
+        }
+
+        if(!attribNormalEnabled){
+            gl.enableVertexAttribArray(attribLocationVertexNormal);
+        }
+        if(!attribColorEnabled){
+            gl.enableVertexAttribArray(attribLocationVertexColor);
+        }
+        if(!attribTexcoordEnabled){
+            gl.enableVertexAttribArray(attribLocationTexcoord);
+        }
+
+    } else if(attribNormalValid && attribColorValid){
+        attribNormalEnabled = attribColorEnabled = true;
+
+        while(++i < l){
+            mesh = vboMeshes[i];
+
+            meshVbo    = mesh._vbo;
+            meshIbo    = mesh._ibo;
+            meshObj    = mesh._obj;
+            meshFormat = meshObj.getFormat();
+
+            vertices  = meshObj.vertices;
+            normals   = meshObj.normals;
+            colors    = meshObj.colors;
+            texcoords = meshObj.texcoords;
+
+            verticesLen  = vertices.byteLength;
+            normalsLen   = normals.byteLength;
+            colorsLen    = colors.byteLength;
+            texcoordsLen = texcoords.byteLength;
+
+            if(verticesLen == 0){
+                continue;
+            }
+
+            meshVbo.bind();
+            if(meshIbo){
+                meshIbo.bind();
+            }
+
+            if(mesh.isDirty()){
+                mesh._offsetNormals   = mesh._offsetVertices + verticesLen;
+                mesh._offsetColors    = mesh._offsetNormals + normalsLen;
+                mesh._offsetTexcoords = mesh._offsetColors + colorsLen;
+            }
+
+            offsetVertices = mesh._offsetVertices;
+            offsetNormals  = mesh._offsetNormals;
+            offsetColors   = mesh._offsetColors;
+
+            if(mesh._verticesDirty){
+                meshVbo.bufferSubData(offsetVertices,vertices);
+                mesh._verticesDirty = false;
+            }
+
+            gl.vertexAttribPointer(attribLocationVertexPos,meshFormat.vertexSize,gl.FLOAT,false,0,offsetVertices);
+
+            if(normalsLen == 0){
+                gl.disableVertexAttribArray(attribLocationVertexNormal);
+            } else {
+                if(!attribNormalEnabled){
+                    gl.enableVertexAttribArray(attribLocationVertexNormal);
+                }
+                if(mesh._normalsDirty){
+                    meshVbo.bufferSubData(offsetNormals,normals);
+                    mesh._normalsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationVertexNormal,meshFormat.normalSize,gl.FLOAT,false,0,offsetNormals);
+            }
+
+            if(colorsLen == 0){
+                gl.disableVertexAttribArray(attribLocationVertexNormal);
+            } else {
+                if(!attribColorEnabled){
+                    gl.enableVertexAttribArray(attribLocationVertexColor);
+                }
+                if(mesh._colorsDirty){
+                    meshVbo.bufferSubData(offsetColors,colors);
+                    mesh._colorsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationVertexColor,meshFormat.colorSize,gl.FLOAT,false,0,offsetColors);
+            }
+
+            if(meshIbo){
+                indices = meshObj.indices;
+                if(mesh._indicesDirty){
+                    meshIbo.bufferSubData(0,indices);
+                    mesh._indicesDirty = false;
+                }
+                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+            } else {
+                gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            attribNormalEnabled   = normalsLen != 0;
+            attribColorEnabled    = colorsLen  != 0;
+        }
+
+        if(!attribNormalEnabled){
+            gl.enableVertexAttribArray(attribLocationVertexNormal);
+        }
+        if(!attribColorEnabled){
+            gl.enableVertexAttribArray(attribLocationVertexColor);
+        }
+
+    } else if(attribColorValid && attribTexcoordValid){
+        attribColorEnabled = attribTexcoordEnabled = true;
+
+        while(++i < l){
+            mesh = vboMeshes[i];
+
+            meshVbo    = mesh._vbo;
+            meshIbo    = mesh._ibo;
+            meshObj    = mesh._obj;
+            meshFormat = meshObj.getFormat();
+
+            vertices  = meshObj.vertices;
+            normals   = meshObj.normals;
+            colors    = meshObj.colors;
+            texcoords = meshObj.texcoords;
+
+            verticesLen  = vertices.byteLength;
+            normalsLen   = normals.byteLength;
+            colorsLen    = colors.byteLength;
+            texcoordsLen = texcoords.byteLength;
+
+            if(verticesLen == 0){
+                continue;
+            }
+
+            meshVbo.bind();
+            if(meshIbo){
+                meshIbo.bind();
+            }
+
+            if(mesh.isDirty()){
+                mesh._offsetNormals   = mesh._offsetVertices + verticesLen;
+                mesh._offsetColors    = mesh._offsetNormals + normalsLen;
+                mesh._offsetTexcoords = mesh._offsetColors + colorsLen;
+            }
+
+            offsetVertices = mesh._offsetVertices;
+            offsetColors   = mesh._offsetColors;
+            offsetTexcoords= mesh._offsetTexcoords;
+
+            if(mesh._verticesDirty){
+                meshVbo.bufferSubData(offsetVertices,vertices);
+                mesh._verticesDirty = false;
+            }
+
+            gl.vertexAttribPointer(attribLocationVertexPos,meshFormat.vertexSize,gl.FLOAT,false,0,offsetVertices);
+
+            if(colorsLen == 0){
+                gl.disableVertexAttribArray(attribLocationVertexNormal);
+            } else {
+                if(!attribColorEnabled){
+                    gl.enableVertexAttribArray(attribLocationVertexColor);
+                }
+                if(mesh._colorsDirty){
+                    meshVbo.bufferSubData(offsetColors,colors);
+                    mesh._colorsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationVertexColor,meshFormat.colorSize,gl.FLOAT,false,0,offsetColors);
+            }
+
+            if(texcoordsLen == 0){
+                gl.disableVertexAttribArray(attribLocationTexcoord);
+            } else {
+                if(!attribTexcoordEnabled){
+                    gl.enableVertexAttribArray(attribLocationTexcoord);
+                }
+                if(mesh._texcoordsDirty){
+                    meshVbo.bufferSubData(offsetTexcoords,texcoords);
+                    mesh._texcoordsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationTexcoord,meshFormat.texcoordSize,gl.FLOAT,false,0,offsetTexcoords);
+            }
+
+            if(meshIbo){
+                indices = meshObj.indices;
+                if(mesh._indicesDirty){
+                    meshIbo.bufferSubData(0,indices);
+                    mesh._indicesDirty = false;
+                }
+                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+            } else {
+                gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            attribNormalEnabled   = normalsLen != 0;
+            attribTexcoordEnabled = texcoordsLen != 0;
+        }
+        if(!attribNormalEnabled){
+            gl.enableVertexAttribArray(attribLocationVertexNormal);
+        }
+        if(!attribTexcoordEnabled){
+            gl.enableVertexAttribArray(attribLocationTexcoord);
+        }
+
+    } else if(attribTexcoordValid && attribNormalValid){
+        attribTexcoordEnabled = attribNormalValid = true;
+
+        while(++i < l){
+            mesh = vboMeshes[i];
+
+            meshVbo    = mesh._vbo;
+            meshIbo    = mesh._ibo;
+            meshObj    = mesh._obj;
+            meshFormat = meshObj.getFormat();
+
+            vertices  = meshObj.vertices;
+            normals   = meshObj.normals;
+            colors    = meshObj.colors;
+            texcoords = meshObj.texcoords;
+
+            verticesLen  = vertices.byteLength;
+            normalsLen   = normals.byteLength;
+            colorsLen    = colors.byteLength;
+            texcoordsLen = texcoords.byteLength;
+
+            if(verticesLen == 0){
+                continue;
+            }
+
+            meshVbo.bind();
+            if(meshIbo){
+                meshIbo.bind();
+            }
+
+            if(mesh.isDirty()){
+                mesh._offsetNormals   = mesh._offsetVertices + verticesLen;
+                mesh._offsetColors    = mesh._offsetNormals + normalsLen;
+                mesh._offsetTexcoords = mesh._offsetColors + colorsLen;
+            }
+
+            offsetVertices = mesh._offsetVertices;
+            offsetNormals  = mesh._offsetNormals;
+            offsetTexcoords= mesh._offsetTexcoords;
+
+            if(mesh._verticesDirty){
+                meshVbo.bufferSubData(offsetVertices,vertices);
+                mesh._verticesDirty = false;
+            }
+
+            gl.vertexAttribPointer(attribLocationVertexPos,meshFormat.vertexSize,gl.FLOAT,false,0,offsetVertices);
+
+            if(texcoordsLen == 0){
+                gl.disableVertexAttribArray(attribLocationTexcoord);
+            } else {
+                if(!attribTexcoordEnabled){
+                    gl.enableVertexAttribArray(attribLocationTexcoord);
+                }
+                if(mesh._texcoordsDirty){
+                    meshVbo.bufferSubData(offsetTexcoords,texcoords);
+                    mesh._texcoordsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationTexcoord,meshFormat.texcoordSize,gl.FLOAT,false,0,offsetTexcoords);
+            }
+
+            if(normalsLen == 0){
+                gl.disableVertexAttribArray(attribLocationVertexNormal);
+            } else {
+                if(!attribNormalEnabled){
+                    gl.enableVertexAttribArray(attribLocationVertexNormal);
+                }
+                if(mesh._normalsDirty){
+                    meshVbo.bufferSubData(offsetNormals,normals);
+                    mesh._normalsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationVertexNormal,meshFormat.normalSize,gl.FLOAT,false,0,offsetNormals);
+            }
+
+            if(meshIbo){
+                indices = meshObj.indices;
+                if(mesh._indicesDirty){
+                    meshIbo.bufferSubData(0,indices);
+                    mesh._indicesDirty = false;
+                }
+                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+            } else {
+                gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            attribTexcoordEnabled = texcoordsLen != 0;
+            attribNormalEnabled   = normalsLen != 0;
+        }
+        if(!attribTexcoordEnabled){
+            gl.enableVertexAttribArray(attribLocationTexcoord);
+        }
+        if(!attribNormalValid){
+            gl.enableVertexAttribArray(attribLocationVertexNormal);
+        }
+
+    } else if(attribNormalValid){
+        attribNormalEnabled = true;
+
+        while(++i < l){
+            mesh = vboMeshes[i];
+
+            meshVbo    = mesh._vbo;
+            meshIbo    = mesh._ibo;
+            meshObj    = mesh._obj;
+            meshFormat = meshObj.getFormat();
+
+            vertices  = meshObj.vertices;
+            normals   = meshObj.normals;
+            colors    = meshObj.colors;
+            texcoords = meshObj.texcoords;
+
+            verticesLen  = vertices.byteLength;
+            normalsLen   = normals.byteLength;
+            colorsLen    = colors.byteLength;
+            texcoordsLen = texcoords.byteLength;
+
+            if(verticesLen == 0){
+                continue;
+            }
+
+            meshVbo.bind();
+            if(meshIbo){
+                meshIbo.bind();
+            }
+
+            if(mesh.isDirty()){
+                mesh._offsetNormals   = mesh._offsetVertices + verticesLen;
+                mesh._offsetColors    = mesh._offsetNormals + normalsLen;
+                mesh._offsetTexcoords = mesh._offsetColors + colorsLen;
+            }
+
+            offsetVertices = mesh._offsetVertices;
+            offsetNormals  = mesh._offsetNormals;
+
+            if(mesh._verticesDirty){
+                meshVbo.bufferSubData(offsetVertices,vertices);
+                mesh._verticesDirty = false;
+            }
+
+            gl.vertexAttribPointer(attribLocationVertexPos,meshFormat.vertexSize,gl.FLOAT,false,0,offsetVertices);
+
+            if(normalsLen == 0){
+                gl.disableVertexAttribArray(attribLocationVertexNormal);
+            } else {
+                if(!attribNormalEnabled){
+                    gl.enableVertexAttribArray(attribLocationVertexNormal);
+                }
+                if(mesh._normalsDirty){
+                    meshVbo.bufferSubData(offsetNormals,normals);
+                    mesh._normalsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationVertexNormal,meshFormat.normalSize,gl.FLOAT,false,0,offsetNormals);
+            }
+
+            if(meshIbo){
+                indices = meshObj.indices;
+                if(mesh._indicesDirty){
+                    meshIbo.bufferSubData(0,indices);
+                    mesh._indicesDirty = false;
+                }
+                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+            } else {
+                gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            attribNormalEnabled   = normalsLen != 0;
+        }
+
+    } else if(attribColorValid){
+        attribColorEnabled = true;
+
+        while(++i < l){
+            mesh = vboMeshes[i];
+
+            meshVbo    = mesh._vbo;
+            meshIbo    = mesh._ibo;
+            meshObj    = mesh._obj;
+            meshFormat = meshObj.getFormat();
+
+            vertices  = meshObj.vertices;
+            normals   = meshObj.normals;
+            colors    = meshObj.colors;
+            texcoords = meshObj.texcoords;
+
+            verticesLen  = vertices.byteLength;
+            normalsLen   = normals.byteLength;
+            colorsLen    = colors.byteLength;
+            texcoordsLen = texcoords.byteLength;
+
+            if(verticesLen == 0){
+                continue;
+            }
+
+            meshVbo.bind();
+            if(meshIbo){
+                meshIbo.bind();
+            }
+
+            if(mesh.isDirty()){
+                mesh._offsetNormals   = mesh._offsetVertices + verticesLen;
+                mesh._offsetColors    = mesh._offsetNormals + normalsLen;
+                mesh._offsetTexcoords = mesh._offsetColors + colorsLen;
+            }
+
+            offsetVertices = mesh._offsetVertices;
+            offsetColors   = mesh._offsetColors;
+
+            if(mesh._verticesDirty){
+                meshVbo.bufferSubData(offsetVertices,vertices);
+                mesh._verticesDirty = false;
+            }
+
+            gl.vertexAttribPointer(attribLocationVertexPos,meshFormat.vertexSize,gl.FLOAT,false,0,offsetVertices);
+
+            if(colorsLen == 0){
+                gl.disableVertexAttribArray(attribLocationVertexNormal);
+            } else {
+                if(!attribColorEnabled){
+                    gl.enableVertexAttribArray(attribLocationVertexColor);
+                }
+                if(mesh._colorsDirty){
+                    meshVbo.bufferSubData(offsetColors,colors);
+                    mesh._colorsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationVertexColor,meshFormat.colorSize,gl.FLOAT,false,0,offsetColors);
+            }
+
+            if(meshIbo){
+                indices = meshObj.indices;
+                if(mesh._indicesDirty){
+                    meshIbo.bufferSubData(0,indices);
+                    mesh._indicesDirty = false;
+                }
+                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+            } else {
+                gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            attribColorEnabled = colorsLen != 0;
+        }
+        if(!attribColorEnabled){
+            gl.enableVertexAttribArray(attribLocationVertexColor);
+        }
+    } else if(attribTexcoordValid){
+        attribTexcoordEnabled = true;
+
+        while(++i < l){
+            mesh = vboMeshes[i];
+
+            meshVbo    = mesh._vbo;
+            meshIbo    = mesh._ibo;
+            meshObj    = mesh._obj;
+            meshFormat = meshObj.getFormat();
+
+            vertices  = meshObj.vertices;
+            normals   = meshObj.normals;
+            colors    = meshObj.colors;
+            texcoords = meshObj.texcoords;
+
+            verticesLen  = vertices.byteLength;
+            normalsLen   = normals.byteLength;
+            colorsLen    = colors.byteLength;
+            texcoordsLen = texcoords.byteLength;
+
+            if(verticesLen == 0){
+                continue;
+            }
+
+            meshVbo.bind();
+            if(meshIbo){
+                meshIbo.bind();
+            }
+
+            if(mesh.isDirty()){
+                mesh._offsetNormals   = mesh._offsetVertices + verticesLen;
+                mesh._offsetColors    = mesh._offsetNormals + normalsLen;
+                mesh._offsetTexcoords = mesh._offsetColors + colorsLen;
+            }
+
+            offsetVertices = mesh._offsetVertices;
+            offsetTexcoords= mesh._offsetTexcoords;
+
+            if(mesh._verticesDirty){
+                meshVbo.bufferSubData(offsetVertices,vertices);
+                mesh._verticesDirty = false;
+            }
+
+            gl.vertexAttribPointer(attribLocationVertexPos,meshFormat.vertexSize,gl.FLOAT,false,0,offsetVertices);
+
+            if(texcoordsLen == 0){
+                gl.disableVertexAttribArray(attribLocationTexcoord);
+            } else {
+                if(!attribTexcoordEnabled){
+                    gl.enableVertexAttribArray(attribLocationTexcoord);
+                }
+                if(mesh._texcoordsDirty){
+                    meshVbo.bufferSubData(offsetTexcoords,texcoords);
+                    mesh._texcoordsDirty = false;
+                }
+                gl.vertexAttribPointer(attribLocationTexcoord,meshFormat.texcoordSize,gl.FLOAT,false,0,offsetTexcoords);
+            }
+            attribTexcoordEnabled = texcoordsLen != 0;
+        }
+        if(!attribTexcoordEnabled){
+            gl.enableVertexAttribArray(attribLocationTexcoord);
+        }
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER,prevVbo);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,prevIbo);
 }
 
 
