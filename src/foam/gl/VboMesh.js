@@ -43,6 +43,9 @@ VboMesh.prototype.setUsage = function(usage){
 	this._usage = usage;
 };
 
+VboMesh.prototype.getUsage = function(){
+	return this._usage;
+};
 
 VboMesh.prototype.setDataUsage = function(usage){
 	this._vboUsage = usage;
@@ -52,30 +55,53 @@ VboMesh.prototype.setIndexUsage = function(usage){
 	this._iboUsage = usage;
 };
 
+/**
+ * Rebuffers the vertex data.
+ */
+
 VboMesh.prototype.updateVertexBuffer = function(){
 	this._verticesDirty = true;
 };
+
+/**
+ * Rebuffers the normal data.
+ */
 
 VboMesh.prototype.updateNormalBuffer = function(){
 	this._normalsDirty = true;
 };
 
+/**
+ * Rebuffers the color data.
+ */
+
 VboMesh.prototype.updateColorBuffer = function(){
 	this._colorsDirty = true;
 };
+
+/**
+ * Rebuffers the texcoord data.
+ */
 
 VboMesh.prototype.updateTexcoordBuffer = function(){
 	this._texcoordsDirty = true;
 };
 
+/**
+ * Rebuffers the index data.
+ */
+
 VboMesh.prototype.updateIndexBuffer = function(){
 	this._indicesDirty = true;
 };
 
-//friend class glDraw
+/**
+ * Draws the mesh.
+ * @param {Number} [length] - Optional vertices or indices length to be drawn.
+ */
 
 VboMesh.prototype.draw = function(length){
-	this._glDraw.drawVboMesh(this,length);
+	this._glDraw.drawVboMesh(this,length); //friend class glDraw
 };
 
 VboMesh.prototype._updateVboSize = function(){
@@ -130,6 +156,10 @@ VboMesh.prototype._updateIboSize = function(){
 	}
 };
 
+/**
+ * Reserves data sizes for vertices, normals, colors, normals & indices.
+ * @param size
+ */
 
 VboMesh.prototype.reserveSize = function(size){
 	var obj = this._obj;
@@ -141,11 +171,16 @@ VboMesh.prototype.reserveSize = function(size){
 	this._updateIboSize();
 };
 
+/**
+ * Sets the vertex data.
+ * @param vertices
+ */
 
 VboMesh.prototype.setVertices = function(vertices){
 	this._obj.setVertices(vertices);
 	this._updateVboSize();
 };
+
 
 VboMesh.prototype.setVertex = function(index,vec){
 	this._obj.setVertex(index,vec);
