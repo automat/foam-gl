@@ -4,7 +4,8 @@ var ObjectUtil = require('../util/ObjectUtil'),
     Vec2 = require('../math/Vec2'),
     Vec3 = require('../math/Vec3'),
     AABB = require('../geom/AABB'),
-    Color = require('../util/Color');
+    Color = require('../util/Color'),
+    Matrix44 = require('../math/Matrix44');
 
 function Mesh(format,size) {
     glObject.apply(this);
@@ -19,6 +20,8 @@ function Mesh(format,size) {
     this.texcoords = new Float32Array(size * format.texcoordSize);
     this.indices   = new Uint16Array(0);
 
+    this._transform = null;
+    this._transformTemp = new Matrix44();
 }
 
 Mesh.prototype = Object.create(glObject.prototype);
@@ -29,6 +32,54 @@ Mesh.Format = function(){
     this.normalSize   = 3;
     this.colorSize    = 4;
     this.texcoordSize = 2;
+};
+
+Mesh.prototype.transform = function(matrix){
+    this._transform = matrix;
+};
+
+Mesh.prototype.clearTransform = function(){
+    this._transform = null;
+};
+
+Mesh.prototype.translate = function(vec){
+    this._transform = (this._transform || new Matrix44())
+        .mult(Matrix44.createTranslation(vec.x,vec.y,vec.z,this._transformTemp.identity()));
+};
+
+Mesh.prototype.translate3f = function(x,y,z){
+    this._transform = (this._transform || new Matrix44())
+        .mult(Matrix44.createTranslation(x,y,z,this._transformTemp.identity()));
+};
+
+Mesh.prototype.scale = function(vec){
+    this._transform = (this._transform || new Matrix44())
+        .mult(Matrix44.createScale(vec.x,vec.y,vec.z,this._transformTemp.identity()));
+};
+
+Mesh.prototype.scale3f = function(x,y,z){
+    this._transform = (this._transform || new Matrix44())
+        .mult(Matrix44.createScale(x,y,z,this._transformTemp.identity()));
+};
+
+Mesh.prototype.rotate = function(vec){
+    this._transform = (this._transform || new Matrix44())
+        .mult(Matrix44.createRotation(vec.x,vec.y,vec.z),this._transformTemp.identity());
+};
+
+Mesh.prototype.rotate3f = function(x,y,z){
+    this._transform = (this._transform || new Matrix44())
+        .mult(Matrix44.createRotation(x,y,z),this._transformTemp.identity());
+};
+
+Mesh.prototype.rotateAxis = function(angle,vec){
+    this._transform = (this._transform || new Matrix44())
+        .mult(Matrix44.createRotationOnAxis(angle,vec.x,vec.y,vec.z,this._transformTemp.identity()));
+};
+
+Mesh.prototype.rotateAxis3f = function(angle,x,y,z){
+    this._transform = (this._transform || new Matrix44())
+        .mult(Matrix44.createRotationOnAxis(angle,x,y,z,this._transformTemp.identity()));
 };
 
 

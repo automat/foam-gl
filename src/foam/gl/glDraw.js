@@ -2545,8 +2545,18 @@ glDraw_Internal.prototype.drawVboMesh = function(mesh,length){
         }
     }
 
+
+    if(obj._transform){
+        glTrans.pushMatrix();
+        glTrans.multMatrix(obj._transform);
+    }
+
     gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
     gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+
+    if(obj._transform){
+        glTrans.popMatrix();
+    }
 
     if(ibo){
         var indices = obj.indices;
@@ -2601,7 +2611,6 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
         prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
 
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
     gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
 
     var mesh, meshVbo, meshIbo, meshObj, meshFormat;
@@ -2701,6 +2710,13 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.vertexAttribPointer(attribLocationTexcoord,meshFormat.texcoordSize,gl.FLOAT,false,0,offsetTexcoords);
             }
 
+            if(meshObj._transform){
+                glTrans.pushMatrix();
+                glTrans.multMatrix(meshObj._transform);
+            }
+
+            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+
             if(meshIbo){
                 indices = meshObj.indices;
                 if(mesh._indicesDirty){
@@ -2710,6 +2726,10 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            if(meshObj._transform){
+                glTrans.popMatrix();
             }
 
             attribNormalEnabled   = normalsLen != 0;
@@ -2800,6 +2820,14 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.vertexAttribPointer(attribLocationVertexColor,meshFormat.colorSize,gl.FLOAT,false,0,offsetColors);
             }
 
+            if(meshObj._transform){
+                glTrans.pushMatrix();
+                glTrans.multMatrix(meshObj._transform);
+            }
+
+            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+
+
             if(meshIbo){
                 indices = meshObj.indices;
                 if(mesh._indicesDirty){
@@ -2809,6 +2837,10 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            if(meshObj._transform){
+                glTrans.popMatrix();
             }
 
             attribNormalEnabled   = normalsLen != 0;
@@ -2895,6 +2927,14 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.vertexAttribPointer(attribLocationTexcoord,meshFormat.texcoordSize,gl.FLOAT,false,0,offsetTexcoords);
             }
 
+            if(meshObj._transform){
+                glTrans.pushMatrix();
+                glTrans.multMatrix(meshObj._transform);
+            }
+
+            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+
+
             if(meshIbo){
                 indices = meshObj.indices;
                 if(mesh._indicesDirty){
@@ -2904,6 +2944,10 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            if(meshObj._transform){
+                glTrans.popMatrix();
             }
 
             attribNormalEnabled   = normalsLen != 0;
@@ -2989,6 +3033,14 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.vertexAttribPointer(attribLocationVertexNormal,meshFormat.normalSize,gl.FLOAT,false,0,offsetNormals);
             }
 
+            if(meshObj._transform){
+                glTrans.pushMatrix();
+                glTrans.multMatrix(meshObj._transform);
+            }
+
+            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+
+
             if(meshIbo){
                 indices = meshObj.indices;
                 if(mesh._indicesDirty){
@@ -2998,6 +3050,10 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            if(meshObj._transform){
+                glTrans.popMatrix();
             }
 
             attribTexcoordEnabled = texcoordsLen != 0;
@@ -3069,6 +3125,14 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.vertexAttribPointer(attribLocationVertexNormal,meshFormat.normalSize,gl.FLOAT,false,0,offsetNormals);
             }
 
+            if(meshObj._transform){
+                glTrans.pushMatrix();
+                glTrans.multMatrix(meshObj._transform);
+            }
+
+            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+
+
             if(meshIbo){
                 indices = meshObj.indices;
                 if(mesh._indicesDirty){
@@ -3078,6 +3142,10 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            if(meshObj._transform){
+                glTrans.popMatrix();
             }
 
             attribNormalEnabled   = normalsLen != 0;
@@ -3142,6 +3210,14 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.vertexAttribPointer(attribLocationVertexColor,meshFormat.colorSize,gl.FLOAT,false,0,offsetColors);
             }
 
+            if(meshObj._transform){
+                glTrans.pushMatrix();
+                glTrans.multMatrix(meshObj._transform);
+            }
+
+            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+
+
             if(meshIbo){
                 indices = meshObj.indices;
                 if(mesh._indicesDirty){
@@ -3151,6 +3227,10 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            if(meshObj._transform){
+                glTrans.popMatrix();
             }
 
             attribColorEnabled = colorsLen != 0;
@@ -3216,6 +3296,30 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 }
                 gl.vertexAttribPointer(attribLocationTexcoord,meshFormat.texcoordSize,gl.FLOAT,false,0,offsetTexcoords);
             }
+
+            if(meshObj._transform){
+                glTrans.pushMatrix();
+                glTrans.multMatrix(meshObj._transform);
+            }
+
+            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+
+            if(meshIbo){
+                indices = meshObj.indices;
+                if(mesh._indicesDirty){
+                    meshIbo.bufferSubData(0,indices);
+                    mesh._indicesDirty = false;
+                }
+                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+            } else {
+                gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
+            }
+
+            if(meshObj._transform){
+                glTrans.popMatrix();
+            }
+
+
             attribTexcoordEnabled = texcoordsLen != 0;
         }
         if(!attribTexcoordEnabled){

@@ -156,6 +156,47 @@ VboMesh.prototype._updateIboSize = function(){
 	}
 };
 
+
+VboMesh.prototype.transform = function(matrix){
+	this._obj.transform(matrix);
+};
+
+VboMesh.prototype.clearTransform = function(){
+	this._obj.clearTransform()
+};
+
+VboMesh.prototype.translate = function(vec){
+	this._obj.translate(vec);
+};
+
+VboMesh.prototype.translate3f = function(x,y,z){
+	this._obj.translate3f(x,y,z);
+};
+
+VboMesh.prototype.scale = function(vec){
+	this._obj.scale(vec);
+};
+
+VboMesh.prototype.scale3f = function(x,y,z){
+	this._obj.scale3f(x,y,z);
+};
+
+VboMesh.prototype.rotate = function(vec){
+	this._obj.rotate(vec);
+};
+
+VboMesh.prototype.rotate3f = function(x,y,z){
+	this._obj.rotate3f(x,y,z);
+};
+
+VboMesh.prototype.rotateAxis = function(angle,vec){
+	this._obj.rotateAxis(angle,vec);
+};
+
+VboMesh.prototype.rotateAxis3f = function(angle,x,y,z){
+	this._obj.rotateAxis3f(angle,x,y,z);
+};
+
 /**
  * Reserves data sizes for vertices, normals, colors, normals & indices.
  * @param size
