@@ -156,6 +156,11 @@ VboMesh.prototype._updateIboSize = function(){
 	}
 };
 
+VboMesh.prototype.appendMesh = function(meshOrVboMesh){
+	this._obj.appendMesh(meshOrVboMesh._obj || meshOrVboMesh);
+	this._updateVboSize();
+	this._updateIboSize();
+};
 
 VboMesh.prototype.transform = function(matrix){
 	this._obj.transform(matrix);
@@ -179,6 +184,10 @@ VboMesh.prototype.scale = function(vec){
 
 VboMesh.prototype.scale3f = function(x,y,z){
 	this._obj.scale3f(x,y,z);
+};
+
+VboMesh.prototype.scale1f = function(x){
+	this._obj.scale1f(x);
 };
 
 VboMesh.prototype.rotate = function(vec){
