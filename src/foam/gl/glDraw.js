@@ -2610,8 +2610,14 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
     var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING),
         prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
 
+    var uniformLocationModelViewMatrix = this._uniformLocationModelViewMatrix;
 
+
+    var globalTransform = new Float32Array(glTrans.getModelViewMatrixF32());
+    var prevHadLocalTransform = false;
     gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
+
 
     var mesh, meshVbo, meshIbo, meshObj, meshFormat;
 
@@ -2622,6 +2628,7 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
     var i = -1, l = vboMeshes.length;
 
     var attribNormalEnabled,attribColorEnabled,attribTexcoordEnabled;
+
 
     if(attribNormalValid && attribColorValid && attribTexcoordValid){
         attribNormalEnabled = attribColorEnabled = attribTexcoordEnabled = true;
@@ -2713,9 +2720,13 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
             if(meshObj._transform){
                 glTrans.pushMatrix();
                 glTrans.multMatrix(meshObj._transform);
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+                prevHadLocalTransform = true;
+            } else if(prevHadLocalTransform) {
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
+                prevHadLocalTransform = false;
             }
 
-            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
 
             if(meshIbo){
                 indices = meshObj.indices;
@@ -2823,6 +2834,11 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
             if(meshObj._transform){
                 glTrans.pushMatrix();
                 glTrans.multMatrix(meshObj._transform);
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+                prevHadLocalTransform = true;
+            } else if(prevHadLocalTransform) {
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
+                prevHadLocalTransform = false;
             }
 
             gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
@@ -2930,6 +2946,11 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
             if(meshObj._transform){
                 glTrans.pushMatrix();
                 glTrans.multMatrix(meshObj._transform);
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+                prevHadLocalTransform = true;
+            } else if(prevHadLocalTransform) {
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
+                prevHadLocalTransform = false;
             }
 
             gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
@@ -3036,6 +3057,11 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
             if(meshObj._transform){
                 glTrans.pushMatrix();
                 glTrans.multMatrix(meshObj._transform);
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+                prevHadLocalTransform = true;
+            } else if(prevHadLocalTransform) {
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
+                prevHadLocalTransform = false;
             }
 
             gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
@@ -3128,6 +3154,11 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
             if(meshObj._transform){
                 glTrans.pushMatrix();
                 glTrans.multMatrix(meshObj._transform);
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+                prevHadLocalTransform = true;
+            } else if(prevHadLocalTransform) {
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
+                prevHadLocalTransform = false;
             }
 
             gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
@@ -3213,6 +3244,11 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
             if(meshObj._transform){
                 glTrans.pushMatrix();
                 glTrans.multMatrix(meshObj._transform);
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+                prevHadLocalTransform = true;
+            } else if(prevHadLocalTransform) {
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
+                prevHadLocalTransform = false;
             }
 
             gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
@@ -3300,6 +3336,11 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
             if(meshObj._transform){
                 glTrans.pushMatrix();
                 glTrans.multMatrix(meshObj._transform);
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+                prevHadLocalTransform = true;
+            } else if(prevHadLocalTransform) {
+                gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
+                prevHadLocalTransform = false;
             }
 
             gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
