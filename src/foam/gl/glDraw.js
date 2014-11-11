@@ -2841,8 +2841,6 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 prevHadLocalTransform = false;
             }
 
-            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-
 
             if(meshIbo){
                 indices = meshObj.indices;
@@ -2953,9 +2951,6 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 prevHadLocalTransform = false;
             }
 
-            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-
-
             if(meshIbo){
                 indices = meshObj.indices;
                 if(mesh._indicesDirty){
@@ -3064,9 +3059,6 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 prevHadLocalTransform = false;
             }
 
-            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-
-
             if(meshIbo){
                 indices = meshObj.indices;
                 if(mesh._indicesDirty){
@@ -3161,9 +3153,6 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 prevHadLocalTransform = false;
             }
 
-            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-
-
             if(meshIbo){
                 indices = meshObj.indices;
                 if(mesh._indicesDirty){
@@ -3250,9 +3239,6 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
                 prevHadLocalTransform = false;
             }
-
-            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-
 
             if(meshIbo){
                 indices = meshObj.indices;
@@ -3342,8 +3328,6 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
                 prevHadLocalTransform = false;
             }
-
-            gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
 
             if(meshIbo){
                 indices = meshObj.indices;
