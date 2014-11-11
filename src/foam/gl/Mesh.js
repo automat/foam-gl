@@ -57,10 +57,10 @@ Mesh.prototype.appendMesh = function(mesh){
         meshColors = mesh.colors,
         meshTexcoords = mesh.texcoords;
 
-    var vertices = new Float32Array(this.vertices),
-        normals  = new Float32Array(this.normals),
-        colors   = new Float32Array(this.colors),
-        texcoords = new Float32Array(this.texcoords);
+    var vertices = this.vertices,
+        normals  = this.normals,
+        colors   = this.colors,
+        texcoords = this.texcoords;
 
 
     var i,l;
@@ -84,7 +84,6 @@ Mesh.prototype.appendMesh = function(mesh){
     vertices = this.vertices;
 
     if(indices){
-        indices = new Uint16Array(indices);
         i = indices.length - 1;
 
         this.indices = new Uint16Array(indices.length + meshIndices.length);
