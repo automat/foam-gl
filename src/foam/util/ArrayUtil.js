@@ -195,6 +195,30 @@ var ArrayUtil = {
             array[i3+2] = point.z;
         }
         return array;
+    },
+
+    /**
+     * Returns an untyped copy ot the array.
+     * @param typedArray
+     * @returns {Array.<T>}
+     */
+    toUntypedArray : function(typedArray){
+        return Array.prototype.slice.call(typedArray);
+    },
+
+    /**
+     * Appends the second array to the first, resturns the result.
+     * @param typedArray0
+     * @param typedArray1
+     * @returns {Array.<T>}
+     */
+
+    typedArraysAppended : function(typedArray0,typedArray1){
+        var arr = new typedArray0.constructor(typedArray0.length + typedArray1.length);
+            arr.set(typedArray0);
+            arr.set(typedArray1,typedArray0.length);
+
+        return arr;
     }
 };
 
