@@ -132,16 +132,15 @@ VboMesh.prototype._updateVboSize = function(){
 };
 
 VboMesh.prototype._updateIboSize = function(){
+	var gl  = this._gl;
 	var obj = this._obj,
 		len = obj.indices.byteLength,
-		ibo = this._ibo;
-
+		ibo = this._ibo = this._ibo || new Vbo(gl.ELEMENT_ARRAY_BUFFER);
 
 	if(len <= ibo.getSize()){
 		return;
 	}
 
-	var gl = this._gl;
 	var prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
 	var iboDiffers = !ibo.equalsGLObject(prevIbo);
 	if(iboDiffers){
@@ -213,9 +212,7 @@ VboMesh.prototype.rotateAxis3f = function(angle,x,y,z){
 
 VboMesh.prototype.reserveSize = function(size){
 	var obj = this._obj;
-
 	obj.reserveSize(size);
-	this._ibo = this._ibo || new Vbo(this._gl.ELEMENT_ARRAY_BUFFER);
 
 	this._updateVboSize();
 	this._updateIboSize();
@@ -304,13 +301,11 @@ VboMesh.prototype.setTexcoords = function(texcoords){
 
 VboMesh.prototype.setIndices = function(indices){
 	this._obj.indices = ObjectUtil.safeUint16Array(indices);
-	this._ibo = this._ibo || new Vbo(this._gl.ELEMENT_ARRAY_BUFFER);
 	this._updateIboSize();
 };
 
 VboMesh.prototype.reserveIndices = function(size){
 	this._obj.reserveIndices(size);
-	this._ibo = this._ibo || new Vbo(this._gl.ELEMENT_ARRAY_BUFFER);
 	this._updateIboSize();
 };
 
