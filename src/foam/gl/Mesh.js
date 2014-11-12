@@ -1,4 +1,5 @@
 var ObjectUtil = require('../util/ObjectUtil'),
+    ArrayUtil = require('../util/ArrayUtil'),
     Id = require('../system/Id'),
     glObject = require('./glObject'),
     Vec2 = require('../math/Vec2'),
@@ -52,61 +53,32 @@ Mesh.prototype.appendMesh = function(mesh){
         throw new Error('appendMesh: Incompatible usage. Indices missing.');
     }
 
-    var meshVertices = mesh.vertices,
-        meshNormals = mesh.normals,
-        meshColors = mesh.colors,
-        meshTexcoords = mesh.texcoords;
-
-    var vertices = this.vertices,
-        normals  = this.normals,
-        colors   = this.colors,
-        texcoords = this.texcoords;
-
-
+    var verticesLen = this.vertices.length,
+        indicesLen  = this.indices.length || 0;
     var i,l;
 
-    this.vertices = new Float32Array(vertices.length + meshVertices.length);
-    this.vertices.set(vertices);
-    this.vertices.set(meshVertices,vertices.length);
+    this.vertices  = ArrayUtil.typedArraysAppended(this.vertices,  mesh.vertices);
+    this.normals   = ArrayUtil.typedArraysAppended(this.normals,   mesh.normals);
+    this.colors    = ArrayUtil.typedArraysAppended(this.colors,    mesh.colors);
+    this.texcoords = ArrayUtil.typedArraysAppended(this.texcoords, mesh.texcoords);
 
-    this.normals = new Float32Array(normals.length + meshNormals.length);
-    this.normals.set(normals);
-    this.normals.set(meshNormals,normals.length);
+    if(indicesLen){
+        indices = this.indices = ArrayUtil.typedArraysAppended(this.indices,mesh.indices);
 
-    this.colors = new Float32Array(colors.length + meshColors.length);
-    this.colors.set(colors);
-    this.colors.set(meshColors,colors.length);
-
-    this.texcoords = new Float32Array(texcoords.length + meshTexcoords.length);
-    this.texcoords.set(texcoords);
-    this.texcoords.set(meshTexcoords,texcoords.length);
-
-    vertices = this.vertices;
-
-    if(indices){
-        i = indices.length - 1;
-
-        this.indices = new Uint16Array(indices.length + meshIndices.length);
-        this.indices.set(indices);
-        this.indices.set(meshIndices,indices.length);
-
-        var verticesOffset = (vertices.length - meshVertices.length) / format.vertexSize;
-
-        indices = this.indices;
-        l = indices.length;
+        var offset = verticesLen / format.vertexSize;
+        i = indicesLen - 1; l = indices.length;
 
         while(++i < l){
-            indices[i] += verticesOffset;
+            indices[i] += offset;
         }
     }
 
-
     if(mesh._transform){
-        var vertexSize = format.vertexSize;
-        var transform = mesh._transform;
+        var vertices   = this.vertices,
+            vertexSize = format.vertexSize,
+            transform  = mesh._transform;
 
-        i = vertices.length - meshVertices.length;
-        l = vertices.length;
+        i = verticesLen; l = vertices.length;
 
         if(vertexSize == 3){
             while(i < l){
@@ -121,7 +93,6 @@ Mesh.prototype.appendMesh = function(mesh){
         } else if (vertexSize == 4){
             //
         }
-        this.caculateNormals();
     }
 };
 
