@@ -10,7 +10,7 @@ var ObjectUtil = require('../util/ObjectUtil'),
 
 function Mesh(format,size) {
     glObject.apply(this);
-    this._format = format || new Mesh.Format();
+    format = this._format = format || new Mesh.Format();
 
     this._size = size || 0;
     this._id   = Id.get();
@@ -62,7 +62,7 @@ Mesh.prototype.appendMesh = function(mesh){
     this.colors    = ArrayUtil.typedArraysAppended(this.colors,    mesh.colors);
     this.texcoords = ArrayUtil.typedArraysAppended(this.texcoords, mesh.texcoords);
 
-    if(indicesLen){
+    if(indicesLen || mesh.indices.length){
         indices = this.indices = ArrayUtil.typedArraysAppended(this.indices,mesh.indices);
 
         var offset = verticesLen / format.vertexSize;
