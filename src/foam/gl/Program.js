@@ -90,6 +90,107 @@ Program.UNIFORM_TEXTURE = 'uTexture';
 
 Program.UNIFORM_POINT_SIZE = 'uPointSize';
 
+/**
+ * The default shader light uniform. Lights are structs. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_LIGHT = 'uLight';
+
+
+Program.UNIFORM_USE_LIGHTING = 'uUseLighting';
+
+/**
+ * The default shader light struct position property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_LIGHT_STRUCT_POSITION_SUFFIX = 'position';
+
+/**
+ * The default shader light struct ambient property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_LIGHT_STRUCT_AMBIENT_SUFFIX = 'ambient';
+
+
+/**
+ * The default shader light struct diffuse property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_LIGHT_STRUCT_DIFFUSE_SUFFIX = 'diffuse';
+
+/**
+ * The default shader light struct specular property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_LIGHT_STRUCT_SPECULAR_SUFFIX = 'specular';
+
+/**
+ * The default shader light struct constant attentuation property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_LIGHT_STRUCT_CONSTANT_ATT = 'constantAttenuation';
+
+/**
+ * The default shader light struct linear attentuation property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_LIGHT_STRUCT_LINEAR_ATT = 'linearAttenuation';
+
+/**
+ * The default shader light struct quadric attentuation property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_LIGHT_STRUCT_QUADRIC_ATT = 'quadraticAttenuation';
+
+/**
+ * The default shader light uniform. Materials are structs. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_MATERIAL_STRUCT = 'uMaterial';
+
+/**
+ * The default shader material struct emission property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_MATERIAL_STRUCT_EMISSION = 'emission';
+
+/**
+ * The default shader material struct ambient property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_MATERIAL_STRUCT_AMBIENT = 'ambient';
+
+/**
+ * The default shader material struct diffuse property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_MATERIAL_STRUCT_DIFFUSE = 'diffuse';
+
+/**
+ * The default shader material struct specular property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_MATERIAL_STRUCT_SPECULAR = 'specular';
+
+/**
+ * The default shader material struct shininess property. (reassignable)
+ * @type {string}
+ */
+
+Program.UNIFORM_MATERIAL_STRUCT_SHININESS = 'shininess';
 
 Program._currentProgram = null;
 
@@ -235,5 +336,13 @@ Program.prototype.unbind = function () {
     Program._currentProgram = null;
 };
 
+
+Program.prototype.enableVertexAttribArray = function(name){
+    this._gl.enableVertexAttribArray(this[name]);
+}
+
+Program.prototype.disableVertexAttribArray = function(name){
+    this._gl.disableVertexAttribArray(this[name]);
+}
 
 module.exports = Program;
