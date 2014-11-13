@@ -33,7 +33,7 @@ function glDraw_Internal(){
 
     this._color = Color.white();
 
-    this._programId = null;
+    this._programIdLast = null;
     this._attribLocationVertexPos = null;
     this._attribLocationVertexColor = null;
     this._attribLocationVertexNormal = null;
@@ -3327,7 +3327,7 @@ glDraw_Internal.prototype._genTube = function(length, radius, arr, offset){
 glDraw_Internal.prototype._updateProgramLocations = function(){
     var gl = this._gl;
 
-    if(this._programId == Program.getCurrent().getId){
+    if(this._programIdLast == Program.getCurrent().getId){
         return;
     }
     var program   = Program.getCurrent(),
@@ -3341,7 +3341,7 @@ glDraw_Internal.prototype._updateProgramLocations = function(){
     this._uniformLocationProjectionMatrix = gl.getUniformLocation(programGl,Program.UNIFORM_PROJECTION_MATRIX);
     this._uniformLocationNormalMatrix     = gl.getUniformLocation(programGl,Program.UNIFORM_NORMAL_MATRIX);
 
-    this._programId = program.getId();
+    this._programIdLast = program.getId();
 };
 
 glDraw_Internal.prototype._applyMatrixUniforms = function(applyNormalMatrix){

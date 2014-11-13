@@ -21,6 +21,8 @@ function Material(ambient, diffuse, specular, shininess, emission) {
 
     this._tempF32 = new Float32Array(4);
 
+    //Fix this
+
     this._uniformLocationEmissionKey  = Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_EMISSION;
     this._uniformLocationAmbientKey   = Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_AMBIENT;
     this._uniformLocationDiffuseKey   = Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_DIFFUSE;
@@ -33,7 +35,7 @@ function Material(ambient, diffuse, specular, shininess, emission) {
                 this._uniformLocationSpecular =
                     this._uniformLocationShininess = null;
 
-    this._programId = null;
+    this._programIdLast = null;
 }
 
 Material.prototype.enable = function(){
@@ -44,15 +46,13 @@ Material.prototype.disable = function(){
     this._enabled = false;
 };
 
-var prevProgram = null;
-
 Material.prototype.apply = function(){
     if(!this._enabled){
         return;
     }
     var gl = this._gl;
 
-    if(Program.getCurrent().getId() != prevProgram){
+    if(Program.getCurrent().getId() != this._programIdLast){
         var program   = Program.getCurrent(),
             programGl = program.getObjGL();
         this._uniformLocationEmission = gl.getUniformLocation(programGl,this._uniformLocationEmissionKey);
@@ -60,7 +60,7 @@ Material.prototype.apply = function(){
         this._uniformLocationDiffuse  = gl.getUniformLocation(programGl,this._uniformLocationDiffuseKey);
         this._uniformLocationSpecular = gl.getUniformLocation(programGl,this._uniformLocationSpecularKey);
         this._uniformLocationShininess= gl.getUniformLocation(programGl,this._uniformLocationShininessKey);
-        this._programId = program.getId();
+        this._programIdLast = program.getId();
     }
 
     var emission = this.emission,
