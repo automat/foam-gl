@@ -140,7 +140,7 @@ function TextureFont(arraybuffer){
 
     // gl state cache, Foam.Program independent
 
-    this._programRefLast = null;
+    this._programIdLast = null;
     this._attribLocationVertexPos = null;
     this._attribLocationVertexNormal = null;
     this._attribLocationVertexColor = null;
@@ -464,21 +464,23 @@ TextureFont.prototype._drawText = function(str,color,textureUnit){
     var strLast = this._stringLast;
     var strLastMax = this._stringLastMax;
 
-    var gl      = this._gl,
-        program = gl.getParameter(gl.CURRENT_PROGRAM);
+    var gl      = this._gl;
 
     // fetch current program states
-    if(program != this._programRefLast){
-        this._attribLocationVertexPos    = gl.getAttribLocation(program,Program.ATTRIB_VERTEX_POSITION);
-        this._attribLocationVertexColor  = gl.getAttribLocation(program,Program.ATTRIB_VERTEX_COLOR);
-        this._attribLocationVertexNormal = gl.getAttribLocation(program,Program.ATTRIB_VERTEX_NORMAL);
-        this._attribLocationTexcoord     = gl.getAttribLocation(program,Program.ATTRIB_TEXCOORD);
+    if(Program.getCurrent().getId() != this._programIdLast){
+        var program = Program.getCurrent(),
+            programGl = program.getObjGL();
 
-        this._uniformLocationModelViewMatrix  = gl.getUniformLocation(program,Program.UNIFORM_MODELVIEW_MATRIX);
-        this._uniformLocationProjectionMatrix = gl.getUniformLocation(program,Program.UNIFORM_PROJECTION_MATRIX);
-        this._uniformLocationTexture          = gl.getUniformLocation(program,Program.UNIFORM_TEXTURE);
+        this._attribLocationVertexPos    = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_POSITION);
+        this._attribLocationVertexColor  = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_COLOR);
+        this._attribLocationVertexNormal = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_NORMAL);
+        this._attribLocationTexcoord     = gl.getAttribLocation(programGl,Program.ATTRIB_TEXCOORD);
 
-        this._programRefLast = program;
+        this._uniformLocationModelViewMatrix  = gl.getUniformLocation(programGl,Program.UNIFORM_MODELVIEW_MATRIX);
+        this._uniformLocationProjectionMatrix = gl.getUniformLocation(programGl,Program.UNIFORM_PROJECTION_MATRIX);
+        this._uniformLocationTexture          = gl.getUniformLocation(programGl,Program.UNIFORM_TEXTURE);
+
+        this._programIdLast = program.getId();
     }
 
     var attribLocationVertexPos    = this._attribLocationVertexPos ,

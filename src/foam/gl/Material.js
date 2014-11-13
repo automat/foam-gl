@@ -32,6 +32,8 @@ function Material(ambient, diffuse, specular, shininess, emission) {
             this._uniformLocationDiffuse =
                 this._uniformLocationSpecular =
                     this._uniformLocationShininess = null;
+
+    this._programId = null;
 }
 
 Material.prototype.enable = function(){
@@ -49,15 +51,16 @@ Material.prototype.apply = function(){
         return;
     }
     var gl = this._gl;
-    var program = gl.getParameter(gl.CURRENT_PROGRAM);
 
-    if(program != prevProgram){
-        this._uniformLocationEmission = gl.getUniformLocation(program,this._uniformLocationEmissionKey);
-        this._uniformLocationAmbient  = gl.getUniformLocation(program,this._uniformLocationAmbientKey);
-        this._uniformLocationDiffuse  = gl.getUniformLocation(program,this._uniformLocationDiffuseKey);
-        this._uniformLocationSpecular = gl.getUniformLocation(program,this._uniformLocationSpecularKey);
-        this._uniformLocationShininess= gl.getUniformLocation(program,this._uniformLocationShininessKey);
-        prevProgram = program;
+    if(Program.getCurrent().getId() != prevProgram){
+        var program   = Program.getCurrent(),
+            programGl = program.getObjGL();
+        this._uniformLocationEmission = gl.getUniformLocation(programGl,this._uniformLocationEmissionKey);
+        this._uniformLocationAmbient  = gl.getUniformLocation(programGl,this._uniformLocationAmbientKey);
+        this._uniformLocationDiffuse  = gl.getUniformLocation(programGl,this._uniformLocationDiffuseKey);
+        this._uniformLocationSpecular = gl.getUniformLocation(programGl,this._uniformLocationSpecularKey);
+        this._uniformLocationShininess= gl.getUniformLocation(programGl,this._uniformLocationShininessKey);
+        this._programId = program.getId();
     }
 
     var emission = this.emission,

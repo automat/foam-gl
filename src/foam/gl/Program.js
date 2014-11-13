@@ -1,6 +1,5 @@
-var _gl = require('./gl');
-
-var bound_0 = false;
+var _gl = require('./gl'),
+    Id  = require('../system/Id');
 
 /**
  * GLSL shader program wrapper.
@@ -11,6 +10,8 @@ var bound_0 = false;
 
 function Program(vertexShader, fragmentShader) {
     var gl = this._gl = _gl.get();
+    this._obj = null;
+    this._id  = null;
     this.load(vertexShader,fragmentShader);
 }
 
@@ -207,9 +208,9 @@ Program._currentProgram = null;
  * @returns {null|Progam}
  */
 
-Program.getCurrentProgram = function(){
+Program.getCurrent = function(){
     return Program._currentProgram;
-};
+}
 
 /**
  * Reload the program
@@ -235,14 +236,11 @@ Program.prototype.load = function(vertexShader,fragmentShader){
         fragmentShader = vertexShader;
     }
 
-    var program    = this._program = gl.createProgram(),
+    var program    = this._obj = gl.createProgram(),
         vertShader = gl.createShader(gl.VERTEX_SHADER),
         fragShader = gl.createShader(gl.FRAGMENT_SHADER);
 
-    if(!bound_0){
-        gl.bindAttribLocation(program, 0, Program.ATTRIB_VERTEX_POSITION);
-        bound_0 = true;
-    }
+    gl.bindAttribLocation(this._obj, 0, Program.ATTRIB_VERTEX_POSITION);
 
     gl.shaderSource(vertShader, prefixVertexShader + vertexShader);
     gl.compileShader(vertShader);
@@ -278,6 +276,8 @@ Program.prototype.load = function(vertexShader,fragmentShader){
         paramName = gl.getActiveAttrib(program, i).name;
         attributes[i] = this[paramName] = gl.getAttribLocation(program, paramName);
     }
+
+    this._id = Id.get();
 }
 
 /**
@@ -285,11 +285,11 @@ Program.prototype.load = function(vertexShader,fragmentShader){
  */
 
 Program.prototype.delete = function(){
-    if(!this._program){
+    if(!this._obj){
         return;
     }
-    this._gl.deleteProgram(this._program);
-    this._program = null;
+    this._gl.deleteProgram(this._obj);
+    this._obj = null;
 };
 
 /**
@@ -316,7 +316,8 @@ Program.prototype.getNumAttributes = function () {
 
 Program.prototype.bind = function () {
     var gl = this._gl;
-    gl.useProgram(this._program);
+    gl.useProgram(this._obj);
+
     var i  = -1,
         a  = this._attributes,
         n  = this._numAttributes;
@@ -347,10 +348,18 @@ Program.prototype.unbind = function () {
 
 Program.prototype.enableVertexAttribArray = function(name){
     this._gl.enableVertexAttribArray(this[name]);
-}
+};
 
 Program.prototype.disableVertexAttribArray = function(name){
     this._gl.disableVertexAttribArray(this[name]);
-}
+};
+
+Program.prototype.getId = function(){
+    return this._id;
+};
+
+Program.prototype.getObjGL = function(){
+    return this._obj;
+};
 
 module.exports = Program;
