@@ -30,15 +30,27 @@ function Light(id) {
 
 	var prefix = this._uniformPrefix = Program.UNIFORM_LIGHT + '[' + this._id + ']';
 
-	this._uniformLocationPosition   = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_POSITION_SUFFIX;
-	this._uniformLocationAmbient    = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_AMBIENT_SUFFIX;
-	this._uniformLocationDiffuse    = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_DIFFUSE_SUFFIX;
-	this._uniformLocationSpecular   = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_SPECULAR_SUFFIX;
-	this._uniformLocationConstAtt   = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_CONSTANT_ATT;
-	this._uniformLocationLinearAtt  = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_LINEAR_ATT;
-	this._uniformLocationQuadricAtt = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_QUADRIC_ATT;
+	//Fix this
+
+	this._uniformLocationPositionKey   = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_POSITION_SUFFIX;
+	this._uniformLocationAmbientKey    = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_AMBIENT_SUFFIX;
+	this._uniformLocationDiffuseKey    = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_DIFFUSE_SUFFIX;
+	this._uniformLocationSpecularKey   = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_SPECULAR_SUFFIX;
+	this._uniformLocationConstAttKey   = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_CONSTANT_ATT;
+	this._uniformLocationLinearAttKey  = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_LINEAR_ATT;
+	this._uniformLocationQuadricAttKey = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_QUADRIC_ATT;
+
+	this._uniformLocationPosition =
+		this._uniformLocationAmbient =
+			this._uniformLocationDiffuse =
+				this._uniformLocationSpecular =
+					this._uniformLocationConstAtt =
+						this._uniformLocationLinearAtt =
+							this._uniformLocationQuadricAtt = null;
 
 	this._customUniforms = {};
+
+	this._programIdLast = null;
 }
 
 Light.prototype = Object.create(glObject.prototype);
@@ -47,6 +59,7 @@ Light.prototype.constructor = Light;
 
 Light.prototype._addCustomUniform = function(attrib,type,value){
 	this._customUniforms[this._uniformPrefix + '.' + attrib] = {
+		location : null
 		type : type,
 		value : value
 	};
@@ -169,6 +182,35 @@ Light.prototype.setEye3f = function (x, y, z) {
 	this._position.set3f(x,y,z);
 };
 
+
+Light.prototype._updateUniformLocations = function(){
+	if(Program.getCurrent().getId() == this._programIdLast){
+		return;
+	}
+
+	var gl = this._gl;
+	var program   = Program.getCurrent(),
+		programGl = program.getObjGL();
+
+	this._uniformLocationPosition = gl.getUniformLocation(program, this._uniformLocationPositionKey);
+	this._uniformLocationAmbient = gl.getUniformLocation(programGl, this._uniformLocationAmbientKey);
+	this._uniformLocationDiffuse = gl.getUniformLocation(programGl, this._uniformLocationDiffuseKey);
+	this._uniformLocationSpecular = gl.getUniformLocation(programGl, this._uniformLocationSpecularKey);
+	this._uniformLocationConstAtt = gl.getUniformLocation(programGl, this._uniformLocationConstAttKey);
+	this._uniformLocationLinearAtt = gl.getUniformLocation(programGl, this._uniformLocationLinearAtt);
+	this._uniformLocationQuadricAtt = gl.getUniformLocation(programGl, this._uniformLocationQuadricAtt);
+
+	var uniform;
+
+	for(var a in uniforms){
+		uniform = uniforms[a];
+		uniform.location = gl.getUniformLocation(programGl,a);
+	}
+
+	this._programIdLast = program.getId();
+}
+
+
 var colorEmpty = new Float32Array([0,0,0]);
 
 Light.prototype._applyColors = function(){
@@ -203,6 +245,8 @@ Light.prototype._applyColors = function(){
 	gl.uniform3fv(this._uniformLocationSpecular,false,colorEmpty);
 };
 
+
+
 Light.prototype._applyAttenuation = function(){
 	if(!this._enabled){
 		return;
@@ -231,14 +275,14 @@ Light.prototype._applyCustomAttributes = function(){
 
 		if(uniformValLen &&uniformValLen > 1){
 			if(uniformValLen == 2){
-				func(uniformVal[0],uniformVal[1]);
+				func(uniform.location, uniformVal[0],uniformVal[1]);
 			} else if(uniformValLen == 3){
-				func(uniformVal[0],uniformVal[1],uniformVal[2]);
+				func(uniform.location, uniformVal[0],uniformVal[1],uniformVal[2]);
 			} else {
-				func(uniformVal[0],uniformVal[1],uniformVal[2],uniformVal[3]);
+				func(uniform.location, uniformVal[0],uniformVal[1],uniformVal[2],uniformVal[3]);
 			}
 		} else {
-			func(uniformVal);
+			func(uniform.location, uniformVal);
 		}
 	}
 };
@@ -254,7 +298,7 @@ Light.prototype._applyPosition = function(idFlag){
 	tempF32[2] = position.z;
 	tempF32[3] = idFlag;
 
-	gl.uniformMatrix4fv(this._uniformLocationPosition,false,this.position);
+	gl.uniformMatrix4fv(this._uniformLocationPositionKey,false,this.position);
 }
 
 Light.prototype.apply = function(){
