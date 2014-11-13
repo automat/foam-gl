@@ -31,6 +31,14 @@ Program.UNIFORM_MODELVIEW_MATRIX  = 'uModelViewMatrix';
 Program.UNIFORM_PROJECTION_MATRIX = 'uProjectionMatrix';
 
 /**
+ * The default shader normal matrix uniform. (reassignable)
+ * @type {string}
+ * @static
+ */
+
+Program.UNIFORM_NORMAL_MATRIX = 'uNormalMatrix';
+
+/**
  * The default shader vertex position attribute. (reassignable)
  * @type {string}
  * @static

@@ -39,6 +39,7 @@ function glDraw_Internal(){
     this._attribLocationTexcoord = null;
     this._uniformLocationModelViewMatrix = null;
     this._uniformLocationProjectionMatrix = null;
+    this._uniformLocationNormalMatrix = null;
 
     /*--------------------------------------------------------------------------------------------*/
     //  temps
@@ -642,8 +643,7 @@ glDraw_Internal.prototype.drawVectorf = function(x0,y0,z0,x1,y1,z1, headLength, 
         gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,0);
     }
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms();
 
     gl.drawArrays(gl.LINES,0,2);
     gl.drawElements(gl.TRIANGLE_FAN,this._bufferVectorIndexDataLength,gl.UNSIGNED_SHORT,0);
@@ -764,8 +764,7 @@ glDraw_Internal.prototype.drawPointsf = function(points){
         gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,vertices.byteLength);
     }
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms();
 
     gl.drawArrays(gl.POINTS,0,points.length / 3);
 
@@ -881,8 +880,7 @@ glDraw_Internal.prototype.drawLinesf = function(lines){
         gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,vertices.byteLength);
     }
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms();
 
     gl.drawArrays(gl.LINES,0,lines.length / 3);
 
@@ -976,8 +974,7 @@ glDraw_Internal.prototype.drawLineStripf = function(lineStrip){
         gl.vertexAttribPointer(attribLocationVertexColor,4,gl.FLOAT,false,0,vertex.byteLength);
     }
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms();
 
     gl.drawArrays(gl.LINE_STRIP,0,lineStrip.length / 3);
 
@@ -1079,8 +1076,7 @@ glDraw_Internal.prototype.drawLinef = function(x0,y0,z0,x1,y1,z1){
 
     gl.vertexAttribPointer(attribLocationVertexPos,3,gl.FLOAT,false,0,0);
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms();
 
     gl.drawArrays(gl.LINES,0,2);
 
@@ -1175,8 +1171,7 @@ glDraw_Internal.prototype._drawRect_Internal = function(width,height,drawMode){
     glTrans.pushMatrix();
     glTrans.scale3f(width,height,1.0);
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms();
 
     gl.drawArrays(drawMode == DrawMode.TRIANGLES ? gl.TRIANGLE_STRIP :
                   drawMode == DrawMode.LINES ? gl.LINE_LOOP : gl.POINTS,0,4);
@@ -1435,8 +1430,7 @@ glDraw_Internal.prototype._drawCircle_Internal = function(radius, drawMode){
     glTrans.pushMatrix();
     glTrans.scale1f(radius);
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms();
 
     gl.drawArrays(drawMode, 0, numSegments);
 
@@ -1800,8 +1794,7 @@ glDraw_Internal.prototype._drawCircles_Internal = function(positions, radii, dra
         gl.vertexAttribPointer(attribLocationVertexColor, 4, gl.FLOAT, false, 0, offsetCirclesColors);
     }
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms();
 
     gl.drawElements(gl.TRIANGLES,indices.length * numCircles,gl.UNSIGNED_SHORT,0);
 
@@ -1937,8 +1930,7 @@ glDraw_Internal.prototype._drawCube_Internal = function(size,drawMode){
         glTrans.scale3f(size,size,size);
     }
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms();
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,this._cubeIndexBuffer);
     switch(drawMode){
@@ -2116,8 +2108,8 @@ glDraw_Internal.prototype.drawGrid = function(size, subdivs){
     if(attribLocationVertexColor != -1){
         gl.vertexAttribPointer(this._attribLocationVertexColor, 4, gl.FLOAT, false, 0, this._gridVboOffsetColors);
     }
-    gl.uniformMatrix4fv(   this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(   this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+
+    this._applyMatrixUniforms();
 
     gl.drawElements(gl.LINES,this._gridIboLength,gl.UNSIGNED_SHORT,0);
 
@@ -2285,8 +2277,7 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
         gl.vertexAttribPointer(this._attribLocationVertexColor, 4, gl.FLOAT, false, 0,0);
     }
 
-    gl.uniformMatrix4fv(   this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(   this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms();
 
     gl.drawArrays(gl.LINES,0,6);
     gl.drawElements(gl.TRIANGLES,this._pivotIndexBufferLength,gl.UNSIGNED_SHORT,0);
@@ -2403,8 +2394,7 @@ glDraw_Internal.prototype.drawMesh = function(mesh, length, usage){
         }
     }
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms(true);
 
     if(mesh.hasIndices()){
         if(prevIbo != bufferMeshIndices){
@@ -2551,8 +2541,7 @@ glDraw_Internal.prototype.drawVboMesh = function(mesh,length){
         glTrans.multMatrix(obj._transform);
     }
 
-    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
-    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+    this._applyMatrixUniforms(true);
 
     if(obj._transform){
         glTrans.popMatrix();
@@ -2610,25 +2599,21 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
     var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING),
         prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
 
-    var uniformLocationModelViewMatrix = this._uniformLocationModelViewMatrix;
+    var uniformLocationModelViewMatrix = this._uniformLocationModelViewMatrix,
+        globalTransform = new Float32Array(glTrans.getModelViewMatrixF32()),
+        prevHadLocalTransform = false;
 
-
-    var globalTransform = new Float32Array(glTrans.getModelViewMatrixF32());
-    var prevHadLocalTransform = false;
     gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
     gl.uniformMatrix4fv(uniformLocationModelViewMatrix , false, globalTransform);
-
 
     var mesh, meshVbo, meshIbo, meshObj, meshFormat;
 
     var vertices,colors,normals,texcoords,indices;
     var verticesLen,colorsLen,normalsLen,texcoordsLen,indicesLen;
     var offsetVertices,offsetNormals,offsetColors,offsetTexcoords;
-
-    var i = -1, l = vboMeshes.length;
-
     var attribNormalEnabled,attribColorEnabled,attribTexcoordEnabled;
 
+    var i = -1, l = vboMeshes.length;
 
     if(attribNormalValid && attribColorValid && attribTexcoordValid){
         attribNormalEnabled = attribColorEnabled = attribTexcoordEnabled = true;
@@ -3344,7 +3329,6 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                 glTrans.popMatrix();
             }
 
-
             attribTexcoordEnabled = texcoordsLen != 0;
         }
         if(!attribTexcoordEnabled){
@@ -3423,9 +3407,22 @@ glDraw_Internal.prototype._updateProgramLocations = function(){
     this._attribLocationTexcoord          = gl.getAttribLocation(program,Program.ATTRIB_TEXCOORD);
     this._uniformLocationModelViewMatrix  = gl.getUniformLocation(program,Program.UNIFORM_MODELVIEW_MATRIX);
     this._uniformLocationProjectionMatrix = gl.getUniformLocation(program,Program.UNIFORM_PROJECTION_MATRIX);
+    this._uniformLocationNormalMatrix     = gl.getUniformLocation(program,Program.UNIFORM_NORMAL_MATRIX);
 
     this._program = program;
 };
+
+glDraw_Internal.prototype._applyMatrixUniforms = function(applyNormalMatrix){
+    var gl = this._gl;
+    var program = this._program;
+
+    gl.uniformMatrix4fv(this._uniformLocationModelViewMatrix , false, glTrans.getModelViewMatrixF32());
+    gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
+
+    if(this._uniformLocationNormalMatrix != -1 && applyNormalMatrix){
+        gl.uniformMatrix4fv(this._uniformLocationNormalMatrix, false, glTrans.getNormalMatrixF32());
+    }
+}
 
 /**
  * Set the color used by all glDraw draw methods.
