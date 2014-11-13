@@ -5,6 +5,7 @@ function SpotLight(id) {
 }
 
 SpotLight.prototype = Object.create(DirectionalLight.prototype);
+SpotLight.prototype.constructor = SpotLight;
 
 SpotLight.prototype.setExponent = function () {
 };

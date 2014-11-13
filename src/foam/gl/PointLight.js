@@ -5,5 +5,6 @@ function PointLight(id) {
 }
 
 PointLight.prototype = Object.create(Light.prototype);
+PointLight.prototype.constructor = PointLight;
 
 module.exports = PointLight;
