@@ -15,7 +15,7 @@ function CameraPersp() {
                         DEFAULT_NEAR,
                         DEFAULT_FAR);
     this.setEye(Vec3.one());
-    this.updateModelViewMatrix();
+    this.updateViewMatrix();
 }
 
 CameraPersp.prototype = Object.create(CameraAbstract.prototype);
@@ -28,32 +28,32 @@ CameraPersp.prototype.setPerspective = function (fov, windowAspectRatio, near, f
 
     this._aspectRatio = windowAspectRatio;
 
-    this._projectionMatrixUpdated = false;
+    this._projectionMatrixDirty = false;
     this.updateProjectionMatrix();
 };
 
 CameraPersp.prototype.setDistance = function(dist){
     this._eye.set(this._target.subbed(this._eye).normalize().scale(dist));
-    this._modelViewMatrixUpdated = false;
+    this._viewMatrixDirty = false;
 };
 
-CameraPersp.prototype.updateModelViewMatrix = function () {
-    if (this._modelViewMatrixUpdated){
+CameraPersp.prototype.updateViewMatrix = function () {
+    if (this._viewMatrixDirty){
         return;
     }
     var eye = this._eye,
         target = this._target,
         up = this._up;
 
-    glu.lookAt(this.modelViewMatrix.m, eye.x, eye.y, eye.z, target.x, target.y, target.z, up.x, up.y, up.z);
+    glu.lookAt(this.viewMatrix.m, eye.x, eye.y, eye.z, target.x, target.y, target.z, up.x, up.y, up.z);
 
     this._updateOnB();
-    this._modelViewMatrixUpdated = true;
+    this._viewMatrixDirty = true;
 };
 
 
 CameraPersp.prototype.updateProjectionMatrix = function () {
-    if (this._projectionMatrixUpdated){
+    if (this._projectionMatrixDirty){
         return;
     }
     var aspectRatio = this._aspectRatio,
@@ -68,6 +68,7 @@ CameraPersp.prototype.updateProjectionMatrix = function () {
     this._frustumBottom = frustumTop * -1;
     this._frustumLeft = frustumRight * -1;
 
+
     var f = 1.0 / fov_2,
         nf = 1.0 / (near - far);
 
@@ -81,12 +82,12 @@ CameraPersp.prototype.updateProjectionMatrix = function () {
     m[11] = -1;
     m[14] = (2 * far * near) * nf;
 
-    this._projectionMatrixUpdated = true;
+    this._projectionMatrixDirty = true;
 };
 
 CameraPersp.prototype.setAspectRatio = function (aspectRatio) {
     this._aspectRatio = aspectRatio;
-    this._projectionMatrixUpdated = false;
+    this._projectionMatrixDirty = false;
 };
 
 module.exports = CameraPersp;

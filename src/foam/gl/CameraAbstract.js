@@ -25,11 +25,11 @@ function CameraAbstract() {
 
     this._frustumLeft = this._frustumRight = this._frustumBottom = this._frustumTop = 0;
 
-    this._modelViewMatrixUpdated = false;
-    this._projectionMatrixUpdated = false;
+    this._viewMatrixDirty = false;
+    this._projectionMatrixDirty = false;
 
     this.projectionMatrix = new Matrix44();
-    this.modelViewMatrix = new Matrix44();
+    this.viewMatrix = new Matrix44();
 }
 
 CameraAbstract.prototype._updateOnB = function(){
@@ -60,7 +60,7 @@ CameraAbstract.prototype.setTarget = function (v) {
 
 CameraAbstract.prototype.setTarget3f = function (x, y, z) {
     this._target.set3f(x, y, z);
-    this._modelViewMatrixUpdated = false;
+    this._viewMatrixDirty = false;
 };
 
 CameraAbstract.prototype.getTarget = function(v){
@@ -73,7 +73,7 @@ CameraAbstract.prototype.setEye = function (v) {
 
 CameraAbstract.prototype.setEye3f = function (x, y, z) {
     this._eye.set3f(x,y,z);
-    this._modelViewMatrixUpdated = false;
+    this._viewMatrixDirty = false;
 };
 
 CameraAbstract.prototype.getEye = function(v){
@@ -83,36 +83,36 @@ CameraAbstract.prototype.getEye = function(v){
 CameraAbstract.prototype.lookAt = function(eye,target){
     this._eye.set(eye);
     this._target.set(target);
-    this._modelViewMatrixUpdated = false;
+    this._viewMatrixDirty = false;
 };
 
 CameraAbstract.prototype.setUp = function (v) {
     this._up.set(v);
-    this._modelViewMatrixUpdated = false;
+    this._viewMatrixDirty = false;
 };
 
 CameraAbstract.prototype.setUp3f = function (x, y, z) {
     this._up.set3f(x,y,z);
-    this._modelViewMatrixUpdated = false;
+    this._viewMatrixDirty = false;
 };
 
 CameraAbstract.prototype.setNear = function (near) {
     this._near = near;
-    this._projectionMatrixUpdated = false;
+    this._projectionMatrixDirty = false;
 };
 
 CameraAbstract.prototype.setFar = function (far) {
     this._far = far;
-    this._projectionMatrixUpdated = false;
+    this._projectionMatrixDirty = false;
 };
 
 CameraAbstract.prototype.setFov = function (fov) {
     this._fov = fov;
-    this._projectionMatrixUpdated = false;
+    this._projectionMatrixDirty = false;
 };
 
 CameraAbstract.prototype.updateMatrices = function () {
-    this.updateModelViewMatrix();
+    this.updateViewMatrix();
     this.updateProjectionMatrix();
 };
 
@@ -158,6 +158,5 @@ CameraAbstract.prototype.draw = function(){
 
     glDraw.color(color);
 };
-
 
 module.exports = CameraAbstract;
