@@ -4,7 +4,8 @@ var ObjectUtil  = require('../util/ObjectUtil'),
 	Vec3        = require('../math/Vec3'),
 	Vec4        = require('../math/Vec4'),
 	glValueType = require('./glValueType'),
-	Color		= require('../util/Color');
+	Color		= require('../util/Color'),
+	Matrix44    = require('../math/Matrix44');
 
 function Light(id) {
 	glObject.apply(this);
@@ -25,20 +26,8 @@ function Light(id) {
 	this.spotCutOff = null;
 
 	this.constantAttenuation = 1.0;
-	this.linearAttenuation   = 1.0;
-	this.quadricAttenuation  = 1.0;
-
-	var prefix = this._uniformPrefix = Program.UNIFORM_LIGHT + '[' + this._id + ']';
-
-	//Fix this
-
-	this._uniformLocationPositionKey   = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_POSITION_SUFFIX;
-	this._uniformLocationAmbientKey    = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_AMBIENT_SUFFIX;
-	this._uniformLocationDiffuseKey    = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_DIFFUSE_SUFFIX;
-	this._uniformLocationSpecularKey   = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_SPECULAR_SUFFIX;
-	this._uniformLocationConstAttKey   = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_CONSTANT_ATT;
-	this._uniformLocationLinearAttKey  = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_LINEAR_ATT;
-	this._uniformLocationQuadricAttKey = prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_QUADRIC_ATT;
+	this.linearAttenuation   = 0.22;
+	this.quadricAttenuation  = 0.2;
 
 	this._uniformLocationPosition =
 		this._uniformLocationAmbient =
@@ -59,7 +48,7 @@ Light.prototype.constructor = Light;
 
 Light.prototype._addCustomUniform = function(attrib,type,value){
 	this._customUniforms[this._uniformPrefix + '.' + attrib] = {
-		location : null
+		location : null,
 		type : type,
 		value : value
 	};
@@ -192,14 +181,17 @@ Light.prototype._updateUniformLocations = function(){
 	var program   = Program.getCurrent(),
 		programGl = program.getObjGL();
 
-	this._uniformLocationPosition = gl.getUniformLocation(program, this._uniformLocationPositionKey);
-	this._uniformLocationAmbient = gl.getUniformLocation(programGl, this._uniformLocationAmbientKey);
-	this._uniformLocationDiffuse = gl.getUniformLocation(programGl, this._uniformLocationDiffuseKey);
-	this._uniformLocationSpecular = gl.getUniformLocation(programGl, this._uniformLocationSpecularKey);
-	this._uniformLocationConstAtt = gl.getUniformLocation(programGl, this._uniformLocationConstAttKey);
-	this._uniformLocationLinearAtt = gl.getUniformLocation(programGl, this._uniformLocationLinearAtt);
-	this._uniformLocationQuadricAtt = gl.getUniformLocation(programGl, this._uniformLocationQuadricAtt);
+	var prefix = Program.UNIFORM_LIGHT + '[' + this._id + ']';
 
+	this._uniformLocationPosition   = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_POSITION_SUFFIX];
+	this._uniformLocationAmbient    = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_AMBIENT_SUFFIX];
+	this._uniformLocationDiffuse    = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_DIFFUSE_SUFFIX];
+	this._uniformLocationSpecular   = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_SPECULAR_SUFFIX];
+	this._uniformLocationConstAtt   = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_CONSTANT_ATT];
+	this._uniformLocationLinearAtt  = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_LINEAR_ATT];
+	this._uniformLocationQuadricAtt = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_QUADRIC_ATT];
+
+	var uniforms = this._customUniforms;
 	var uniform;
 
 	for(var a in uniforms){
@@ -224,25 +216,25 @@ Light.prototype._applyColors = function(){
 		tempF32[1] = ambient.g;
 		tempF32[2] = ambient.b;
 
-		gl.uniform3fv(this._uniformLocationAmbient,false,tempF32);
+		gl.uniform3fv(this._uniformLocationAmbient,tempF32);
 
 		tempF32[0] = diffuse.r;
 		tempF32[1] = diffuse.g;
 		tempF32[2] = diffuse.b;
 
-		gl.uniform3fv(this._uniformLocationDiffuse,false,tempF32);
+		gl.uniform3fv(this._uniformLocationDiffuse,tempF32);
 
 		tempF32[0] = specular.r;
 		tempF32[1] = specular.g;
 		tempF32[2] = specular.b;
 
-		gl.uniform3fv(this._uniformLocationSpecular,false,tempF32);
+		gl.uniform3fv(this._uniformLocationSpecular,tempF32);
 		return;
 	}
 
-	gl.uniform3fv(this._uniformLocationAmbient,false,colorEmpty);
-	gl.uniform3fv(this._uniformLocationDiffuse,false,colorEmpty);
-	gl.uniform3fv(this._uniformLocationSpecular,false,colorEmpty);
+	gl.uniform3fv(this._uniformLocationAmbient,colorEmpty);
+	gl.uniform3fv(this._uniformLocationDiffuse,colorEmpty);
+	gl.uniform3fv(this._uniformLocationSpecular,colorEmpty);
 };
 
 
@@ -296,12 +288,14 @@ Light.prototype._applyPosition = function(idFlag){
 	tempF32[0] = position.x;
 	tempF32[1] = position.y;
 	tempF32[2] = position.z;
-	tempF32[3] = idFlag;
+	tempF32[3] = 1.0; // type of light - for later use
 
-	gl.uniformMatrix4fv(this._uniformLocationPositionKey,false,this.position);
+	this._glTrans.getModelViewMatrix().multVec3AI(tempF32,0);
+	gl.uniform4fv(this._uniformLocationPosition,tempF32);
 }
 
-Light.prototype.apply = function(){
+Light.prototype.draw = function(){
+	this._updateUniformLocations();
 	this._applyColors();
 	this._applyAttenuation();
 	this._applyCustomAttributes();
