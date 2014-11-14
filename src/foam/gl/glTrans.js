@@ -4,9 +4,10 @@ var _Error   = require('../system/common/Error');
 var glu      = require('./glu');
 var gl       = require('./gl');
 var ObjectUtil = require('../util/ObjectUtil');
-var glMatrix = require('gl-matrix');
 
 var glTrans = {};
+glTrans.MODELVIEW  = 0x1A0A;
+glTrans.PROJECTION = 0x1A0B;
 
 var matrixMode = glTrans.MODELVIEW;
 var matrixStackModelView = [];
@@ -27,7 +28,7 @@ var matrixF32Temp3 = new Float32Array(16);
 var viewportRectArr = new Array(4);
 
 /*---------------------------------------------------------------------------------------------------------*/
-// View / modelview / projection matrix
+// Modelview / projection matrix
 /*---------------------------------------------------------------------------------------------------------*/
 
 /**
