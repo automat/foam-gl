@@ -3,10 +3,10 @@ var _gl     = require('./gl'),
     Program = require('./Program');
 
 function Material(ambient, diffuse, specular, shininess, emission) {
-    ambient   = ambient || new Color(1.0, 0.5, 0.5, 1.0);
-    diffuse   = diffuse   || Color.black();
-    specular  = specular || Color.black();
-    shininess = shininess || 10.0;
+    ambient   = ambient || Color.black();
+    diffuse   = diffuse   || new Color(0.25,0.25,0.25);
+    specular  = specular || Color.white();
+    shininess = shininess || 5.0;
     emission  = emission || Color.black();
 
     this._gl = _gl.get();
@@ -20,14 +20,6 @@ function Material(ambient, diffuse, specular, shininess, emission) {
     this.shininess = shininess;
 
     this._tempF32 = new Float32Array(4);
-
-    //Fix this
-
-    this._uniformLocationEmissionKey  = Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_EMISSION;
-    this._uniformLocationAmbientKey   = Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_AMBIENT;
-    this._uniformLocationDiffuseKey   = Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_DIFFUSE;
-    this._uniformLocationSpecularKey  = Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_SPECULAR;
-    this._uniformLocationShininessKey = Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_SHININESS;
 
     this._uniformLocationEmission =
         this._uniformLocationAmbient =
@@ -53,13 +45,12 @@ Material.prototype.apply = function(){
     var gl = this._gl;
 
     if(Program.getCurrent().getId() != this._programIdLast){
-        var program   = Program.getCurrent(),
-            programGl = program.getObjGL();
-        this._uniformLocationEmission = gl.getUniformLocation(programGl,this._uniformLocationEmissionKey);
-        this._uniformLocationAmbient  = gl.getUniformLocation(programGl,this._uniformLocationAmbientKey);
-        this._uniformLocationDiffuse  = gl.getUniformLocation(programGl,this._uniformLocationDiffuseKey);
-        this._uniformLocationSpecular = gl.getUniformLocation(programGl,this._uniformLocationSpecularKey);
-        this._uniformLocationShininess= gl.getUniformLocation(programGl,this._uniformLocationShininessKey);
+        var program   = Program.getCurrent();
+        this._uniformLocationEmission = program[Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_EMISSION];
+        this._uniformLocationAmbient  = program[Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_AMBIENT];
+        this._uniformLocationDiffuse  = program[Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_DIFFUSE];
+        this._uniformLocationSpecular = program[Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_SPECULAR];
+        this._uniformLocationShininess= program[Program.UNIFORM_MATERIAL_STRUCT + '.' + Program.UNIFORM_MATERIAL_STRUCT_SHININESS];
         this._programIdLast = program.getId();
     }
 
