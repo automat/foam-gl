@@ -624,7 +624,7 @@ var Matrix44 = {
         return v;
     },
 
-    mutlVec3A: function (m, a, i) {
+    multVec3A: function (m, a, i) {
         i *= 3;
 
         var x = a[i  ],

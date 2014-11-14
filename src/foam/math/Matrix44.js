@@ -702,7 +702,7 @@ Matrix44.prototype.multVec3 = function(v) {
     return v;
 };
 
-Matrix44.prototype.mutlVec3A = function (a, i) {
+Matrix44.prototype.multVec3A = function (a, i) {
     var m = this.m;
     i *= 3;
 
