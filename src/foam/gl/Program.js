@@ -104,7 +104,7 @@ Program.UNIFORM_POINT_SIZE = 'uPointSize';
  * @type {string}
  */
 
-Program.UNIFORM_LIGHT = 'uLight';
+Program.UNIFORM_LIGHT = 'uLights';
 
 
 Program.UNIFORM_USE_LIGHTING = 'uUseLighting';
