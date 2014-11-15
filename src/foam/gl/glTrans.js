@@ -1,9 +1,9 @@
 var Matrix44 = require("../math/Matrix44"),
     Matrix33 = require('../math/Matrix33');
 var _Error   = require('../system/common/Error');
-var glu      = require('./glu');
-var gl       = require('./gl');
 var ObjectUtil = require('../util/ObjectUtil');
+var glu = require('./glu'),
+    gl  = require('./gl');
 
 var glTrans = {};
 
@@ -16,17 +16,17 @@ var matrixStackModelView = [],
     matrixStackProjection = [];
 
 var matrixTemp0 = new Matrix44(),
-    matrixTemp1 = new Matrix44();
+    matrixTemp1 = new Matrix33();
 
 var matrixView = new Matrix44(),
     matrixModelView = new Matrix44(),
     matrixProjection = new Matrix44(),
-    matrixNormal = new Matrix44();
+    matrixNormal = new Matrix33();
+
+var matrixNormalDirty = true;
 
 var matrixF32Temp0 = new Float32Array(16),
-    matrixF32Temp1 = new Float32Array(16),
-    matrixF32Temp2 = new Float32Array(16),
-    matrixF32Temp3 = new Float32Array(16);
+    matrixF32Temp1 = new Float32Array(9);
 
 var viewportRectArr = new Array(4);
 
@@ -75,7 +75,7 @@ glTrans.setMatrixMode = function(mode){
 
 /**
  * Returns the current projection matrix.
- * @param {Matrix44} [matrix] - Out Float32Array
+ * @param {Matrix44} [matrix] - Out Matrix44
  * @returns {Matrix44}
  */
 
@@ -85,7 +85,7 @@ glTrans.getProjectionMatrix = function(matrix){
 
 /**
  * Returns the current view matrix.
- * @param {Matrix44} [matrix] - Out Float32Array
+ * @param {Matrix44} [matrix] - Out Matrix44
  * @returns {Matrix44}
  */
 
@@ -95,7 +95,7 @@ glTrans.getViewMatrix = function(matrix){
 
 /**
  * Returns the current modelview matrix.
- * @param {Matrix44} [matrix] - Out Float32Array
+ * @param {Matrix44} [matrix] - Out Matrix44
  * @returns {Matrix44}
  */
 
@@ -104,15 +104,22 @@ glTrans.getModelViewMatrix = function(matrix){
 };
 
 
+function getNormalMatrix_(){
+    if(matrixNormalDirty){
+        matrixModelView.toMat33(matrixNormal).invert().transpose();
+        matrixNormalDirty = false;
+    }
+    return matrixNormal;
+}
+
 /**
  * Returns the current normal matrix.
- * @param {Matrix44} [matrix] - Out Float32Array
+ * @param {Matrix44} [matrix] - Out Matrix44
  * @returns {Matrix44}
  */
 
-glTrans.getNormalMatrix = function(){
-    return matrixNormal.set(matrixModelView).invert().transpose();
-
+glTrans.getNormalMatrix = function(matrix){
+    return (matrix || matrixTemp1).set(getNormalMatrix_());
 };
 
 /**
@@ -153,7 +160,7 @@ glTrans.getModelViewMatrixF32 = function(matrix){
  */
 
 glTrans.getNormalMatrixF32 = function(matrix){
-    return this.getNormalMatrix().toFloat32Array(matrix || matrixF32Temp3);
+    return this.getNormalMatrix().toFloat32Array(matrix || matrixF32Temp1);
 }
 
 /**
@@ -256,9 +263,7 @@ glTrans.translate = function (v) {
  */
 
 glTrans.translate3f = function (x, y, z) {
-    var temp = matrixTemp0.identity();
-    Matrix44.createTranslation(x,y,z,temp);
-    matrixModelView.mult(matrixTemp0);
+    matrixModelView.mult(Matrix44.createTranslation(x,y,z,matrixTemp0.identity()));
     matrixNormalDirty = true;
 };
 
@@ -315,16 +320,12 @@ glTrans.rotate3f = function (x, y, z) {
 };
 
 glTrans.rotateAxis = function (angle, v) {
-    matrixTemp0.identity();
-    Matrix44.createRotationOnAxis(angle, v.x, v.y, v.z, matrixTemp0);
-    matrixModelView = matrixTemp0.mult(matrixModelView);
+    matrixModelView = matrixTemp0.mult(Matrix44.createRotationOnAxis(angle, v.x, v.y, v.z, matrixTemp0.identity()));
     matrixNormalDirty = true;
 };
 
 glTrans.rotateAxis3f = function (angle, x, y, z) {
-    matrixTemp0.identity();
-    Matrix44.createRotationOnAxis(angle, x, y, z, matrixTemp0);
-    matrixModelView = matrixTemp0.mult(matrixModelView);
+    matrixModelView = matrixTemp0.mult(Matrix44.createRotationOnAxis(angle, x, y, z, matrixTemp0.identity()));
     matrixNormalDirty = true;
 };
 
