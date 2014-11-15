@@ -6,24 +6,27 @@ var gl       = require('./gl');
 var ObjectUtil = require('../util/ObjectUtil');
 
 var glTrans = {};
-glTrans.MODELVIEW  = 0x1A0A;
-glTrans.PROJECTION = 0x1A0B;
 
-var matrixMode = glTrans.MODELVIEW;
-var matrixStackModelView = [];
-var matrixStackProjection = [];
-var matrixTemp0 = new Matrix44();
-var matrixTemp1 = new Matrix44();
+var MODELVIEW  = 0x1A0A,
+    PROJECTION = 0x1A0B;
 
-var matrixView = new Matrix44();
-var matrixModelView = new Matrix44();
-var matrixProjection = new Matrix44();
-var matrixNormal = new Matrix44();
+var matrixMode = MODELVIEW;
 
-var matrixF32Temp0 = new Float32Array(16);
-var matrixF32Temp1 = new Float32Array(16);
-var matrixF32Temp2 = new Float32Array(16);
-var matrixF32Temp3 = new Float32Array(16);
+var matrixStackModelView = [],
+    matrixStackProjection = [];
+
+var matrixTemp0 = new Matrix44(),
+    matrixTemp1 = new Matrix44();
+
+var matrixView = new Matrix44(),
+    matrixModelView = new Matrix44(),
+    matrixProjection = new Matrix44(),
+    matrixNormal = new Matrix44();
+
+var matrixF32Temp0 = new Float32Array(16),
+    matrixF32Temp1 = new Float32Array(16),
+    matrixF32Temp2 = new Float32Array(16),
+    matrixF32Temp3 = new Float32Array(16);
 
 var viewportRectArr = new Array(4);
 
@@ -100,6 +103,18 @@ glTrans.getModelViewMatrix = function(matrix){
     return (matrix || matrixTemp0).set(matrixModelView);
 };
 
+
+/**
+ * Returns the current normal matrix.
+ * @param {Matrix44} [matrix] - Out Float32Array
+ * @returns {Matrix44}
+ */
+
+glTrans.getNormalMatrix = function(){
+    return matrixNormal.set(matrixModelView).invert().transpose();
+
+};
+
 /**
  * Returns the current projection matrix as Float32Array.
  * @param {Float32Array} [matrix] - Out Float32Array
@@ -148,24 +163,15 @@ glTrans.getNormalMatrixF32 = function(matrix){
  */
 
 glTrans.getMatrixF32 = function(matrix){
-    return matrixMode == this.MODELVIEW ? this.getModelViewMatrixF32(matrix) : this.getProjectionMatrixF32(matrix);
+    return matrixMode == MODELVIEW ? this.getModelViewMatrixF32(matrix) : this.getProjectionMatrixF32(matrix);
 };
-
-
-glTrans.getNormalMatrix = function(){
-    matrixNormal.set(matrixModelView);
-    matrixNormal.invert();
-    matrixNormal.transpose();
-    return matrixNormal;
-};
-
 
 /**
  * Resets the current matrix to its identity.
  */
 
 glTrans.loadIdentity = function(){
-    (matrixMode == this.MODELVIEW ? matrixModelView : matrixProjection).identity();
+    (matrixMode == MODELVIEW ? matrixModelView : matrixProjection).identity();
 };
 
 
@@ -174,7 +180,7 @@ glTrans.loadIdentity = function(){
  */
 
 glTrans.pushMatrix = function(){
-    if(matrixMode == glTrans.MODELVIEW){
+    if(matrixMode == MODELVIEW){
         matrixStackModelView.push(matrixModelView.copy());
     } else {
         matrixStackProjection.push(matrixProjection.copy());
@@ -187,7 +193,7 @@ glTrans.pushMatrix = function(){
  */
 
 glTrans.popMatrix = function(){
-    if(matrixMode = glTrans.MODELVIEW){
+    if(matrixMode = MODELVIEW){
         if(matrixStackModelView.length == 0){
             throw new Error(_Error.MATRIX_STACK_POP_ERROR);
         }
@@ -229,7 +235,7 @@ glTrans.popMatrices = function(){
  */
 
 glTrans.multMatrix = function(matrix){
-    (matrixMode == glTrans.MODELVIEW ? matrixModelView : matrixProjection).mult(matrix);
+    (matrixMode == MODELVIEW ? matrixModelView : matrixProjection).mult(matrix);
     matrixNormalDirty = true;
 };
 
