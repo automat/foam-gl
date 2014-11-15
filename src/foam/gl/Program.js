@@ -16,20 +16,28 @@ function Program(vertexShader, fragmentShader) {
 }
 
 /**
- * The default shader modelview matrix uniform. (reassignable)
- * @type {string}
- * @static
- */
-
-Program.UNIFORM_MODELVIEW_MATRIX  = 'uModelViewMatrix';
-
-/**
  * The default shader projection matrix uniform. (reassignable)
  * @type {string}
  * @static
  */
 
 Program.UNIFORM_PROJECTION_MATRIX = 'uProjectionMatrix';
+
+/**
+ * The default shader view matrix uniform. (reassignable)
+ * @type {string}
+ * @static
+ */
+
+Program.UNIFORM_VIEW_MATRIX = 'uViewMatrix';
+
+/**
+ * The default shader modelview matrix uniform. (reassignable)
+ * @type {string}
+ * @static
+ */
+
+Program.UNIFORM_MODELVIEW_MATRIX  = 'uModelViewMatrix';
 
 /**
  * The default shader normal matrix uniform. (reassignable)
@@ -106,6 +114,10 @@ Program.UNIFORM_POINT_SIZE = 'uPointSize';
 
 Program.UNIFORM_LIGHT = 'uLights';
 
+/**
+ * The default shader light trigger uniform. (reassignable)
+ * @type {string}
+ */
 
 Program.UNIFORM_USE_LIGHTING = 'uUseLighting';
 
