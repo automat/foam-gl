@@ -38,8 +38,10 @@ function glDraw_Internal(){
     this._attribLocationVertexColor = null;
     this._attribLocationVertexNormal = null;
     this._attribLocationTexcoord = null;
-    this._uniformLocationModelViewMatrix = null;
+
     this._uniformLocationProjectionMatrix = null;
+    this._uniformLocationViewMatrix = null;
+    this._uniformLocationModelViewMatrix = null;
     this._uniformLocationNormalMatrix = null;
 
     /*--------------------------------------------------------------------------------------------*/
@@ -3272,6 +3274,14 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
 }
 
 
+glDraw_Internal.prototype.enableLighting = function(){
+    this._gl.uniform1f(Program.getCurrent()[Program.UNIFORM_USE_LIGHTING],1.0);
+};
+
+glDraw_Internal.prototype.disableLighting = function(){
+    this._gl.uniform1f(Program.getCurrent()[Program.UNIFORM_USE_LIGHTING],0.0);
+}
+
 /*--------------------------------------------------------------------------------------------*/
 //  Helper
 /*--------------------------------------------------------------------------------------------*/
@@ -3330,16 +3340,17 @@ glDraw_Internal.prototype._updateProgramLocations = function(){
     if(this._programIdLast == Program.getCurrent().getId){
         return;
     }
-    var program   = Program.getCurrent(),
-        programGl = program.getObjGL();
+    var program = Program.getCurrent();
 
-    this._attribLocationVertexPos         = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_POSITION);
-    this._attribLocationVertexColor       = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_COLOR);
-    this._attribLocationVertexNormal      = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_NORMAL);
-    this._attribLocationTexcoord          = gl.getAttribLocation(programGl,Program.ATTRIB_TEXCOORD);
-    this._uniformLocationModelViewMatrix  = gl.getUniformLocation(programGl,Program.UNIFORM_MODELVIEW_MATRIX);
-    this._uniformLocationProjectionMatrix = gl.getUniformLocation(programGl,Program.UNIFORM_PROJECTION_MATRIX);
-    this._uniformLocationNormalMatrix     = gl.getUniformLocation(programGl,Program.UNIFORM_NORMAL_MATRIX);
+    this._attribLocationVertexPos         = program[Program.ATTRIB_VERTEX_POSITION];
+    this._attribLocationVertexColor       = program[Program.ATTRIB_VERTEX_COLOR];
+    this._attribLocationVertexNormal      = program[Program.ATTRIB_VERTEX_NORMAL];
+    this._attribLocationTexcoord          = program[Program.ATTRIB_TEXCOORD];
+    this._uniformLocationProjectionMatrix = program[Program.UNIFORM_PROJECTION_MATRIX];
+    this._uniformLocationViewMatrix       = program[Program.UNIFORM_VIEW_MATRIX];
+    this._uniformLocationModelViewMatrix  = program[Program.UNIFORM_MODELVIEW_MATRIX];
+    this._uniformLocationNormalMatrix     = program[Program.UNIFORM_NORMAL_MATRIX];
+
 
     this._programIdLast = program.getId();
 };
@@ -3351,8 +3362,13 @@ glDraw_Internal.prototype._applyMatrixUniforms = function(applyNormalMatrix){
     gl.uniformMatrix4fv(this._uniformLocationProjectionMatrix, false, glTrans.getProjectionMatrixF32());
 
     if(this._uniformLocationNormalMatrix != -1 && applyNormalMatrix){
-        gl.uniformMatrix4fv(this._uniformLocationNormalMatrix, false, glTrans.getNormalMatrixF32());
+        gl.uniformMatrix3fv(this._uniformLocationNormalMatrix, false, glTrans.getNormalMatrixF32());
     }
+    if(this._uniformLocationViewMatrix != -1){
+        gl.uniformMatrix4fv(this._uniformLocationViewMatrix, false, glTrans.getViewMatrixF32());
+    }
+
+
 }
 
 /**
