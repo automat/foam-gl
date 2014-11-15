@@ -616,22 +616,10 @@ Matrix44.prototype.invert = function() {
 
 Matrix44.prototype.transpose = function () {
     var m = this.m;
-    var m00 = m[ 0],
-        m01 = m[ 1],
-        m02 = m[ 2],
-        m03 = m[ 3],
-        m04 = m[ 4],
-        m05 = m[ 5],
-        m06 = m[ 6],
-        m07 = m[ 7],
-        m08 = m[ 8],
-        m09 = m[ 9],
-        m10 = m[10],
-        m11 = m[11],
-        m12 = m[12],
-        m13 = m[13],
-        m14 = m[14],
-        m15 = m[15];
+    var m00 = m[ 0], m01 = m[ 1], m02 = m[ 2], m03 = m[ 3],
+        m04 = m[ 4], m05 = m[ 5], m06 = m[ 6], m07 = m[ 7],
+        m08 = m[ 8], m09 = m[ 9], m10 = m[10], m11 = m[11],
+        m12 = m[12], m13 = m[13], m14 = m[14], m15 = m[15];
 
     //m[0 ] = m00;
     m[1 ] = m04;
@@ -656,38 +644,15 @@ Matrix44.prototype.transpose = function () {
     return this;
 };
 
-Matrix44.prototype.toMat33Inversed = function (mat33) {
-    var m = this.m;
-
-    var a00 = m[0], a01 = m[1], a02 = m[2];
-    var a10 = m[4], a11 = m[5], a12 = m[6];
-    var a20 = m[8], a21 = m[9], a22 = m[10];
-
-    var b01 = a22 * a11 - a12 * a21;
-    var b11 = -a22 * a10 + a12 * a20;
-    var b21 = a21 * a10 - a11 * a20;
-
-    var d = a00 * b01 + a01 * b11 + a02 * b21;
-    if (!d) {
-        return null;
-    }
-    var id = 1 / d;
-
-    mat33 = mat33 || new Matrix33();
-    var m_m = mat33.m;
-
-    m_m[0] = b01 * id;
-    m_m[1] = (-a22 * a01 + a02 * a21) * id;
-    m_m[2] = (a12 * a01 - a02 * a11) * id;
-    m_m[3] = b11 * id;
-    m_m[4] = (a22 * a00 - a02 * a20) * id;
-    m_m[5] = (-a12 * a00 + a02 * a10) * id;
-    m_m[6] = b21 * id;
-    m_m[7] = (-a21 * a00 + a01 * a20) * id;
-    m_m[8] = (a11 * a00 - a01 * a10) * id;
-
-    return mat33;
-};
+Matrix44.prototype.toMat33 = function(matrix){
+    matrix = matrix || new Matrix33();
+    var m = matrix.m,
+        m_= this.m;
+    m[0]=m_[0];m[1]=m_[1];m[2]=m_[2];
+    m[3]=m_[4];m[4]=m_[5];m[5]=m_[6];
+    m[6]=m_[8];m[7]=m_[9];m[8]=m_[10];
+    return matrix;
+}
 
 Matrix44.prototype.multVec3 = function(v) {
     var m = this.m;
@@ -850,9 +815,7 @@ Matrix44.prototype.transposed = function(matOut){
 };
 
 Matrix44.prototype.toFloat32Array = function(arr){
-    if(!arr){
-        return new Float32Array(this.m);
-    }
+    arr = arr || new Float32Array(16);
     arr.set(this.m);
     return arr;
 };
