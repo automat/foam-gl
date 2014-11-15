@@ -522,6 +522,7 @@ App._newObj = function(obj,resource){
         App.call(this);
     }
     App_.prototype = Object.create(App.prototype);
+    App_.prototype.constructor = App;
     for( var p in obj ){
         if(obj.hasOwnProperty(p)){
             App_.prototype[p] = obj[p];
