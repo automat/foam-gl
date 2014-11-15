@@ -24,7 +24,7 @@ CameraOrtho.prototype.setOrtho = function (left, right, bottom, top, near, far) 
     this._frustumTop = this._frustumTopInit = top;
     this._near = near;
     this._far = far;
-    this._projectionMatrixDirty = false;
+    this._projectionMatrixDirty = true;
     this.updateProjectionMatrix();
 };
 

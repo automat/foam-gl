@@ -25,8 +25,8 @@ function CameraAbstract() {
 
     this._frustumLeft = this._frustumRight = this._frustumBottom = this._frustumTop = 0;
 
-    this._viewMatrixDirty = false;
-    this._projectionMatrixDirty = false;
+    this._viewMatrixDirty = true;
+    this._projectionMatrixDirty = true;
 
     this.projectionMatrix = new Matrix44();
     this.viewMatrix = new Matrix44();
@@ -73,7 +73,7 @@ CameraAbstract.prototype.setEye = function (v) {
 
 CameraAbstract.prototype.setEye3f = function (x, y, z) {
     this._eye.set3f(x,y,z);
-    this._viewMatrixDirty = false;
+    this._viewMatrixDirty = true;
 };
 
 CameraAbstract.prototype.getEye = function(v){
@@ -83,38 +83,40 @@ CameraAbstract.prototype.getEye = function(v){
 CameraAbstract.prototype.lookAt = function(eye,target){
     this._eye.set(eye);
     this._target.set(target);
-    this._viewMatrixDirty = false;
+    this._viewMatrixDirty = true;
 };
 
 CameraAbstract.prototype.setUp = function (v) {
     this._up.set(v);
-    this._viewMatrixDirty = false;
+    this._viewMatrixDirty = true;
 };
 
 CameraAbstract.prototype.setUp3f = function (x, y, z) {
     this._up.set3f(x,y,z);
-    this._viewMatrixDirty = false;
+    this._viewMatrixDirty = true;
 };
 
 CameraAbstract.prototype.setNear = function (near) {
     this._near = near;
-    this._projectionMatrixDirty = false;
+    this._projectionMatrixDirty = true;
 };
 
 CameraAbstract.prototype.setFar = function (far) {
     this._far = far;
-    this._projectionMatrixDirty = false;
+    this._projectionMatrixDirty = true;
 };
 
 CameraAbstract.prototype.setFov = function (fov) {
     this._fov = fov;
-    this._projectionMatrixDirty = false;
+    this._projectionMatrixDirty = true;
 };
 
 CameraAbstract.prototype.updateMatrices = function () {
     this.updateViewMatrix();
     this.updateProjectionMatrix();
 };
+
+
 
 CameraAbstract.prototype.getFrustum = function(frustum){
     frustum = frustum || new Array(6);
