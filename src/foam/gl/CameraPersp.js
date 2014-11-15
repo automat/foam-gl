@@ -1,4 +1,5 @@
 var CameraAbstract = require('./CameraAbstract'),
+    ObjectUtil = require('../util/ObjectUtil'),
     App = require('../app/App.js'),
     Vec3 = require('../math/Vec3'),
     glu = require('./glu');
@@ -7,13 +8,15 @@ var DEFAULT_FOV  = 60.0,
     DEFAULT_NEAR = 0.0001,
     DEFAULT_FAR  = 10.0;
 
-function CameraPersp() {
+function CameraPersp(fov,windowAspectRatio,near,far) {
     CameraAbstract.call(this);
 
-    this.setPerspective(DEFAULT_FOV,
-                        App.getInstance().getWindowAspectRatio(),
-                        DEFAULT_NEAR,
-                        DEFAULT_FAR);
+    fov = ObjectUtil.isUndefined(fov) ? DEFAULT_FOV : fov;
+    windowAspectRatio = ObjectUtil.isUndefined(windowAspectRatio) ? App.getInstance().getWindowAspectRatio() : windowAspectRatio;
+    near = ObjectUtil.isUndefined(near) ? DEFAULT_NEAR : near;
+    far = ObjectUtil.isUndefined(far) ? DEFAULT_FAR : far;
+
+    this.setPerspective(fov, windowAspectRatio, near, far);
     this.setEye(Vec3.one());
     this.updateViewMatrix();
 }
@@ -28,17 +31,17 @@ CameraPersp.prototype.setPerspective = function (fov, windowAspectRatio, near, f
 
     this._aspectRatio = windowAspectRatio;
 
-    this._projectionMatrixDirty = false;
+    this._projectionMatrixDirty = true;
     this.updateProjectionMatrix();
 };
 
 CameraPersp.prototype.setDistance = function(dist){
     this._eye.set(this._target.subbed(this._eye).normalize().scale(dist));
-    this._viewMatrixDirty = false;
+    this._viewMatrixDirty = true;
 };
 
 CameraPersp.prototype.updateViewMatrix = function () {
-    if (this._viewMatrixDirty){
+    if (!this._viewMatrixDirty){
         return;
     }
     var eye = this._eye,
@@ -48,12 +51,12 @@ CameraPersp.prototype.updateViewMatrix = function () {
     glu.lookAt(this.viewMatrix.m, eye.x, eye.y, eye.z, target.x, target.y, target.z, up.x, up.y, up.z);
 
     this._updateOnB();
-    this._viewMatrixDirty = true;
+    this._viewMatrixDirty = false;
 };
 
 
 CameraPersp.prototype.updateProjectionMatrix = function () {
-    if (this._projectionMatrixDirty){
+    if (!this._projectionMatrixDirty){
         return;
     }
     var aspectRatio = this._aspectRatio,
@@ -82,12 +85,12 @@ CameraPersp.prototype.updateProjectionMatrix = function () {
     m[11] = -1;
     m[14] = (2 * far * near) * nf;
 
-    this._projectionMatrixDirty = true;
+    this._projectionMatrixDirty = false;
 };
 
 CameraPersp.prototype.setAspectRatio = function (aspectRatio) {
     this._aspectRatio = aspectRatio;
-    this._projectionMatrixDirty = false;
+    this._projectionMatrixDirty = true;
 };
 
 module.exports = CameraPersp;
