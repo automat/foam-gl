@@ -347,7 +347,7 @@ Light.prototype._debugDrawPosition = function(){
 
 	glTrans.pushMatrix();
 	glTrans.translate(this.position)
-	glTrans.scale1f(0.125);
+	glTrans.scale1f(0.1);
 	glDraw.drawCubeStroked();
 	glTrans.popMatrix();
 
