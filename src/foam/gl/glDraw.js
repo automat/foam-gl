@@ -2189,10 +2189,10 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
         gl.disableVertexAttribArray(attribLocationTexcoord);
     }
 
-    var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING);
-    var prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
-    var vbo = this._pivotVertexBuffer;
-    var ibo = this._bufferPivotIndex;
+    var prevVbo = gl.getParameter(gl.ARRAY_BUFFER_BINDING),
+        prevIbo = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
+    var vbo = this._pivotVertexBuffer,
+        ibo = this._bufferPivotIndex;
 
     if(prevVbo != vbo){
         gl.bindBuffer(gl.ARRAY_BUFFER,vbo);
@@ -2215,19 +2215,18 @@ glDraw_Internal.prototype.drawPivot = function(axisLength, headLength, headRadiu
     gl.drawArrays(gl.LINES,0,6);
     gl.drawElements(gl.TRIANGLES,this._pivotIndexBufferLength,gl.UNSIGNED_SHORT,0);
 
-    if(attribLocationVertexNormal != -1){
-        gl.enableVertexAttribArray(attribLocationVertexNormal);
-    }
-
-    if(attribLocationTexcoord != -1){
-        gl.enableVertexAttribArray(attribLocationTexcoord);
-    }
-
     if(vbo != prevVbo){
         gl.bindBuffer(gl.ARRAY_BUFFER,prevVbo);
     }
     if(ibo != prevIbo){
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, prevIbo);
+    }
+
+    if(attribLocationVertexNormal != -1){
+        gl.enableVertexAttribArray(attribLocationVertexNormal);
+    }
+    if(attribLocationTexcoord != -1){
+        gl.enableVertexAttribArray(attribLocationTexcoord);
     }
 };
 
@@ -3340,12 +3339,14 @@ glDraw_Internal.prototype._updateProgramLocations = function(){
     if(this._programIdLast == Program.getCurrent().getId){
         return;
     }
-    var program = Program.getCurrent();
+    var program = Program.getCurrent(),
+        programGl = program.getObjGL();
 
-    this._attribLocationVertexPos         = program[Program.ATTRIB_VERTEX_POSITION];
-    this._attribLocationVertexColor       = program[Program.ATTRIB_VERTEX_COLOR];
-    this._attribLocationVertexNormal      = program[Program.ATTRIB_VERTEX_NORMAL];
-    this._attribLocationTexcoord          = program[Program.ATTRIB_TEXCOORD];
+    this._attribLocationVertexPos         = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_POSITION);
+    this._attribLocationVertexColor       = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_COLOR);
+    this._attribLocationVertexNormal      = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_NORMAL);
+    this._attribLocationTexcoord          = gl.getAttribLocation(programGl,Program.ATTRIB_TEXCOORD);
+
     this._uniformLocationProjectionMatrix = program[Program.UNIFORM_PROJECTION_MATRIX];
     this._uniformLocationViewMatrix       = program[Program.UNIFORM_VIEW_MATRIX];
     this._uniformLocationModelViewMatrix  = program[Program.UNIFORM_MODELVIEW_MATRIX];
