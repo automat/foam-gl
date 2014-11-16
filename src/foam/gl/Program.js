@@ -13,6 +13,8 @@ function Program(vertexShader, fragmentShader) {
     var gl = this._gl = _gl.get();
     this._obj = null;
     this._id  = null;
+    this._numAttributes = this._numUniforms = 0;
+    this._attributes = this._uniforms = null;
     this.load(vertexShader,fragmentShader);
 }
 
@@ -274,21 +276,22 @@ Program.prototype.load = function(vertexShader,fragmentShader){
     gl.linkProgram(program);
 
     var i, paramName;
+    var objects, numObjects;
 
-    var numUniforms = this._numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS),
-        uniforms = this._uniforms = {};
+    numObjects = this._numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+    objects = this._uniforms = {};
     i = -1;
-    while (++i < numUniforms) {
+    while (++i < numObjects) {
         paramName = gl.getActiveUniform(program, i).name;
-        uniforms[paramName] = gl.getUniformLocation(program, paramName);
+        objects[paramName] = gl.getUniformLocation(program, paramName);
     }
 
-    var numAttributes = this._numAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES),
-        attributes = this._attributes = {};
+    numObjects = this._numAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+    objects = this._attributes = {};
     i = -1;
-    while (++i < numAttributes) {
+    while (++i < numObjects) {
         paramName = gl.getActiveAttrib(program, i).name;
-        attributes[paramName] = gl.getAttribLocation(program, paramName);
+        objects[paramName] = gl.getAttribLocation(program, paramName);
     }
 
     this._id = Id.get();
@@ -314,6 +317,26 @@ Program.prototype.getUniformLocation = function(uniform){
 Program.prototype.getAttribLocation = function(attribute){
     attribute = this._attributes[attribute];
     return ObjectUtil.isUndefined(attribute) ? -1 : attribute;
+};
+
+/**
+ * Returns true if the attribute is valid and active.
+ * @param {String} [name] - The attribute name
+ * @returns {boolean}
+ */
+
+Program.prototype.hasAttribute = function(name){
+    return !ObjectUtil.isUndefined(this._attributes[name]);
+};
+
+/**
+ * Returns true if the uniform is valid and active.
+ * @param {String} [name] - The attribute name
+ * @returns {boolean}
+ */
+
+Program.prototype.hasUniform = function(name){
+    return !ObjectUtil.isUndefined(this._uniforms[name]);
 };
 
 /**
@@ -640,7 +663,7 @@ Program.prototype.getId = function(){
 
 /**
  * Returns the underlying gl object.
- * @returns {Program._obj|*}
+ * @returns {WebGLProgram}
  */
 
 Program.prototype.getObjGL = function(){
