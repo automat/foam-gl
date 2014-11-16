@@ -29,6 +29,8 @@ function Light(id) {
 	this.linearAttenuation   = 0.22;
 	this.quadricAttenuation  = 0.2;
 
+	this._uniformPrefix = Program.UNIFORM_LIGHT + '[' + this._id + ']';
+
 	this._uniformLocationPosition =
 		this._uniformLocationAmbient =
 			this._uniformLocationDiffuse =
@@ -180,7 +182,7 @@ Light.prototype._updateUniformLocations = function(){
 	var program   = Program.getCurrent(),
 		programGl = program.getObjGL();
 
-	var prefix = Program.UNIFORM_LIGHT + '[' + this._id + ']';
+	var prefix = this._uniformPrefix;
 
 	this._uniformLocationPosition   = program.getUniformLocation(prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_POSITION_SUFFIX);
 	this._uniformLocationAmbient    = program.getUniformLocation(prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_AMBIENT_SUFFIX);
@@ -206,45 +208,72 @@ var colorEmpty = new Float32Array([0,0,0]);
 Light.prototype._applyColors = function(){
 	var gl = this._gl;
 
+	var uniformLocationAmbient = this._uniformLocationAmbient,
+		uniformLocationDiffsue = this._uniformLocationDiffuse,
+		uniformLocationSpecular = this._uniformLocationSpecular;
+
 	if(this._enabled){
 		var tempF32 = this._tempF32_3;
 		var ambient = this.ambient, diffuse = this.diffuse, specular = this.specular;
 
-		tempF32[0] = ambient.r;
-		tempF32[1] = ambient.g;
-		tempF32[2] = ambient.b;
+		if(uniformLocationAmbient != -1){
+			tempF32[0] = ambient.r;
+			tempF32[1] = ambient.g;
+			tempF32[2] = ambient.b;
+			gl.uniform3fv(uniformLocationAmbient,tempF32);
+		}
 
-		gl.uniform3fv(this._uniformLocationAmbient,tempF32);
+		if(uniformLocationDiffsue != -1){
+			tempF32[0] = diffuse.r;
+			tempF32[1] = diffuse.g;
+			tempF32[2] = diffuse.b;
 
-		tempF32[0] = diffuse.r;
-		tempF32[1] = diffuse.g;
-		tempF32[2] = diffuse.b;
+			gl.uniform3fv(uniformLocationDiffsue,tempF32);
+		}
 
-		gl.uniform3fv(this._uniformLocationDiffuse,tempF32);
+		if(uniformLocationSpecular != -1){
+			tempF32[0] = specular.r;
+			tempF32[1] = specular.g;
+			tempF32[2] = specular.b;
 
-		tempF32[0] = specular.r;
-		tempF32[1] = specular.g;
-		tempF32[2] = specular.b;
-
-		gl.uniform3fv(this._uniformLocationSpecular,tempF32);
+			gl.uniform3fv(this._uniformLocationSpecular,tempF32);
+		}
 		return;
 	}
 
-	gl.uniform3fv(this._uniformLocationAmbient,colorEmpty);
-	gl.uniform3fv(this._uniformLocationDiffuse,colorEmpty);
-	gl.uniform3fv(this._uniformLocationSpecular,colorEmpty);
+	if(uniformLocationAmbient != -1){
+		gl.uniform3fv(this._uniformLocationAmbient,colorEmpty);
+	}
+	if(uniformLocationDiffsue != -1) {
+		gl.uniform3fv(this._uniformLocationDiffuse, colorEmpty);
+	}
+	if(uniformLocationSpecular != -1){
+		gl.uniform3fv(this._uniformLocationSpecular,colorEmpty);
+	}
 };
-
-
 
 Light.prototype._applyAttenuation = function(){
 	if(!this._enabled){
 		return;
 	}
 	var gl = this._gl;
-	gl.uniform1f(this._uniformLocationConstAtt,this.constantAttenuation);
-	gl.uniform1f(this._uniformLocationLinearAtt,this.linearAttenuation);
-	gl.uniform1f(this._uniformLocationQuadricAtt,this.quadricAttenuation);
+
+
+	var uniformLocationConstAtt = this._uniformLocationConstAtt,
+		uniformLocationLinearAtt = this._uniformLocationLinearAtt,
+		uniformLocationQuadricAtt = this._uniformLocationQuadricAtt;
+
+	if(uniformLocationConstAtt != -1){
+		gl.uniform1f(uniformLocationConstAtt,this.constantAttenuation);
+	}
+
+	if(uniformLocationLinearAtt != -1){
+		gl.uniform1f(uniformLocationLinearAtt,this.linearAttenuation);
+	}
+
+	if(uniformLocationQuadricAtt != -1){
+		gl.uniform1f(uniformLocationQuadricAtt,this.quadricAttenuation);
+	}
 };
 
 
@@ -278,6 +307,10 @@ Light.prototype._applyCustomAttributes = function(){
 };
 
 Light.prototype._applyPosition = function(idFlag){
+	var uniformLocationPosition = this._uniformLocationPosition;
+	if(uniformLocationPosition == -1){
+		return;
+	}
 	var gl = this._gl;
 
 	var position = this.position,
@@ -290,7 +323,7 @@ Light.prototype._applyPosition = function(idFlag){
 
 	this._glTrans.getModelViewMatrix().multVec3AI(tempF32,0)
 
-	gl.uniform4fv(this._uniformLocationPosition,tempF32);
+	gl.uniform4fv(uniformLocationPosition,tempF32);
 }
 
 Light.prototype.draw = function(){
