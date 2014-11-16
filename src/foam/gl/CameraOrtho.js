@@ -29,7 +29,7 @@ CameraOrtho.prototype.setOrtho = function (left, right, bottom, top, near, far) 
 };
 
 CameraOrtho.prototype.updateViewMatrix = function () {
-    if (this._viewMatrixDirty) {
+    if (!this._viewMatrixDirty) {
         return;
     }
     var eye = this._eye,
@@ -38,15 +38,15 @@ CameraOrtho.prototype.updateViewMatrix = function () {
 
     glu.lookAt(this.viewMatrix.m, eye.x, eye.y, eye.z, target.x, target.y, target.z, up.x, up.y, up.z);
     this._updateOnB();
-    this._viewMatrixDirty = true;
+    this._viewMatrixDirty = false;
 };
 
 CameraOrtho.prototype.updateProjectionMatrix = function () {
-    if (this._projectionMatrixDirty) {
+    if (!this._projectionMatrixDirty) {
         return;
     }
     glu.ortho(this.projectionMatrix.m, this._frustumLeft, this._frustumRight, this._frustumBottom, this._frustumTop, this._near, this._far);
-    this._projectionMatrixDirty = true;
+    this._projectionMatrixDirty = false;
 };
 
 CameraOrtho.prototype.setDistance = function (zoom) {
@@ -54,7 +54,7 @@ CameraOrtho.prototype.setDistance = function (zoom) {
     this._frustumRight = this._frustumRightInit * zoom;
     this._frustumBottom = this._frustumBottomInit * zoom;
     this._frustumTop = this._frustumTopInit * zoom;
-    this._projectionMatrixDirty = false;
+    this._projectionMatrixDirty = true;
     this.updateProjectionMatrix();
 };
 
