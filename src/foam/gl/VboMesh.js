@@ -17,7 +17,7 @@ function VboMesh(usage,format,size){
 	this._glDraw  	  = obj._glDraw;
 	this._glTrans 	  = obj._glTrans;
 
-	this._usage = usage || gl.TRIANGLES;
+	this._usage = ObjectUtil.isUndefined(usage) ? gl.TRIANGLES : usage;
 
 	this._vbo = new Vbo(gl.ARRAY_BUFFER);
 	this._ibo = null;
