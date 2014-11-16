@@ -3342,15 +3342,15 @@ glDraw_Internal.prototype._updateProgramLocations = function(){
     var program = Program.getCurrent(),
         programGl = program.getObjGL();
 
-    this._attribLocationVertexPos         = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_POSITION);
-    this._attribLocationVertexColor       = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_COLOR);
-    this._attribLocationVertexNormal      = gl.getAttribLocation(programGl,Program.ATTRIB_VERTEX_NORMAL);
-    this._attribLocationTexcoord          = gl.getAttribLocation(programGl,Program.ATTRIB_TEXCOORD);
+    this._attribLocationVertexPos    = program.getAttribLocation(Program.ATTRIB_VERTEX_POSITION);
+    this._attribLocationVertexColor  = program.getAttribLocation(Program.ATTRIB_VERTEX_COLOR);
+    this._attribLocationVertexNormal = program.getAttribLocation(Program.ATTRIB_VERTEX_NORMAL);
+    this._attribLocationTexcoord     = program.getAttribLocation(Program.ATTRIB_TEXCOORD);
 
-    this._uniformLocationProjectionMatrix = program[Program.UNIFORM_PROJECTION_MATRIX];
-    this._uniformLocationViewMatrix       = program[Program.UNIFORM_VIEW_MATRIX];
-    this._uniformLocationModelViewMatrix  = program[Program.UNIFORM_MODELVIEW_MATRIX];
-    this._uniformLocationNormalMatrix     = program[Program.UNIFORM_NORMAL_MATRIX];
+    this._uniformLocationProjectionMatrix = program.getUniformLocation(Program.UNIFORM_PROJECTION_MATRIX);
+    this._uniformLocationViewMatrix       = program.getUniformLocation(Program.UNIFORM_VIEW_MATRIX);
+    this._uniformLocationModelViewMatrix  = program.getUniformLocation(Program.UNIFORM_MODELVIEW_MATRIX);
+    this._uniformLocationNormalMatrix     = program.getUniformLocation(Program.UNIFORM_NORMAL_MATRIX);
 
 
     this._programIdLast = program.getId();
@@ -3368,8 +3368,6 @@ glDraw_Internal.prototype._applyMatrixUniforms = function(applyNormalMatrix){
     if(this._uniformLocationViewMatrix != -1){
         gl.uniformMatrix4fv(this._uniformLocationViewMatrix, false, glTrans.getViewMatrixF32());
     }
-
-
 }
 
 /**

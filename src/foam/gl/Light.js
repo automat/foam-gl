@@ -176,29 +176,27 @@ Light.prototype._updateUniformLocations = function(){
 	if(Program.getCurrent().getId() == this._programIdLast){
 		return;
 	}
-
 	var gl = this._gl;
 	var program   = Program.getCurrent(),
 		programGl = program.getObjGL();
 
 	var prefix = Program.UNIFORM_LIGHT + '[' + this._id + ']';
 
-	this._uniformLocationPosition   = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_POSITION_SUFFIX];
-	this._uniformLocationAmbient    = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_AMBIENT_SUFFIX];
-	this._uniformLocationDiffuse    = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_DIFFUSE_SUFFIX];
-	this._uniformLocationSpecular   = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_SPECULAR_SUFFIX];
-	this._uniformLocationConstAtt   = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_CONSTANT_ATT];
-	this._uniformLocationLinearAtt  = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_LINEAR_ATT];
-	this._uniformLocationQuadricAtt = program[prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_QUADRIC_ATT];
+	this._uniformLocationPosition   = program.getUniformLocation(prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_POSITION_SUFFIX);
+	this._uniformLocationAmbient    = program.getUniformLocation(prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_AMBIENT_SUFFIX);
+	this._uniformLocationDiffuse    = program.getUniformLocation(prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_DIFFUSE_SUFFIX);
+	this._uniformLocationSpecular   = program.getUniformLocation(prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_SPECULAR_SUFFIX);
+	this._uniformLocationConstAtt   = program.getUniformLocation(prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_CONSTANT_ATT);
+	this._uniformLocationLinearAtt  = program.getUniformLocation(prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_LINEAR_ATT);
+	this._uniformLocationQuadricAtt = program.getUniformLocation(prefix + '.' + Program.UNIFORM_LIGHT_STRUCT_QUADRIC_ATT);
 
 	var uniforms = this._customUniforms;
 	var uniform;
 
 	for(var a in uniforms){
 		uniform = uniforms[a];
-		uniform.location = gl.getUniformLocation(programGl,a);
+		uniform.location = program.getUniformLocation(a);
 	}
-
 	this._programIdLast = program.getId();
 }
 
@@ -282,15 +280,16 @@ Light.prototype._applyCustomAttributes = function(){
 Light.prototype._applyPosition = function(idFlag){
 	var gl = this._gl;
 
-	var position = this.position;
-	var tempF32 = this._tempF32_4;
+	var position = this.position,
+		tempF32  = this._tempF32_4;
 
 	tempF32[0] = position.x;
 	tempF32[1] = position.y;
 	tempF32[2] = position.z;
 	tempF32[3] = 1.0; // type of light - for later use
 
-	this._glTrans.getModelViewMatrix().multVec3AI(tempF32,0);
+	this._glTrans.getModelViewMatrix().multVec3AI(tempF32,0)
+
 	gl.uniform4fv(this._uniformLocationPosition,tempF32);
 }
 
