@@ -2338,7 +2338,7 @@ glDraw_Internal.prototype.drawMesh = function(mesh, length, usage){
             }
             gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, mesh.indices);
         }
-        gl.drawElements(usage,(length || mesh.indices.length),gl.UNSIGNED_SHORT,0);
+        gl.drawElements(usage,(length || mesh.indices.length),mesh.format.indexFormat,0);
     } else {
         gl.drawArrays(usage,0,length || (vertices.length / 3));
     }
@@ -2487,7 +2487,7 @@ glDraw_Internal.prototype.drawVboMesh = function(mesh,length){
             ibo.bufferSubData(0,indices);
             mesh._indicesDirty = false;
         }
-        gl.drawElements(mesh._usage,length || indices.length,gl.UNSIGNED_SHORT,0);
+        gl.drawElements(mesh._usage,length || indices.length,format.indexFormat,0);
     } else {
         gl.drawArrays(mesh._usage,0,length || (vertices.length / format.vertexSize));
     }
@@ -2503,7 +2503,6 @@ glDraw_Internal.prototype.drawVboMesh = function(mesh,length){
     if(attribTexcoordValid && texcoordsLen == 0){
         gl.enableVertexAttribArray(attribLocationTexcoord);
     }
-
     if(vboDiffers){
         gl.bindBuffer(gl.ARRAY_BUFFER, prevVbo);
     }
@@ -2652,7 +2651,7 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                     meshIbo.bufferSubData(0,indices);
                     mesh._indicesDirty = false;
                 }
-                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+                gl.drawElements(mesh._usage,indices.length,meshFormat.indexFormat,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
             }
@@ -2766,7 +2765,7 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                     meshIbo.bufferSubData(0,indices);
                     mesh._indicesDirty = false;
                 }
-                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+                gl.drawElements(mesh._usage,indices.length,meshFormat.indexFormat,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
             }
@@ -2875,7 +2874,7 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                     meshIbo.bufferSubData(0,indices);
                     mesh._indicesDirty = false;
                 }
-                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+                gl.drawElements(mesh._usage,indices.length,meshFormat.indexFormat,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
             }
@@ -2983,7 +2982,7 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                     meshIbo.bufferSubData(0,indices);
                     mesh._indicesDirty = false;
                 }
-                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+                gl.drawElements(mesh._usage,indices.length,meshFormat.indexFormat,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
             }
@@ -3077,7 +3076,7 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                     meshIbo.bufferSubData(0,indices);
                     mesh._indicesDirty = false;
                 }
-                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+                gl.drawElements(mesh._usage,indices.length,meshFormat.indexFormat,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
             }
@@ -3164,7 +3163,7 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                     meshIbo.bufferSubData(0,indices);
                     mesh._indicesDirty = false;
                 }
-                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+                gl.drawElements(mesh._usage,indices.length,meshFormat.indexFormat,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
             }
@@ -3253,7 +3252,7 @@ glDraw_Internal.prototype.drawVboMeshes = function(vboMeshes){
                     meshIbo.bufferSubData(0,indices);
                     mesh._indicesDirty = false;
                 }
-                gl.drawElements(mesh._usage,indices.length,gl.UNSIGNED_SHORT,0);
+                gl.drawElements(mesh._usage,indices.length,meshFormat.indexFormat,0);
             } else {
                 gl.drawArrays(mesh._usage,0,(vertices.length / meshFormat.vertexSize));
             }
