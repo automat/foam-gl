@@ -200,8 +200,8 @@ function App(canvas) {
 
     canvas.addEventListener('mouseup',function(){
         mouse._down = false;
-        if(mouse.hasEventListener(MouseEvent.MOUSE_DOWN)){
-            mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_DOWN));
+        if(mouse.hasEventListener(MouseEvent.MOUSE_UP)){
+            mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_UP));
         }
     });
 
