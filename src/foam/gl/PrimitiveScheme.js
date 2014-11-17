@@ -1,40 +1,61 @@
 var PrimitiveScheme = {};
 
-PrimitiveScheme.Triangle = {
-	vertices : [],
-	normals : [],
-	colors: [],
-	texcoords : []
-};
-
 PrimitiveScheme.Plane = {
-	vertices : [
-		-0.5, 0, -0.5,
-		-0.5, 0,  0.5,
-		 0.5, 0, -0.5,
-		 0.5, 0,  0.5
-	],
+	create : function(numH,numV){
+		var numH_1 = numH - 1,
+			numV_1 = numV - 1;
+		var _numH_1 = 1.0 / numH_1,
+			_numV_1 = 1.0 / numV_1;
+		var num = numH * numV;
 
-	normals : [
-		0,1,0,
-		0,1,0,
-		0,1,0,
-		0,1,0
-	],
+		var vertices  = [],
+			normals   = [],
+			colors    = [],
+			texcoords = [],
+			indices   = null;
 
-	colors : [
-		0,1,1,1,
-		0,1,1,1,
-		0,1,1,1,
-		0,1,1,1
-	],
+		var i, j;
+		var x, y, z;
+		i = -1;
+		while(++i < numV){
+			j = -1;
+			while(++j < numH){
+				x = i * _numV_1;
+				y = 0.0;
+				z = j * _numH_1;
 
-	texcoords : [
-		0,0,
-		1,0,
-		0,1,
-		1,1
-	]
+				vertices.push(x,y,z);
+				normals.push(0,1,0);
+				colors.push(1,1,1,1);
+				texcoords.push(x,y);
+			}
+		}
+
+		if(num > 4){
+			indices = [];
+			var a, b, c, d;
+			i = -1;
+			while(++i < numV_1){
+				j = -1;
+				while(++j < numH_1){
+					a = i * numH + j;
+					b = a + 1;
+					c = (i + 1) * numH + j;
+					d = c + 1;
+
+					indices.push(c,b,a,c,d,b);
+				}
+			}
+		}
+
+		return {
+			vertices  : vertices,
+			normals   : normals,
+			colors    : colors,
+			texcoords : texcoords,
+			indices   : indices
+		};
+	}
 };
 
 PrimitiveScheme.Cube = {
@@ -56,7 +77,6 @@ PrimitiveScheme.Cube = {
 		-1.0,  0.0,  0.0, -1.0,  0.0,  0.0, -1.0,  0.0,  0.0, -1.0,  0.0,  0.0
 	],
 
-
 	colors : [
 		0, 0.5, 0, 1,  0, 0.5, 0, 1,  0, 0.5, 0, 1,  0, 0.5, 0, 1,
 		0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
@@ -65,6 +85,7 @@ PrimitiveScheme.Cube = {
 		0, 0, 1, 1,0, 0, 1, 1,0, 0, 1, 1,0, 0, 1, 1,
 		1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1
 	],
+
 	texcoords : [
 		0.0,  0.0, 1.0,  0.0, 1.0,  1.0, 0.0,  1.0,
 		0.0,  0.0, 1.0,  0.0, 1.0,  1.0, 0.0,  1.0,
@@ -73,6 +94,7 @@ PrimitiveScheme.Cube = {
 		0.0,  0.0, 1.0,  0.0, 1.0,  1.0,  0.0,  1.0,
 		0.0,  0.0, 1.0,  0.0, 1.0,  1.0, 0.0,  1.0
 	],
+
 	indices : [
 		0,  1,  2,      0,  2,  3,
 		4,  5,  6,      4,  6,  7,
