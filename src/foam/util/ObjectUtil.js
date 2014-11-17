@@ -31,11 +31,21 @@ var ObjectUtil = {
     /**
      * Ensures that an array is of type Uint16Array.
      * @param arr
-     * @returns {*}
+     * @returns {Uint16Array}
      */
 
     safeUint16Array: function (arr) {
         return arr instanceof Uint16Array ? arr : new Uint16Array(arr);
+    },
+
+    /**
+     * Ensures that an array is of type Uint32Array.
+     * @param arr
+     * @returns {Uint32Array}
+     */
+
+    safeUint32Array : function(arr){
+        return arr instanceof Uint32Array ? arr : new Uint32Array(arr);
     },
 
     /**
