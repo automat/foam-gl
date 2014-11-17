@@ -22,8 +22,8 @@ function VboMesh(usage,format,size){
 	this._vbo = new Vbo(gl.ARRAY_BUFFER);
 	this._ibo = null;
 
-	this._vboUsage = gl.DYNAMIC_DRAW;
-	this._iboUsage = gl.STATIC_DRAW;
+	this._vboUsage = this.getFormat().vboUsage;
+	this._iboUsage = this.getFormat().iboUsage;
 
 	this._verticesDirty  = true;
 	this._normalsDirty   = true;
@@ -37,23 +37,16 @@ function VboMesh(usage,format,size){
 	this._offsetTexcoords= 0;
 }
 
-VboMesh.Format = Mesh.Format;
-
-VboMesh.prototype.setUsage = function(usage){
-	this._usage = usage;
+VboMesh.Format = function(){
+	Mesh.Format.apply(this);
+	var gl = _gl.get();
+	this.vboUsage = gl.DYNAMIC_DRAW;
+	this.iboUsage = gl.STATIC_DRAW;
 };
 
-VboMesh.prototype.getUsage = function(){
-	return this._usage;
-};
+VboMesh.Format.prototype = Object.create(Mesh.Format);
+VboMesh.Format.prototype.constructor = VboMesh.Format;
 
-VboMesh.prototype.setDataUsage = function(usage){
-	this._vboUsage = usage;
-};
-
-VboMesh.prototype.setIndexUsage = function(usage){
-	this._iboUsage = usage;
-};
 
 /**
  * Rebuffers the vertex data.
@@ -300,7 +293,9 @@ VboMesh.prototype.setTexcoords = function(texcoords){
 };
 
 VboMesh.prototype.setIndices = function(indices){
-	this._obj.indices = ObjectUtil.safeUint16Array(indices);
+	this._obj.indices = this._obj.getFormat().indexFormat == this._gl.UNSIGNED_INT ?
+						ObjectUtil.safeUint32Array(indices) :
+						ObjectUtil.safeUint16Array(indices);
 	this._updateIboSize();
 };
 
@@ -319,7 +314,7 @@ VboMesh.prototype.getBoundingBox = function(){
 };
 
 VboMesh.prototype.calculateNormals = function(){
-	this._obj.caculateNormals();
+	this._obj.calculateNormals();
 	this._normalsDirty = true;
 };
 
@@ -350,6 +345,22 @@ VboMesh.prototype.hasTexcoords = function(){
 VboMesh.prototype.hasIndices = function(){
 	return this._obj.hasIndices();
 };
+
+VboMesh.prototype.getVertices = function(){
+	return this._obj.vertices;
+};
+
+VboMesh.prototype.getNormals = function(){
+	return this._obj.normals;
+};
+
+VboMesh.prototype.getColors = function(){
+	return this._obj.colors;
+};
+
+VboMesh.prototype.getTexcoords = function(){
+	return this._obj.texcoords;
+}
 
 VboMesh.prototype.getId = function(){
 	return this._obj.getId();
