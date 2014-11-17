@@ -320,12 +320,12 @@ glTrans.rotate3f = function (x, y, z) {
 };
 
 glTrans.rotateAxis = function (angle, v) {
-    matrixModelView = matrixTemp0.mult(Matrix44.createRotationOnAxis(angle, v.x, v.y, v.z, matrixTemp0.identity()));
+    matrixModelView.mult(Matrix44.createRotationOnAxis(angle, v.x, v.y, v.z, matrixTemp0.identity()));
     matrixNormalDirty = true;
 };
 
 glTrans.rotateAxis3f = function (angle, x, y, z) {
-    matrixModelView = matrixTemp0.mult(Matrix44.createRotationOnAxis(angle, x, y, z, matrixTemp0.identity()));
+    matrixModelView.mult(Matrix44.createRotationOnAxis(angle, x, y, z, matrixTemp0.identity()));
     matrixNormalDirty = true;
 };
 
