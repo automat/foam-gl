@@ -6,11 +6,18 @@ var ObjectUtil = require('../util/ObjectUtil'),
     Vec3 = require('../math/Vec3'),
     AABB = require('../geom/AABB'),
     Color = require('../util/Color'),
-    Matrix44 = require('../math/Matrix44');
+    Matrix44 = require('../math/Matrix44'),
+    _gl = require('./gl'),
+    glExt = require('./glExtensions');
 
 function Mesh(format,size) {
     glObject.apply(this);
     format = this._format = format || new Mesh.Format();
+
+    var gl = this._gl;
+    if(format.indexFormat == gl.UNSIGNED_INT && !glExt.OES_element_index_uint){
+        throw new Error('Mesh: MeshFormat indexFormat gl.UNSIGNED_INT not available through OES_element_index_uint extension.');
+    }
 
     this._size = size || 0;
     this._id   = Id.get();
@@ -19,7 +26,9 @@ function Mesh(format,size) {
     this.normals   = new Float32Array(size * format.normalSize);
     this.colors    = new Float32Array(size * format.colorSize);
     this.texcoords = new Float32Array(size * format.texcoordSize);
-    this.indices   = new Uint16Array(0);
+    this.indices   = format.indexFormat == gl.UNSIGNED_INT ?
+                     new Uint32Array(0) :
+                     new Uint16Array(0);
 
     this._transform = null;
     this._transformTemp = new Matrix44();
@@ -33,6 +42,10 @@ Mesh.Format = function(){
     this.normalSize   = 3;
     this.colorSize    = 4;
     this.texcoordSize = 2;
+
+    var gl = _gl.get();
+    this.indexFormat = gl.UNSIGNED_SHORT;
+
 };
 
 Mesh.prototype.appendMesh = function(mesh){
@@ -175,6 +188,7 @@ Mesh.prototype.reserveSize = function(size){
 
     this._size = size;
 };
+
 
 
 
@@ -360,7 +374,9 @@ Mesh.prototype.reserveIndices = function(size){
     if(this.indices.length >= size){
         return;
     }
-    var indices = new Uint16Array(size);
+    var indices = this._format.indexFormat == this._gl.UNSIGNED_INT ?
+                  new Uint32Array(size) :
+                  new Uint16Array(size);
         indices.set(this.indices);
     this.indices = indices;
 };
@@ -371,22 +387,19 @@ Mesh.prototype.clear = function(){
     this.normals = new Float32Array(0);
     this.color = new Float32Array(0);
     this.texcoords = new Float32Array(0);
-    this.indices = new Uint16Array(0);
+    this.indices = this._format.indexFormat == this._gl.UNSIGNED_INT ?
+                   new Uint32Array(0) :
+                   new Uint16Array(0);
 };
 
 Mesh.prototype.getBoundingBox = function(box){
     return AABB.fromPointsf(this.vertices, box);
 };
 
-Mesh.prototype.caculateNormals = function(){
-    var size = this._size;
-    var normals = this.normals;
-    if(size == 0 || normals.length == 0){
-        return;
-    }
-
+Mesh.prototype.calculateNormals = function(){
     var indices  = this.indices,
-        vertices = this.vertices;
+        vertices = this.vertices,
+        normals  = this.normals;
 
     var i;
     var a, b, c;
@@ -399,83 +412,80 @@ Mesh.prototype.caculateNormals = function(){
         b0, b1, b2,
         c0, c1, c2;
 
-    var x, y, z, l;
-
-    i = 0; l = normals.length;
-    while( i < l ){
-        normals[i] = normals[i+1] = normals[i+2] = 0.0;
-        i+=3;
+    i = 0;
+    while (i < normals.length) {
+        normals[i] = normals[i + 1] = normals[i + 2] = 0.0;
+        i += 3;
     }
 
     i = 0;
-    if(indices.length == 0){
+    while (i < indices.length) {
+        a = indices[i  ]*3;
+        b = indices[i+1]*3;
+        c = indices[i+2]*3;
 
-    }else{
-        l = indices.length;
-        while( i < l ){
-            a = indices[i  ] * 3;
-            b = indices[i+1] * 3;
-            c = indices[i+2] * 3;
+        a0 = a;
+        a1 = a+1;
+        a2 = a+2;
 
-            a0 = a;
-            a1 = a+1;
-            a2 = a+2;
+        b0 = b;
+        b1 = b+1;
+        b2 = b+2;
 
-            b0 = b;
-            b1 = b+1;
-            b2 = b+2;
+        c0 = c;
+        c1 = c+1;
+        c2 = c+2;
 
-            c0 = c;
-            c1 = c+1;
-            c2 = c+2;
+        vbx = vertices[b0];
+        vby = vertices[b1];
+        vbz = vertices[b2];
 
-            vbx = vertices[b0];
-            vby = vertices[b1];
-            vbz = vertices[b2];
+        e1x = vertices[a0]-vbx;
+        e1y = vertices[a1]-vby;
+        e1z = vertices[a2]-vbz;
 
-            e1x = vertices[a0]-vbx;
-            e1y = vertices[a1]-vby;
-            e1z = vertices[a2]-vbz;
+        e2x = vertices[c0]-vbx;
+        e2y = vertices[c1]-vby;
+        e2z = vertices[c2]-vbz;
 
-            e2x = vertices[c0]-vbx;
-            e2y = vertices[c1]-vby;
-            e2z = vertices[c2]-vbz;
+        nx = e1y * e2z - e1z * e2y;
+        ny = e1z * e2x - e1x * e2z;
+        nz = e1x * e2y - e1y * e2x;
 
-            nx = e1y * e2z - e1z * e2y;
-            ny = e1z * e2x - e1x * e2z;
-            nz = e1x * e2y - e1y * e2x;
+        normals[a0] += nx;
+        normals[a1] += ny;
+        normals[a2] += nz;
 
-            normals[a0] += nx;
-            normals[a1] += ny;
-            normals[a2] += nz;
+        normals[b0] += nx;
+        normals[b1] += ny;
+        normals[b2] += nz;
 
-            normals[b0] += nx;
-            normals[b1] += ny;
-            normals[b2] += nz;
-
-            normals[c0] += nx;
-            normals[c1] += ny;
-            normals[c2] += nz;
-
-            i+=3;
-        }
-    }
-
-
-    i = 0; l = normals.length;
-    while(i < l){
-
-        x = normals[i  ];
-        y = normals[i+1];
-        z = normals[i+2];
-
-        l = 1.0 / (Math.sqrt(x*x+y*y+z*z) || 1.0);
-
-        normals[i  ] *= l;
-        normals[i+1] *= l;
-        normals[i+2] *= l;
+        normals[c0] += nx;
+        normals[c1] += ny;
+        normals[c2] += nz;
 
         i+=3;
+    }
+
+    var x, y, z, l;
+
+    i = 0;
+    while (i < normals.length) {
+
+        x = normals[i];
+        y = normals[i + 1];
+        z = normals[i + 2];
+
+        l = Math.sqrt(x * x + y * y + z * z);
+
+        //l = 1 / (l || 1);
+        l = !l ? 0 : 1 / l;
+
+        normals[i] *= l;
+        normals[i + 1] *= l;
+        normals[i + 2] *= l;
+
+        i += 3;
     }
 };
 
