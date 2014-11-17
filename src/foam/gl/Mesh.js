@@ -19,7 +19,7 @@ function Mesh(format,size) {
         throw new Error('Mesh: MeshFormat indexFormat gl.UNSIGNED_INT not available through OES_element_index_uint extension.');
     }
 
-    this._size = size || 0;
+    this._size = size = size || 0;
     this._id   = Id.get();
 
     this.vertices  = new Float32Array(size * format.vertexSize);
