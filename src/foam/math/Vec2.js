@@ -1,3 +1,5 @@
+var Vec3 = require('./Vec3');
+
 /**
  * 2d Vector
  * @param {Number} x - x component
@@ -269,6 +271,10 @@ Vec2.prototype.toMin = function(){
     this.x = this.y =-Number.MAX_VALUE;
     return this;
 };
+
+Vec2.prototype.toVec3 = function(){
+    return new Vec3(this.x,this.y,0);
+}
 
 Vec2.prototype.toFloat32Array = function(arr,offset){
     if(!arr && !offset){
