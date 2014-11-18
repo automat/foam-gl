@@ -102,7 +102,7 @@ Script
 
                 var t = this.getSecondsElapsed();
 
-                gl.clear(gl.BUFFER_BIT | gl.DEPTH_BIT);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.clearColor(0.25,0.25,0.25,1.0);
 
                 glTrans.setCameraMatrices(this._camera);
