@@ -55,6 +55,39 @@ Vec3.prototype.set3f = function(x,y,z){
 };
 
 /**
+ * Sets the x component.
+ * @param x
+ * @returns {Vec3}
+ */
+
+Vec3.prototype.setX = function(x){
+    this.x = x;
+    return this;
+}
+
+/**
+ * Sets the y component.
+ * @param y
+ * @returns {Vec3}
+ */
+
+Vec3.prototype.setY = function(y){
+    this.y = y;
+    return this;
+}
+
+/**
+ * Sets the z component.
+ * @param z
+ * @returns {Vec3}
+ */
+
+Vec3.prototype.setZ = function(z){
+    this.z = z;
+    return this;
+}
+
+/**
  * Return a copy of the vector.
  * @param {Vec3} [v] - Out vector
  * @returns {Vec3}
