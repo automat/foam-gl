@@ -1,6 +1,6 @@
 ####DRAFT – EXPERIMENTAL
 
-#FOAM - A WebGL tookkit
+#FOAM - A WebGL toolkit
 
 - [...]
 - used to plain gl calls
