@@ -45,6 +45,28 @@ Vec2.prototype.setf = function(x,y){
 };
 
 /**
+ * Sets the x component.
+ * @param x
+ * @returns {Vec2}
+ */
+
+Vec2.prototype.setX = function(x){
+    this.x = x;
+    return this;
+}
+
+/**
+ * Sets the y component.
+ * @param y
+ * @returns {Vec2}
+ */
+
+Vec2.prototype.setY = function(y){
+    this.y = y;
+    return this;
+}
+
+/**
  * Return a copy of the vector.
  * @param {Vec2} [v] - Out vector
  * @returns {Vec2}
