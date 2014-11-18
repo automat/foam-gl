@@ -80,9 +80,10 @@ CameraAbstract.prototype.getEye = function(v){
     return this._eye.copy(v);
 };
 
-CameraAbstract.prototype.lookAt = function(eye,target){
+CameraAbstract.prototype.lookAt = function(eye,target,up){
     this._eye.set(eye);
     this._target.set(target);
+    this._up.set(up || this._up);
     this._viewMatrixDirty = true;
 };
 
