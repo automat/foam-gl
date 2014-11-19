@@ -3,9 +3,15 @@
 #FOAM - A WebGL toolkit
 
 - [...]
-- used to plain gl calls
 
-[Features](#feature)  – [Differences to other tools](#differences) - [Goals](#goals) - [Structure](#structure) - [Install](#install) - [Usage](#usage) - [Templates](#templates) – [Build](#build) – [Dependencies](#dependencies) - [License](#license)
+- prototype environment
+- more low level
+
+If you don't want to deal with shaders and just quickly display your mesh using some predefined materials and lighting, this might not be your weapon of choice.
+
+[Features](#feature)  – [Differences to other tools](#differences) - [Goals](#goals) - [Structure](#structure) - [Install](#install) - [Usage](#usage) - [Templates](#templates) – [Build](#build) – [Documentation](#documentation) – [Dependencies](#dependencies) - [License](#license)
+
+---
 
 ##Features
 
@@ -25,8 +31,11 @@
 
 ##Differences to other tools
 
-- focus on base gl
-- there is more to WebGL than Three.js
+- there is more to WebGL than Three.js (although its magical), abstracted just as much abstraction to not get in the way
+- strong focus on shaders
+- no build-in uber giant shader, or materials, blank canvas
+- Light and Material as generic representations of uniform shader structs, no associated programs, extendable with custom uniforms
+
 - fd
 - [more]
 
@@ -157,6 +166,32 @@ Script
             }
         }
     );
+    
+equals (regarding application initialisation)
+
+    var Foam = require('foam');
+    
+    function App(){
+        Foam.App.call(this);
+    }
+    App.prototype = Object.create(Foam.App.prototype);
+    App.prototype.constructor = App;
+    
+    App.prototype.setup = function(resources){}
+    App.prototype.update = function(){};
+    
+    window.addEventListener('load',function(){
+        var app;
+        Foam.Resource.load(
+            { // Resource obj
+                shaderA : {path:pathToShaderA},
+                shaderB : {path:pathToShaderB}
+            },
+            function(resources){
+                app = new App(resources);
+            }
+    });
+    
     
 ####Context node-webkit
     
