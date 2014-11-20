@@ -219,7 +219,6 @@ function App(canvas) {
     
     canvas.addEventListener('mousewheel', function (event) {
         mouse._wheelDirection = event.detail < 0 ? 1 : (event.wheelDelta > 0) ? 1 : -1;
-        console.log(mouse._wheelDirection);
         if(mouse.hasEventListener(MouseEvent.MOUSE_WHEEL)){
             mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_WHEEL));
         }
