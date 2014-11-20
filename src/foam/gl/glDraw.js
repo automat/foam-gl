@@ -1765,6 +1765,15 @@ glDraw_Internal.prototype.setCircleSegments = function(numSegments){
     this._circleNumSegments = this._circlesModelNumSegments = numSegments;
 }
 
+/**
+ * Returns the current circle segments num.
+ * @returns {Number}
+ */
+
+glDraw_Internal.prototype.getCircleSegments = function(){
+    return this._circleNumSegments;
+}
+
 
 /*--------------------------------------------------------------------------------------------*/
 //  Cube
