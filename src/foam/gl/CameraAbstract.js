@@ -87,6 +87,12 @@ CameraAbstract.prototype.lookAt = function(eye,target,up){
     this._viewMatrixDirty = true;
 };
 
+var temp0 = new Vec3();
+
+CameraAbstract.prototype.getDistance = function(){
+    return this._eye.subbed(this._target,temp0).length();
+};
+
 CameraAbstract.prototype.setUp = function (v) {
     this._up.set(v);
     this._viewMatrixDirty = true;
