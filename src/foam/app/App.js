@@ -1,18 +1,20 @@
-var fError       = require('../system/common/Error'),
-    ObjectUtil   = require('../util/ObjectUtil'),
-    Event        = require('../system/Event'),
-    System       = require('../system/System'),
-    Resource     = require('../system/Resource'),
-    Vec2         = require('../math/Vec2'),
-    Rect         = require('../geom/Rect'),
-    Mouse        = require('../input/Mouse'),
-    MouseEvent   = require('../input/MouseEvent'),
-    Keyboard     = require('../input/Keyboard'),
-    KeyEvent     = require('../input/KeyEvent'),
-    gl           = require('../gl/gl'),
-    glDraw       = require('../gl/glDraw'),
-    glTrans      = require('../gl/glTrans'),
-    glExtensions = require('../gl/glExtensions');
+var fError          = require('../system/common/Error'),
+    ObjectUtil      = require('../util/ObjectUtil'),
+    EventDispatcher = require('../system/EventDispatcher'),
+    Event           = require('../system/Event'),
+    System          = require('../system/System'),
+    Resource        = require('../system/Resource'),
+    Vec2            = require('../math/Vec2'),
+    Rect            = require('../geom/Rect'),
+    Mouse           = require('../input/Mouse'),
+    MouseEvent      = require('../input/MouseEvent'),
+    Keyboard        = require('../input/Keyboard'),
+    KeyEvent        = require('../input/KeyEvent'),
+    WindowEvent     = require('./WindowEvent'),
+    gl              = require('../gl/gl'),
+    glDraw          = require('../gl/glDraw'),
+    glTrans         = require('../gl/glTrans'),
+    glExtensions    = require('../gl/glExtensions');
 
 var DEFAULT_WINDOW_WIDTH = 800,
     DEFAULT_WINDOW_HEIGHT = 600;
@@ -37,6 +39,9 @@ function App(canvas) {
         return this;
     }
 
+    EventDispatcher.apply(this);
+
+
     //
     //  Context & Window
     //
@@ -59,7 +64,7 @@ function App(canvas) {
     this.__mousePosLastTemp = new Vec2();
     this.__mousePosition = {position:new Vec2(),positionLast:new Vec2()};
 
-    this._keyboard = new Keyboard();
+    this.__keyboard = new Keyboard();
 
     //
     //  time
@@ -136,14 +141,19 @@ function App(canvas) {
                                    window.mozRequestAnimationFrame;
 
     App.__instance = this;
-    window.addEventListener('resize',this.onWindowResize.bind(this));
 
     document.body.appendChild(canvas);
 
     var mouse    = this.__mouse,
-        keyboard = this._keyboard;
+        keyboard = this.__keyboard;
     var self = this;
 
+    window.addEventListener('resize', function(){
+        if(self.hasEventListener(WindowEvent.RESIZE)){
+            self.dispatchEvent(new Event(this,WindowEvent.RESIZE));
+        }
+        self.onWindowResize();
+    });
 
 
     function onMouseStopped(){
@@ -183,9 +193,10 @@ function App(canvas) {
         }
     });
 
-    canvas.addEventListener('mousedown',function(){
+    canvas.addEventListener('mousedown',function(event){
         mouse._downLast = mouse._down;
         mouse._down = true;
+        mouse._button = event.which;
 
         if(mouse._down && !mouse._downLast){
             if(mouse.hasEventListener(MouseEvent.MOUSE_PRESSED)){
@@ -198,10 +209,19 @@ function App(canvas) {
         }
     });
 
-    canvas.addEventListener('mouseup',function(){
+    canvas.addEventListener('mouseup',function(event){
         mouse._down = false;
+        mouse._button = event.which;
         if(mouse.hasEventListener(MouseEvent.MOUSE_UP)){
             mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_UP));
+        }
+    });
+    
+    canvas.addEventListener('mousewheel', function (event) {
+        mouse._wheelDirection = event.detail < 0 ? 1 : (event.wheelDelta > 0) ? 1 : -1;
+        console.log(mouse._wheelDirection);
+        if(mouse.hasEventListener(MouseEvent.MOUSE_WHEEL)){
+            mouse.dispatchEvent(new Event(mouse,MouseEvent.MOUSE_WHEEL));
         }
     });
 
@@ -292,6 +312,9 @@ function App(canvas) {
         this.update();
     }
 }
+
+App.prototype = Object.create(EventDispatcher.prototype);
+App.prototype.constructor = App;
 
 /**
  * Get an instance of the current program.
