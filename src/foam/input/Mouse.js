@@ -20,10 +20,12 @@ function Mouse() {
     this._positionNormalized = new Vec2();
     this._positionLastNormalized = new Vec2();
     this._down = this._downLast = false;
+    this._button = null;
     this._up = false;
     this._move = this._moveLast = false;
     this._leave = this._enter = false;
     this._wheelDelta = 0;
+    this._wheelDirection = 0;
 
     Mouse.__instance = this;
 }
@@ -154,6 +156,15 @@ Mouse.prototype.getWheelDelta = function () {
 };
 
 /**
+ * Returns mouse wheel direction -1,1.
+ * @returns {*}
+ */
+
+Mouse.prototype.getWheelDirection = function(){
+    return this._wheelDirection;
+}
+
+/**
  * Returns true if the mouse is down.
  * @returns {Boolean}
  */
@@ -207,6 +218,18 @@ Mouse.prototype.didLeave = function(){
     return this._leave;
 };
 
+
+Mouse.prototype.isLeft = function(){
+    return this._button == 1;
+}
+
+Mouse.prototype.isRight = function(){
+    return this._button = 2;
+}
+
+Mouse.prototype.isMiddle = function(){
+    return this._button = 3;
+}
 
 /**
  * Return the singleton.
