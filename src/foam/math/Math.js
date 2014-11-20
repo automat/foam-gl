@@ -3,7 +3,7 @@ var _Math = {
     HALF_PI: Math.PI * 0.5,
     QUARTER_PI: Math.PI * 0.25,
     TWO_PI: Math.PI * 2,
-    EPSILON: 0.0001,
+    EPSILON: 2.2204460492503130808472633361816E-16,
 
     lerp: function (a, b, v) {
         return (a * (1 - v)) + (b * v);
