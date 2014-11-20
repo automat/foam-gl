@@ -1,4 +1,5 @@
-var Matrix33 = require('./Matrix33');
+var Matrix33 = require('./Matrix33'),
+    Quat     = require('./Quat');
 
 function Matrix44() {
     this.m = [
@@ -34,6 +35,34 @@ Matrix44.prototype.set = function(mat44){
 
     return this;
 };
+
+Matrix44.prototype.setf = function(m00,m01,m02,m03,
+                                   m10,m11,m12,m13,
+                                   m20,m21,m22,m23,
+                                   m30,m31,m32,m33){
+    var m = this.m;
+    m[ 0] = m00;
+    m[ 1] = m01;
+    m[ 2] = m02;
+    m[ 3] = m03;
+
+    m[ 4] = m10;
+    m[ 5] = m11;
+    m[ 6] = m12;
+    m[ 7] = m13;
+
+    m[ 8] = m20;
+    m[ 9] = m21;
+    m[10] = m22;
+    m[11] = m23;
+
+    m[12] = m30;
+    m[13] = m31;
+    m[14] = m32;
+    m[15] = m33;
+
+    return this;
+}
 
 Matrix44.prototype.copy = function(){
     return (new Matrix44()).set(this);
@@ -392,6 +421,54 @@ Matrix44.createRotationOnB = function(u,v,w,m){
     return m;
 };
 
+
+Matrix44.prototype.toQuat = function(quat){
+    quat = quat || new Quat();
+
+    var m = this.m;
+    var m00 = m[0], m01 = m[4], m02 = m[8],
+        m10 = m[1], m11 = m[5], m12 = m[9],
+        m20 = m[2], m21 = m[6], m22 = m[10];
+    var t = m00 + m11 + m22,
+        s;
+
+    if (t > 0) {
+        s = Math.sqrt(t + 1.0) * 2;
+        quat.setf(
+            0.25 * s,
+            (m21 - m12) / s,
+            (m02 - m20) / s,
+            (m10 - m01) / s
+        )
+    } else if ((m00 > m11) && (m00 > m22)) {
+        s = Math.sqrt(1.0 + m00 - m11 - m22) * 2;
+        quat.setf(
+            (m21 - m12) / s,
+            0.25 * s,
+            (m01 + m10) / s,
+            (m02 + m20) / s
+        )
+    } else if (m11 > m22) {
+        s = Math.sqrt(1.0 + m11 - m00 - m22) * 2;
+        quat.setf(
+            (m02 - m20) / s,
+            (m01 + m10) / s,
+            0.25 * s,
+            (m12 + m21) / s
+        );
+    } else {
+        s = Math.sqrt(1.0 + m22 - m00 - m11) * 2;
+        quat.setf(
+            (m10 - m01) / s,
+            (m02 + m20) / s,
+            (m12 + m21) / s,
+            0.25 * s
+        )
+    }
+
+    return quat;
+}
+
 function mult(m0,m1,m){
     m = m || new Matrix44();
     m0 = m0.m;
@@ -652,7 +729,7 @@ Matrix44.prototype.toMat33 = function(matrix){
     m[3]=m_[4];m[4]=m_[5];m[5]=m_[6];
     m[6]=m_[8];m[7]=m_[9];m[8]=m_[10];
     return matrix;
-}
+};
 
 Matrix44.prototype.multVec3 = function(v) {
     var m = this.m;
@@ -813,6 +890,13 @@ Matrix44.prototype.transposed = function(matOut){
     matOut = matOut || new Matrix44();
     return matOut.set(this).transpose();
 };
+
+Matrix44.fromFloat32Array = function(arr){
+    var m = new Matrix44();
+        //m.m.set(arr);
+    m.m = arr;
+    return m;
+}
 
 Matrix44.prototype.toFloat32Array = function(arr){
     arr = arr || new Float32Array(16);
