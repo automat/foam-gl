@@ -1,10 +1,18 @@
 {
-    "name": "foam",
+    "name": "foam-gl",
     "version": "0.0.1",
     "description": "A WebGL toolkit",
+    "homepage"  : "https://github.com/automat/foam",
     "author": "Henryk Wollik",
-    "main" : "src/foam/Foam.js",
+    "main" : "index.js",
     "private" : true,
-    "repository" : "automat/Foam",
+    "dependencies" : {
+      "opentype.js" : "0.4.x"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/automat/foam.git"
+    },
+    "bugs" : "https://github.com/automat/foam/issues",
     "license": "MIT"
 }
