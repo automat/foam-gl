@@ -36,7 +36,7 @@ CameraPersp.prototype.setPerspective = function (fov, windowAspectRatio, near, f
 };
 
 CameraPersp.prototype.setDistance = function(dist){
-    this._eye.set(this._target.subbed(this._eye).normalize().scale(dist));
+    this._eye.sub(this._target).normalize().scale(dist);
     this._viewMatrixDirty = true;
 };
 
@@ -70,7 +70,6 @@ CameraPersp.prototype.updateProjectionMatrix = function () {
         frustumRight = this._frustumRight = frustumTop * aspectRatio;
     this._frustumBottom = frustumTop * -1;
     this._frustumLeft = frustumRight * -1;
-
 
     var f = 1.0 / fov_2,
         nf = 1.0 / (near - far);
