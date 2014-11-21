@@ -86,7 +86,8 @@ Foam.App.newOnLoadWithResource({
 		onWindowResize: function () {
 			this.setWindowSize(window.innerWidth,window.innerHeight);
 			this._camera.setAspectRatio(this.getWindowAspectRatio());
-			gl.viewport(0, 0, this.getWindowWidth(),this.getWindowHeight());
+			this._camera.updateProjectionMatrix();
+			this._gl.viewport(0, 0, this.getWindowWidth(),this.getWindowHeight());
 		}
 	}
 );
