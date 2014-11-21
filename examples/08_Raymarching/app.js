@@ -1,18 +1,15 @@
-var Foam = require('Foam');
+var Foam = require('foam-gl');
 var Mouse       = Foam.Mouse,
     FileWatcher = Foam.FileWatcher,
-    Program     = Foam.Program,
-    glTrans     = Foam.glTrans,
-    glDraw;
+    Program     = Foam.Program;
 
 var root         = '../examples/08_Raymarching/'; // bundle.js relative
 var pathVertGlsl = root + 'vert.glsl',
     pathFragGlsl = root + 'frag.glsl';
 
-var gl;
 
-Foam.App.newOnLoadWithResource(
-    {
+
+Foam.App.newOnLoadWithResource({
         vertShader: {
             path: pathVertGlsl,
             type: 'text'
@@ -21,10 +18,10 @@ Foam.App.newOnLoadWithResource(
             path: pathFragGlsl,
             type: 'text'
         }
-    },
-    {
+    },{
         setup : function(resources){
-            gl = Foam.gl.get();
+            var gl = this._gl,
+                glTrans = this._glTrans;
 
             var windowSize, program, fileWatcher;
 
@@ -33,7 +30,6 @@ Foam.App.newOnLoadWithResource(
             program.bind();
 
 
-            glDraw = Foam.glDraw.get();
             gl.viewport(0,0,windowSize.x, windowSize.y);
             glTrans.setWindowMatrices(windowSize.x, windowSize.y, true);
 
@@ -45,13 +41,16 @@ Foam.App.newOnLoadWithResource(
                 program.load(resources.vertShader, e.data);
                 program.bind();
 
-                gl.uniform2fv(program['uScreenSize'],  windowSize.toFloat32Array());
-                gl.uniform1f( program['uScreenRatio'], self.getWindowAspectRatio());
+                program.uniform2fv('uScreenSize',  windowSize.toFloat32Array());
+                program.uniform1f('uScreenRatio', self.getWindowAspectRatio());
             });
 
         },
 
         update : function(){
+            var gl = this._gl,
+                glDraw = this._glDraw;
+
             gl.clearColor(0.1,0.1,0.1,1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -59,8 +58,8 @@ Foam.App.newOnLoadWithResource(
                 windowSize = this._windowSize,
                 mouse = Mouse.getInstance();
 
-            gl.uniform2f(program['uMousePosition'], mouse.getXNormalized(), mouse.getYNormalized());
-            gl.uniform1f(program['uTime'],this.getSecondsElapsed());
+            program.uniform2f('uMousePosition', mouse.getXNormalized(), mouse.getYNormalized());
+            program.uniform1f('uTime',this.getSecondsElapsed());
             glDraw.drawRect(windowSize.x,windowSize.y);
         }
     }

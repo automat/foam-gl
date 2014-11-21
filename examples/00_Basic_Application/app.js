@@ -1,36 +1,36 @@
-var Foam     = require('Foam'),
+var Foam     = require('foam-gl'),
     Ease     = Foam.Ease,
-    glTrans  = Foam.glTrans,
     System   = Foam.System,
     Matrix44 = Foam.Matrix44,
     Program  = Foam.Program;
 
 
-var gl;
 
 Foam.App.newOnLoadWithResource(
     {
-        path : '../examples/00_Basic_Application/program.glsl' // bundle.js relative
+        path : '../examples/resources/basic2d.glsl' // bundle.js relative
     },
     {
         setup : function(resource){
-            gl = Foam.gl.get();
+            var gl = this._gl;
             gl.viewport(0,0,this.getWindowWidth(),this.getWindowHeight());
 
-            var program = this._program = new Program(resource);
-            program.bind();
+            this._program = new Program(resource);
+            this._program.bind();
 
             this._vbo = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(
                 [0,0,0,100,0,0,0,100,0,100,100,0]),
                 gl.STATIC_DRAW);
-            gl.vertexAttribPointer(this._program['aVertexPosition'], 3, gl.FLOAT, false, 0, 0);
 
+            this._program.vertexAttribPointer('aVertexPosition',3,gl.FLOAT,false,0,0);
             gl.enable(gl.SCISSOR_TEST);
         },
 
         update : function(){
+            var gl = this._gl,
+                glTrans = this._glTrans;
 
             var program = this._program;
 
@@ -43,7 +43,7 @@ Foam.App.newOnLoadWithResource(
             var windowHeight_2 = windowHeight * 0.5;
             var windowHeight_4 = windowHeight * 0.25;
 
-            gl.uniform4f(program['uColor'], 1,1,1,1);
+            program.uniform4f('uColor',1,1,1,1);
 
             //  tl
 
@@ -106,14 +106,16 @@ Foam.App.newOnLoadWithResource(
             glTrans.pushMatrix();
             glTrans.translate3f(windowWidth_4 - 50,windowHeight_4,0);
             glTrans.scale3f(1,offset / 100 * windowHeight_2,1);
-            gl.uniform4f(program['uColor'], 0,1,1,1);
+            program.uniform4f('uColor',10,1,1,1);
             this.drawGeom();
             glTrans.popMatrix();
         },
 
         drawGeom : function(){
-            gl.uniformMatrix4fv(this._program['uProjectionMatrix'], false, glTrans.getProjectionMatrixF32());
-            gl.uniformMatrix4fv(this._program['uModelViewMatrix'], false, glTrans.getModelViewMatrixF32());
+            var gl = this._gl, glTrans = this._glTrans;
+            var program = this._program;
+            program.uniformMatrix4fv('uProjectionMatrix', false, glTrans.getProjectionMatrixF32());
+            program.uniformMatrix4fv('uModelViewMatrix' , false, glTrans.getModelViewMatrixF32());
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
     }

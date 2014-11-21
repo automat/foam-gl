@@ -1,6 +1,4 @@
-var Foam         = require('Foam'),
-    glTrans      = Foam.glTrans,
-    glDraw       = Foam.glDraw,
+var Foam         = require('foam-gl'),
     System       = Foam.System,
     Vec3         = Foam.Vec3,
     Program      = Foam.Program,
@@ -9,19 +7,17 @@ var Foam         = require('Foam'),
     FrustumPersp = Foam.FrustumPersp,
     FrustumOrtho = Foam.FrustumOrtho;
 
-var gl;
 
 Foam.App.newOnLoadWithResource(
     {
-        path : '../examples/04_Frustum/program.glsl' // bundle.js relative
+        path : '../examples/resources/basic3d.glsl' // bundle.js relative
     },
     {
         setup : function(resource){
             this.setFPS(60);
             this.setWindowSize(800,600);
 
-            gl      = Foam.gl.get();
-            glDraw  = Foam.glDraw.get();
+            var gl = this._gl;
 
             gl.viewport(0,0,this.getWindowWidth(),this.getWindowHeight());
 
@@ -80,21 +76,20 @@ Foam.App.newOnLoadWithResource(
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
             gl.enable(gl.DEPTH_TEST);
-            gl.uniform1f(program['uPointSize'],2.0);
-
+            program.uniform1f('uPointSize',2.0);
 
             //
 
             var selectCamera = document.createElement('select');
-            selectCamera.style.width = '150px';
-            selectCamera.style.position = 'absolute';
-            selectCamera.style.left = '20px';
-            selectCamera.style.top = '20px';
-            selectCamera.addEventListener('change',this.onCameraSelected.bind(this));
+                selectCamera.style.width = '150px';
+                selectCamera.style.position = 'absolute';
+                selectCamera.style.left = '20px';
+                selectCamera.style.top = '20px';
+                selectCamera.addEventListener('change',this.onCameraSelected.bind(this));
 
             var options = ['Camera Scene', 'Camera Ortho', 'Camera Persp'];
             i = -1;
-            l = options.length;
+            var l = options.length;
             var option;
             while(++i < l){
                 option = document.createElement('option');
@@ -106,6 +101,10 @@ Foam.App.newOnLoadWithResource(
         },
 
         update : function(){
+            var gl = this._gl,
+                glTrans = this._glTrans,
+                glDraw = this._glDraw;
+
             var t = this.getSecondsElapsed();
 
             gl.clearColor(0.1,0.1,0.1,1);
@@ -130,7 +129,6 @@ Foam.App.newOnLoadWithResource(
             frustumOrtho.set(camera);
 
             glTrans.setMatricesCamera(this._cameraSelected);
-
 
             var vertexData = this._pointBufferVertexData,
                 colorData  = this._pointBufferColorData;
@@ -163,6 +161,10 @@ Foam.App.newOnLoadWithResource(
         },
 
         drawScene : function(){
+            var gl = this._gl,
+                glDraw = this._glDraw,
+                glTrans = this._glTrans;
+
             glDraw.drawPivot(3);
             glDraw.drawCubeColored(0.125);
 
@@ -182,21 +184,21 @@ Foam.App.newOnLoadWithResource(
 
             var program = this._program;
 
-            gl.disableVertexAttribArray(program[Program.ATTRIB_TEXCOORD]);
+            gl.disableVertexAttribArray(program.getAttribLocation(Program.ATTRIB_TEXCOORD));
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._pointBufferVertex);
-            gl.vertexAttribPointer(program[Program.ATTRIB_VERTEX_POSITION],3,gl.FLOAT,false,0,0);
+            gl.vertexAttribPointer(program.getAttribLocation(Program.ATTRIB_VERTEX_POSITION),3,gl.FLOAT,false,0,0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this._pointBufferColor);
             gl.bufferData(gl.ARRAY_BUFFER, this._pointBufferColorData, gl.STREAM_DRAW);
-            gl.vertexAttribPointer(program[Program.ATTRIB_VERTEX_COLOR],4,gl.FLOAT,false,0,0);
+            gl.vertexAttribPointer(program.getAttribLocation(Program.ATTRIB_VERTEX_COLOR),4,gl.FLOAT,false,0,0);
 
-            gl.uniformMatrix4fv(program[Program.UNIFORM_MODELVIEW_MATRIX] , false, glTrans.getModelViewMatrixF32());
-            gl.uniformMatrix4fv(program[Program.UNIFORM_PROJECTION_MATRIX] , false, glTrans.getProjectionMatrixF32());
+            gl.uniformMatrix4fv(program.getUniformLocation(Program.UNIFORM_MODELVIEW_MATRIX) , false, glTrans.getModelViewMatrixF32());
+            gl.uniformMatrix4fv(program.getUniformLocation(Program.UNIFORM_PROJECTION_MATRIX) , false, glTrans.getProjectionMatrixF32());
 
             gl.drawArrays(gl.POINTS,0,this._pointBufferVertexData.length / 3);
 
-            gl.enableVertexAttribArray(program[Program.ATTRIB_TEXCOORD]);
+            gl.enableVertexAttribArray(program.getAttribLocation(Program.ATTRIB_TEXCOORD));
 
         },
 

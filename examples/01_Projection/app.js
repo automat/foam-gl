@@ -1,4 +1,4 @@
-var Foam        = require('Foam'),
+var Foam        = require('foam-gl'),
     glTrans     = Foam.glTrans,
     glDraw      = Foam.glDraw,
     System      = Foam.System,
@@ -14,7 +14,7 @@ var gl;
 
 Foam.App.newOnLoadWithResource(
     {
-        path : '../examples/01_Projection/program.glsl' // bundle.js relative
+        path : '../examples/resources/basic3d.glsl' // bundle.js relative
 
     },
     {

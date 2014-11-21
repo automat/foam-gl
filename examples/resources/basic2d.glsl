@@ -1,5 +1,6 @@
 #ifdef VERTEX_SHADER
 precision highp float;
+
 attribute vec3 aVertexPosition;
 uniform   mat4 uProjectionMatrix;
 uniform   mat4 uModelViewMatrix;

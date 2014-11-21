@@ -1,6 +1,4 @@
-var Foam         = require('Foam'),
-    glTrans      = Foam.glTrans,
-    glDraw       = Foam.glDraw,
+var Foam         = require('foam-gl'),
     System       = Foam.System,
     Vec3         = Foam.Vec3,
     Program      = Foam.Program,
@@ -11,8 +9,6 @@ var Foam         = require('Foam'),
     Random       = Foam.Random,
     Color        = Foam.Color,
     FrustumPersp = Foam.FrustumPersp;
-
-var gl;
 
 function Cluster(){
     this.points = null;
@@ -25,31 +21,30 @@ Cluster.prototype.updateAABB = function(){
     this.aabb.setFromPoints(this.points);
 };
 
-Foam.App.newOnLoadWithResource(
-    {
-        path :  '../.tests/Culling/program.glsl' // bundle.js relative
+Foam.App.newOnLoadWithResource({
+        path :  '../examples/resources/basic3d.glsl' // bundle.js relative
     },
     {
         setup : function (resource) {
             this.setFPS(60);
             this.setWindowSize(800, 600);
 
-            gl      = Foam.gl.get();
-            glDraw  = Foam.glDraw.get();
+            var gl = this._gl;
 
             gl.viewport(0,0,this.getWindowWidth(),this.getWindowHeight());
+            var windowAspectRatio = this.getWindowAspectRatio();
 
             var program = this._program = new Program(resource);
-            program.bind();
+                program.bind();
 
             var camera = this._cameraPersp = new CameraPersp();
-            camera.setPerspective(45.0,this.getWindowAspectRatio(),0.00125, 10.0);
-            camera.lookAt(Vec3.one(), Vec3.zero());
-            camera.updateMatrices();
+                camera.setPerspective(45.0,windowAspectRatio,0.00125, 10.0);
+                camera.lookAt(Vec3.one(), Vec3.zero());
+                camera.updateMatrices();
 
             this._frustumPersp = new FrustumPersp();
 
-            var windowAspectRatio = this.getWindowAspectRatio();
+
             var zoom = 10;
 
             camera = this._camera = new CameraOrtho();
@@ -61,7 +56,8 @@ Foam.App.newOnLoadWithResource(
             var clusters = this._clusters = new Array(numClusters);
             var box = this._box = new AABB();
             this._boxIsWithinFrustum = false;
-            var i = -1, j, l, scale, cluster, center;
+
+            var i = -1, j, scale, cluster, center;
             while(++i < numClusters){
                 center  = Vec3.randomPosition(-10,10);
                 scale   = Random.randomFloat(0.125,0.5);
@@ -72,7 +68,7 @@ Foam.App.newOnLoadWithResource(
 
                 j = -1;
                 while(++j < cluster.points.length){
-                    cluster.points[j] = new Vec3(Random.randomFloat(-1,1) * scale,
+                    cluster.points[j] = new Vec3(Random.randomFloat(-1,1) * scale * Random.randomFloat(1,4),
                             Random.randomFloat(-1,1) * scale * Random.randomFloat(1,4),
                             Random.randomFloat(-1,1) * scale * Random.randomFloat(1,4)).add(center);
                 }
@@ -83,16 +79,19 @@ Foam.App.newOnLoadWithResource(
 
             gl.enable(gl.DEPTH_TEST);
             gl.enable(gl.SCISSOR_TEST);
-            gl.uniform1f(program['uPointSize'],3.0);
-            
+            program.uniform1f('uPointSize',3.0);
         },
 
         update : function () {
+            var gl = this._gl,
+                glTrans = this._glTrans;
+
             var t = this.getSecondsElapsed();
 
-            var camera = this._camera;
-            var cameraPersp = this._cameraPersp;
-            var frustumPersp = this._frustumPersp;
+            var camera = this._camera,
+                cameraPersp = this._cameraPersp,
+                frustumPersp = this._frustumPersp;
+
             var dist = 3 + (0.5 + Math.sin(t) * 0.5) * 7;
 
             cameraPersp.setEye3f(Math.cos(t * 0.25) * dist, Math.sin(t), Math.sin(t * 0.25) * dist);
@@ -111,17 +110,20 @@ Foam.App.newOnLoadWithResource(
             gl.viewport(0,0,windowWidth,windowHeight);
             gl.clearColor(0.1,0.1,0.1,1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
             camera.lookAt(Vec3.one(),Vec3.zero());
             camera.updateMatrices();
             glTrans.setMatricesCamera(camera);
+
             this.drawScene();
             frustumPersp.draw();
 
-
             gl.scissor( margin, windowHeight - windowHeight_3 * 2 - margin * 2,windowWidth_3, windowHeight_3);
             gl.viewport(margin, windowHeight - windowHeight_3 * 2 - margin * 2,windowWidth_3, windowHeight_3 );
+
             gl.clearColor(0.01,0.01,0.01,1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
             camera.lookAt(new Vec3(0.0001,1,0),Vec3.zero());
             camera.updateMatrices();
             glTrans.setMatricesCamera(camera);
@@ -130,6 +132,7 @@ Foam.App.newOnLoadWithResource(
 
             gl.scissor( margin, windowHeight - windowHeight_3 - margin,windowWidth_3, windowHeight_3);
             gl.viewport(margin, windowHeight - windowHeight_3 - margin,windowWidth_3, windowHeight_3 );
+
             gl.clearColor(0.01,0.01,0.01,1);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             glTrans.setMatricesCamera(cameraPersp);
@@ -137,6 +140,7 @@ Foam.App.newOnLoadWithResource(
         },
 
         drawScene : function(){
+            var glDraw = this._glDraw;
             var clusters = this._clusters;
             var cluster;
             var i = -1 , l = clusters.length;
@@ -163,11 +167,9 @@ Foam.App.newOnLoadWithResource(
         },
 
         updateScene : function(){
-
-            var t = this.getSecondsElapsed();
-
             var frustum = this._frustumPersp;
-            frustum.set(this._cameraPersp);
+                frustum.set(this._cameraPersp);
+
             var clusters = this._clusters;
             var cluster;
             var i = -1 , l = clusters.length;

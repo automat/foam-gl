@@ -1,4 +1,4 @@
-var Foam        = require('Foam'),
+var Foam        = require('foam-gl'),
     glTrans     = Foam.glTrans,
     glDraw      = Foam.glDraw,
     System      = Foam.System,
@@ -8,106 +8,94 @@ var Foam        = require('Foam'),
     Ease        = Foam.Ease,
     Fbo         = Foam.Fbo;
 
-var gl;
-var resource = {}, app = {};
+Foam.App.newOnLoadWithResource({
+    path : '../examples/resources/basic3dTexture.glsl' // bundle.js relative
+},{
+    setup : function(resource){
+        this.setFPS(60);
+        this.setWindowSize(800, 600);
 
-resource.shader = {
-    path : '../examples/03_Fbo/program.glsl' // bundle.js relative
-};
+        this._program = new Program(resource);
+        this._program .bind();
 
-app.setup = function(resource){
-    this.setFPS(60);
-    this.setWindowSize(800, 600);
-
-    var windowWidth  = this.getWindowWidth();
-    var windowHeight = this.getWindowHeight();
-
-    gl      = Foam.gl.get();
-    glDraw  = Foam.glDraw.get();
+        this._camera = new CameraPersp();
+        this._camera.setPerspective(45.0,this.getWindowAspectRatio(),0.00125, 20.0);
+        this._camera.lookAt(new Vec3(5,5,5), Vec3.zero());
+        this._camera.updateMatrices();
 
 
-    var fboScale = this._fboScale = 2;
+        var fboScale = this._fboScale = 2;
+        this._fbo = new Fbo(this.getWindowWidth() * fboScale, this.getWindowHeight() * fboScale);
 
-    var program = this._program = new Program(resource.shader);
-    program.bind();
+        var gl = this._gl;
 
-    var windowAspectRatio = this.getWindowAspectRatio();
+        gl.enable(gl.DEPTH_TEST);
+        this._program .uniform1f('uPointSize',4.0);
+},
+    update : function(){
+        var gl = this._gl,
+            glDraw = this._glDraw,
+            glTrans = this._glTrans;
 
-    this._camera = new CameraPersp();
-    this._camera.setPerspective(45.0,windowAspectRatio,0.00125, 20.0);
-    this._camera.lookAt(new Vec3(5,5,5), Vec3.zero());
-    this._camera.updateMatrices();
+        var t = this.getSecondsElapsed();
 
-    var format = new Fbo.Format();
-    this._fbo = new Fbo(windowWidth * fboScale, windowHeight * fboScale);
+        var fboScale = this._fboScale;
+        var windowWidth = this.getWindowWidth();
+        var windowHeight = this.getWindowHeight();
 
+        var fbo = this._fbo;
+        var program = this._program;
 
-    gl.enable(gl.DEPTH_TEST);
-    gl.uniform1f(program['uPointSize'],4.0);
-};
+        fbo.bind();
+        gl.viewport(0,0,windowWidth * fboScale, windowHeight * fboScale);
+        gl.clearColor(1,0,1,1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-app.update = function(){
-    var t = this.getSecondsElapsed();
+        var camera = this._camera;
+        camera.setEye3f(Math.cos(t) * 2,1,Math.sin(t) * 2);
+        camera.updateMatrices();
+        glTrans.setMatricesCamera(camera);
 
-    var fboScale = this._fboScale;
-    var windowWidth = this.getWindowWidth();
-    var windowHeight = this.getWindowHeight();
-
-    var fbo = this._fbo;
-    var program = this._program;
-
-    fbo.bind();
-    gl.viewport(0,0,windowWidth * fboScale, windowHeight * fboScale);
-    gl.clearColor(1,0,1,1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    var camera = this._camera;
-    camera.setEye3f(Math.cos(t) * 2,1,Math.sin(t) * 2);
-    camera.updateMatrices();
-    glTrans.setMatricesCamera(camera);
-
-    glDraw.drawPivot();
+        glDraw.drawPivot();
 
 
-    var num = 5;
-    var step = 1 / (num-1);
-    var i, j, k;
-    i = -1;
-    while(++i < num){
-        j = -1;
-        while(++j < num){
-            k = -1;
-            while(++k < num){
-                glTrans.pushMatrix();
-                glTrans.translate3f(-0.5 + i * step, -0.5 + j * step, -0.5 + k * step);
-                glTrans.scale1f(0.105);
-                glDraw.drawCubeColored();
-                glTrans.popMatrix();
+        var num = 5;
+        var step = 1 / (num-1);
+        var i, j, k;
+        i = -1;
+        while(++i < num){
+            j = -1;
+            while(++j < num){
+                k = -1;
+                while(++k < num){
+                    glTrans.pushMatrix();
+                    glTrans.translate3f(-0.5 + i * step, -0.5 + j * step, -0.5 + k * step);
+                    glTrans.scale1f(0.105);
+                    glDraw.drawCubeColored();
+                    glTrans.popMatrix();
+                }
             }
         }
 
+        fbo.unbind();
+
+        gl.viewport(0,0,windowWidth,windowHeight);
+
+        gl.clearColor(0,0,0,1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        glTrans.setWindowMatrices(windowWidth, windowHeight, false);
+
+        glDraw.colorf(1,1,1);
+        fbo.bindTexture();
+        program.uniform1f('uUseTexture',1.0);
+        glDraw.drawRect(windowWidth,windowHeight);
+        program.uniform1f('uUseTexture',0.0);
+        fbo.unbindTexture();
+    },
+
+    drawGeom : function(){
+        glDraw.drawCubeColored();
+        glDraw.drawCubePoints();
     }
-
-    fbo.unbind();
-
-    gl.viewport(0,0,windowWidth,windowHeight);
-
-    gl.clearColor(0,0,0,1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    glTrans.setWindowMatrices(windowWidth, windowHeight, false);
-
-    glDraw.colorf(1,1,1);
-    fbo.bindTexture();
-    gl.uniform1f(program['uUseTexture'],1.0);
-    glDraw.drawRect(windowWidth,windowHeight);
-    gl.uniform1f(program['uUseTexture'],0.0);
-    fbo.unbindTexture();
-};
-
-app.drawGeom = function(){
-    glDraw.drawCubeColored();
-    glDraw.drawCubePoints();
-};
-
-Foam.App.newOnLoadWithResource(resource,app);
+});
