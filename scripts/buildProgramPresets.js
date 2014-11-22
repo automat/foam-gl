@@ -1,6 +1,8 @@
+#!/usr/bin/env node
+
 var fs = require('fs');
 
-var path = '../src/resources',
+var path = '../resources',
 	dir = fs.readdirSync(path);
 var name,
 	content,
@@ -27,7 +29,7 @@ while(++i < l){
 
 file += 'module.exports = ProgramPreset;';
 
-fs.writeFile('../src/foam/gl/ProgramPreset.js',file, function (err) {
+fs.writeFile('../lib/gl/ProgramPreset.js',file, function (err) {
 	if(err){
 		console.log(err);
 		return;
