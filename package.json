@@ -4,10 +4,13 @@
     "description": "A WebGL toolkit",
     "homepage"  : "https://github.com/automat/foam",
     "author": "Henryk Wollik",
-    "main" : "index.js",
     "private" : true,
+    "main" : "index.js",
     "dependencies" : {
-      "opentype.js" : "0.4.x"
+        "opentype.js" : "0.4.x",
+        "minimist" : "1.1.x",
+        "colors" : "1.0.x",
+        "watchify" : "2.1.x"
     },
     "repository": {
         "type": "git",
