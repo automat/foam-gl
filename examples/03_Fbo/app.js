@@ -9,7 +9,7 @@ var Foam        = require('foam-gl'),
     Fbo         = Foam.Fbo;
 
 Foam.App.newOnLoadWithResource({
-    path : '../examples/resources/basic3dTexture.glsl' // bundle.js relative
+    path : '../resources/basic3dTexture.glsl' // bundle.js relative
 },{
     setup : function(resource){
         this.setFPS(60);

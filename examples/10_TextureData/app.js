@@ -4,7 +4,7 @@ var Foam = require('foam-gl'),
     Random  = Foam.Random;
 
 Foam.App.newOnLoadWithResource({
-        path : '../examples/resources/basic3dTexture.glsl' // bundle.js relative
+        path : '../resources/basic3dTexture.glsl' // bundle.js relative
     },
     {
         setup : function(resource){

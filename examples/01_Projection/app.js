@@ -1,6 +1,4 @@
 var Foam        = require('foam-gl'),
-    glTrans     = Foam.glTrans,
-    glDraw      = Foam.glDraw,
     System      = Foam.System,
     Vec2        = Foam.Vec2,
     Vec3        = Foam.Vec3,
@@ -10,11 +8,9 @@ var Foam        = require('foam-gl'),
     CameraOrtho = Foam.CameraOrtho,
     Ease        = Foam.Ease;
 
-var gl;
-
 Foam.App.newOnLoadWithResource(
     {
-        path : '../examples/resources/basic3d.glsl' // bundle.js relative
+        path : '../resources/basic3d.glsl' // bundle.js relative
 
     },
     {
@@ -22,8 +18,7 @@ Foam.App.newOnLoadWithResource(
             this.setFPS(60);
             this.setWindowSize(800, 600);
 
-            gl      = Foam.gl.get();
-            glDraw  = Foam.glDraw.get();
+            var gl = this._gl;
 
             gl.viewport(0,0,this.getWindowWidth(),this.getWindowHeight());
 
@@ -62,6 +57,10 @@ Foam.App.newOnLoadWithResource(
         },
 
         update : function(){
+            var gl = this._gl,
+                glDraw = this._glDraw,
+                glTrans = this._glTrans;
+
             var t = this.getSecondsElapsed();
 
             var windowWidth    = this.getWindowWidth();
@@ -175,6 +174,7 @@ Foam.App.newOnLoadWithResource(
         },
 
         drawGeom : function(){
+            var glDraw = this._glDraw;
             glDraw.drawCubeColored();
             glDraw.drawCubePoints();
         }

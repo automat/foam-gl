@@ -13,7 +13,7 @@ var dir = '../examples/07_TextureFont/'; // bundle.js relative
 
 Foam.App.newOnLoadWithResource({
     shader : {
-        path : '../examples/resources/basic3dTexture.glsl',
+        path : '../resources/basic3dTexture.glsl',
         type : 'text'
     },
     fontData : {

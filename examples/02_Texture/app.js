@@ -8,7 +8,7 @@ var Foam        = require('foam-gl'),
 
 Foam.App.newOnLoadWithResource({ // bundle.js relative
     shader: {
-        path: '../examples/resources/basic3dTexture.glsl'
+        path: '../resources/basic3dTexture.glsl'
     },
 
     image0: {

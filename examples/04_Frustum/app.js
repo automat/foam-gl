@@ -10,7 +10,7 @@ var Foam         = require('foam-gl'),
 
 Foam.App.newOnLoadWithResource(
     {
-        path : '../examples/resources/basic3d.glsl' // bundle.js relative
+        path : '../resources/basic3d.glsl' // bundle.js relative
     },
     {
         setup : function(resource){

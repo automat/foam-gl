@@ -10,7 +10,7 @@ var Foam     = require('Foam'),
 // This will be slow, its supposed to, 'immediate' mode is just for quick visualizations
 
 Foam.App.newOnLoadWithResource({
-        path : '../examples/resources/basic2d.glsl' // bundle.js relative
+        path : '../resources/basic2d.glsl' // bundle.js relative
     }, {
         setup : function(resource){
             this.setWindowSize(window.innerWidth,window.innerHeight);
