@@ -54,6 +54,7 @@ module.exports = {
 	gl: require('./lib/gl/gl'),
 	glTrans: require('./lib/gl/glTrans'),
 	glDraw: require('./lib/gl/glDraw'),
+	glObject : require('./lib/gl/glObject'),
 	glu: require('./lib/gl/glu'),
 	glExtensions: require('./lib/gl/glExtensions'),
 
