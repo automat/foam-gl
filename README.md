@@ -2,39 +2,55 @@
 
 #FOAM - A WebGL toolkit
 
-- [...]
+Foam is a condensed collection of tools for building procedural graphics in WebGL.   
+It tries to be as 'low'-level as possible (in a browser/js sense) but still handles and abstracts repetitive tasks such as scene, animation loop and user input setup, and provides thin abstractions for commonly used scene related objects such as cameras, textures, basic geometry, light and material representations as well as WebGL objects like shader programs, vbos, fbos and others.
 
-- prototype environment
-- more low level
+[more on why here]
 
-If you don't want to deal with shaders and just quickly display your mesh using some predefined materials and lighting, this might not be your weapon of choice.
+--
 
-[Features](#feature)  – [Differences to other tools](#differences) - [Goals](#goals) - [Structure](#structure) - [Install](#install) - [Usage](#usage) - [Templates](#templates) – [Build](#build) – [Documentation](#documentation) – [Dependencies](#dependencies) - [License](#license)
+If you don't want to deal with shaders and just quickly display your mesh using some predefined material and lighting, this might not be your weapon of choice.
+
+[Advantages & Disadvantages](#advantages-&-disadvantages)  – [Differences to other tools](#differences-to-other-tools) - [Goals](#goals) - [Structure](#structure) - [Install](#install) - [Usage](#usage) - [Templates](#templates) – [Build](#build) – [Documentation](#documentation) – [Dependencies](#dependencies) - [License](#license)
 
 ---
 
-##Features
+##Advantages & Disadvantages 
 
-- thin abstraction layer
-- safe bare-bone gl access anytime (except program binding)
-- focused on writing shaders
-- focus on procedural scenes
-- resource management 
-- convenience wrappers around gl base objects, ...
-- optional 'immediate mode' style, for fast sketching
-- OpenGL 2.x like matrix stack, glTranslate, glRotate, gl...
-- flexible, because shader focused, write pure 2d scene shader?, go
-- event system
-- no framework!
-- browserified, node.js modules
+- Foam has a very thin abstraction layer, which allows you to **safely access any 'bare-bone' WebGL functionality** you need (except shader program binding) without breaking any Foam internal states.
+
+- Foam **focuses on writing shaders**. So compared to other libraries or frameworks you won't find any prepackaged materials, complex lighting and shadowing setups or post-processing filters. Thats your job. – But there a tiny shader templates to get you started.
+
+- Altough you can load external models, Foam mainly **focuses on programmatically generating geometry**.
+
+- Loading every resource asynchronously on scene init s***s, especially when dealing with multiple glsl files, texture images and additional resources. Foam uses a **resource bundle loader** which you can feed with a list of resources. It will load all of them, report errors and after completely processing the list init your program with a resource dictionary. This is not mandatory, you can still  load and process every single resource on its own.
+
+- Foam offers some neat **wrappers around WebGL base objects** such as programs, vertex and index buffers, framebuffers  and textures.
+
+- Foam reintroduces the **fixed pipeline matrix stack model**. Welcome back: glTranslate, glScale, glRotate, glMultMatrix, glPushMatrix and glPopMatrix as well as some additional matrix transformation methods.
+
+- Sometimes its necessary to just quickly test a visual idea. Therefore Foam offsers an optional **'immediate mode' style**, which allows drawing mesh data and 2d & 3d primitives without previously allocating any object. 
+ 
+- Math: **2d & 3d vectors**, **matrices**, **quaternions** and utilities
+
+- Foam uses the common.js module pattern.
+
 - [more]
 
 ##Differences to other tools
 
+- Three.js is a wonderfull tool, but when 
+
 - there is more to WebGL than Three.js (although its magical), abstracted just as much abstraction to not get in the way
 - strong focus on shaders
+
+There are no additional render targets, Foam is and will only be WebGL, no 2d canvas, SVG or CSS3D.
+
+
 - no build-in uber giant shader, or materials, blank canvas
 - Light and Material as generic representations of uniform shader structs, no associated programs, extendable with custom uniforms
+
+
 
 - fd
 - [more]
