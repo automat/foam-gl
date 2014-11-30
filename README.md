@@ -1,19 +1,18 @@
-####DRAFT & STILL EXPERIMENTAL
+DRAFT & STILL EXPERIMENTAL
 
 #FOAM - A WebGL toolkit
 
 Foam is a condensed collection of tools for building procedural graphics in WebGL.   
 It tries to be as 'low'-level as possible (in a browser/js sense) but still handles and abstracts repetitive tasks such as scene, animation loop and user input setup, and provides thin abstractions for commonly used scene related objects such as cameras, textures, basic geometry, light and material representations as well as WebGL objects like shader programs, vbos, fbos and others.
 
-[more on why here]
+*Foam expects you having solid knowledge in WebGL and shader development*, so if you don't want to deal with shaders and just quickly display your mesh using some predefined material and lighting, this might not be your weapon of choice.
 
---
 
-If you don't want to deal with shaders and just quickly display your mesh using some predefined material and lighting, this might not be your weapon of choice.
-
-[Advantages & Disadvantages](#advantages-&-disadvantages)  – [Differences to other tools](#differences-to-other-tools) - [Goals](#goals) - [Structure](#structure) - [Install](#install) - [Usage](#usage) - [Templates](#templates) – [Build](#build) – [Documentation](#documentation) – [Dependencies](#dependencies) - [License](#license)
+[Advantages & Disadvantages](#advantages--disadvantages)  – [Differences to other tools](#differences-to-other-tools) - [Goals](#goals) - [Structure](#structure) - [Install](#install) - [Usage](#usage) - [Templates](#templates) – [Build](#build) – [Documentation](#documentation) – [Dependencies](#dependencies) - [License](#license)
 
 ---
+
+
 
 ##Advantages & Disadvantages 
 
@@ -21,66 +20,62 @@ If you don't want to deal with shaders and just quickly display your mesh using 
 
 - Foam **focuses on writing shaders**. So compared to other libraries or frameworks you won't find any prepackaged materials, complex lighting and shadowing setups or post-processing filters. Thats your job. – But there a tiny shader templates to get you started.
 
-- Altough you can load external models, Foam mainly **focuses on programmatically generating geometry**.
+- Although you can load external models, Foam mainly **focuses on programmatically generating geometry**.
 
-- Loading every resource asynchronously on scene init s***s, especially when dealing with multiple glsl files, texture images and additional resources. Foam uses a **resource bundle loader** which you can feed with a list of resources. It will load all of them, report errors and after completely processing the list init your program with a resource dictionary. This is not mandatory, you can still  load and process every single resource on its own.
+- Loading every resource asynchronously on scene init can be quite cumbersome, especially when dealing with multiple glsl files, texture images and additional resources. Foam uses a **resource bundle loader** which you can feed with a list of resources. It will load all of them, report errors and after completely processing the list init your program with a resource dictionary. This is not mandatory, you can still load and process every single resource on its own.
 
-- Foam offers some neat **wrappers around WebGL base objects** such as programs, vertex and index buffers, framebuffers  and textures.
+- Foam offers **wrappers around WebGL base objects** such as programs, vertex and index buffers, framebuffers  and textures.
 
 - Foam reintroduces the **fixed pipeline matrix stack model**. Welcome back: glTranslate, glScale, glRotate, glMultMatrix, glPushMatrix and glPopMatrix as well as some additional matrix transformation methods.
 
-- Sometimes its necessary to just quickly test a visual idea. Therefore Foam offsers an optional **'immediate mode' style**, which allows drawing mesh data and 2d & 3d primitives without previously allocating any object. 
- 
-- Math: **2d & 3d vectors**, **matrices**, **quaternions** and utilities
+- Sometimes its necessary to just quickly test a visual idea. Therefore Foam offers an optional **'immediate mode' style**, which allows drawing mesh data and 2d & 3d primitives without previously allocating any object. 
 
-- Foam uses the common.js module pattern.
+- Solid **text rendering of generated BitmapFonts** using the wonderful opentype.js – An OpenType and TrueType font parser.
+
+- Foam uses the **common.js module pattern** via [browserify](http://browserify.org/)
 
 - [more]
+
+
+
 
 ##Differences to other tools
 
-- Three.js is a wonderfull tool, but when 
 
-- there is more to WebGL than Three.js (although its magical), abstracted just as much abstraction to not get in the way
-- strong focus on shaders
+There is more to WebGL than Three.js (although its magical).
 
-There are no additional render targets, Foam is and will only be WebGL, no 2d canvas, SVG or CSS3D.
+- There are no additional render targets, Foam is and will only be WebGL, no 2d canvas, SVG or CSS3D.
+- No builtin giant uber shader.
 
-
-- no build-in uber giant shader, or materials, blank canvas
-- Light and Material as generic representations of uniform shader structs, no associated programs, extendable with custom uniforms
-
-
-
-- fd
 - [more]
+
+
+
 
 ##Goals
 
-- Overall Goal
-- less dogmatic
-- flexibility,keep core to a minimum
+Foam tries to be as generic and structurally open as possible by not forcing you to adopt a certain way of building your scenes or managing the objects within it.
+You may choose to use the builtin geometry or light representations or simply drop them and just use Foam for setting up your app and resources and write everything with raw WebGL calls. If you need a scene graph, build it on top. – This **flexibility is a core idea** of Foam. – Therefore *Foam will never compete with WebGL frameworks* like Three.js or others.
 
-- additional functionality with extensions
+Additional functionalities may be added with extensions.
 
-- [Future here]
+
+
 
 ##Structure
 
-- core: canvas handling, user input, resource bundle handling,  
-- graphics: cameras, fbo, vbo, vbomeshes, easy text rendering with bitmap fonts via opentype.js, textures, light and material wrappers with custom uniforms
-- math: ...
-- extras: filewatchers
+- ***App core*** – Canvas setup, user input, resource bundle handling and update loop setup
 
+- ***Graphics*** – Offers aforementioned cameras (perspective, orthographic, frustum and arcball rotation), generic material & light representations and geometry models which can be extended with custom attributes and uniforms, as well as text rendering, 'immediate mode' drawing via *glDraw*, and matrix stack manipulation via *glTrans*. Basic access to drawing methods, transformations and raw WebGL can be gained by inheriting from *glObject*.
 
+- ***WebGL objects*** – Shader program, vbo, fbo, textures
 
-- [Structure here]
+- **Geometry** – Axis aligned bounding boxes, planes, rectangles, to be extended
 
-- glDraw : overall managing gl states when using builtin gl object wrappers (meshes, ...), 'immediate mode' drawing for fast sketching without initialising objects
+- ***Math*** – 2d & 3d vectors, matrices, quaternions and utilities
 
-- glTrans : model matrix stack
+- ***Extras*** – Color representation, Filewatcher, WebWorker console
 
-- glObject: base class, easy access glDraw, glTrans, gl
 
 
 ##Install
@@ -99,7 +94,19 @@ Context html (browserified standalone)
 
 ##Usage
 
-Minimum html boilerplate
+A typical project structure is as follows:
+
+
+    project/
+    |
+    |-- src/
+    |   |-- app.js        //your application
+    |   |-- program.glsl  //the main shader
+    |
+    |-- index.html  //minimum html
+    |-- bundle.js   //browserified app.js
+
+With a **minimum html boilerplate**:
 
     <!DOCTYPE html>
     <html>
@@ -116,84 +123,86 @@ Minimum html boilerplate
     </html>
 
 
-Script
+And **app.js**:
 
-    var Foam = require('foam');
+    var Foam = require('foam-gl');
     
     var CameraPersp = Foam.CameraPersp,
         Program     = Foam.Program,
+        Texture     = Foam.Texture,
         Vec3        = Foam.Vec3;
 
-    Foam.App.newOnLoadWithResources( //inits app with ressources on window load 
-        { // Resource obj
-            shaderA : {path:pathToShaderA},
-            shaderB : {path:pathToShaderB},
-            data : {path:pathToSomeData,type:'text'},
-            onProgress : function(index,num){
-                console.log('Resource loaded.' + index + ' / ' + num);
-            }
+    //inits app with ressources on window load 
+    Foam.App.newOnLoadWithResources({ 
+        // Resource obj
+        shader : {path:pathToShader},
+        image  : {path:pathToImage,type:'image'},
+    },{ 
+        // App obj
+        setup : function(resources){
+            this.setFPS(60); 
+            this.setWindowSize(800,600);
+            
+            this._program = new Program(resources.shader);
+            this._program.bind();
+            
+            this._texture = Texture.createFromImage(resources.image);
+            
+            this._program.uniform1i('uTexture', this._texture.getUnit());
+                
+            this._camera = new CameraPersp();
+            this._camera.setAspectRatio(this.getAspectRatio());
+            this._camera.lookAt(Vec3.one(),Vec3.zero());
+            this._camera.updateMatrices();
+            
+            var gl = this._gl;
+            
+            gl.viewport(0,0,this.getWindowWidth(),this.getWindowHeight());    
+            gl.clearColor(0.25,0.25,0.25,1.0);
+            gl.enable(gl.DEPTH_TEST);    
         },
-        { // App obj
-            setup : function(resources){
-                this.setFPS(60); // target 
-                this.setWindowSize(800,600); //canvas size
+        
+        update : function(){
+            var gl      = this._gl,
+                glTrans = this._glTrans,
+                glDraw  = this._glDraw;
             
-                this._programA = new Program(resources.shaderA);
-                this._programB = new Program(resources.shaderB);
-                
-                // do something with data
-                
-                this._camera = new CameraPersp();
-                this._camera.lookAt(Vec3.one(),Vec3.zero());
-                this._camera.updateMatrices();
+            var camera  = this._camera;
+            var program = this._program;
+            var t = this.getSecondsElapsed();
             
-                var gl = this._gl;
-                gl.viewport(0,0,this.getWindowWidth(),this.getWindowHeight());    
-                gl.enable(gl.DEPTH_TEST);    
-            },
-            update : function(){
-                var gl = this._gl,
-                    glTrans = this._glTrans,
-                    glDraw  = this._glDraw;
+            gl.clear(gl.BUFFER_BIT | gl.DEPTH_BIT);
+            
+            camera.setDistance((0.5 + Math.sin(t) * 0.5) * 2.0);
+            camera.updateViewMatrix();
+            
+            glTrans.setCameraMatrices(camera);
                 
-                var t = this.getSecondsElapsed();
+            program.uniform1f('uUseTexture',0.0);
                 
-                gl.clear(gl.BUFFER_BIT | gl.DEPTH_BIT);
-                gl.clearColor(0.25,0.25,0.25,1.0);
-                
-                glTrans.setCameraMatrices(this._camera);
-                
-                this._programA.bind();
-                
-                glTrans.pushMatrix();
-                glTrans.translate3f(2,0,0);
-                glTrans.rotate3f(t,0,0);
-                glDraw.drawCubeColored(); // draw test cube
-                glTrans.popMatrix();
-                
-                this._programB.bind(); // switch program
-                this._programB.uniform1f('uTime',t);
-                
-                glTrans.pushMatrix();
-                glTrans.translate3f(-2,0,0);
-                glTrans.rotate3f(0,0,t);
-                glDraw.drawCubeColored(); // draw test cube
-                glTrans.popMatrix();
-            }
+            glDraw.drawPivot();
+            
+            program.uniform1f('uUseTexture',1.0);
+            
+            glTrans.pushMatrix();
+            glTrans.translate3f(0,Math.sin(t * 0.5),0);
+            glTrans.rotate3f(t,0,0);
+            glDraw.drawCubeColored(); // draw test cube
+            glTrans.popMatrix();
         }
-    );
+    });
     
-equals (regarding application initialisation)
+Which equals (regarding application initialisation):
 
-    var Foam = require('foam');
+    var Foam = require('foam-gl');
     
-    function App(){
-        Foam.App.call(this);
+    function App(canvas,resources){
+        Foam.App.apply(this,arguments);
     }
     App.prototype = Object.create(Foam.App.prototype);
     App.prototype.constructor = App;
     
-    App.prototype.setup = function(resources){}
+    App.prototype.setup  = function(resources){}
     App.prototype.update = function(){};
     
     window.addEventListener('load',function(){
@@ -204,7 +213,7 @@ equals (regarding application initialisation)
                 shaderB : {path:pathToShaderB}
             },
             function(resources){
-                app = new App(resources);
+                app = new App(null,resources);
             }
     });
     
@@ -221,16 +230,33 @@ equals (regarding application initialisation)
 
 ##Templates
 
-- gen project with shader template: basic 2d, 3d, light
+*(will change)*
+Foam offers project templates to get you started quickly. It generates an index.html and src folder containing a program.glsl and app.js file depending on the template type you provide. 
+
+    scripts/new -p newProjectPath -t [TEMPLATE] [-s] [-w]
+    
+
+
+| Arg  | Value    | Description                                                 |
+| ---- | -------- | ----------------------------------------------------------- |
+| -o   | path     | path of the new project                                     |
+| -t   | template | glsl & app.js template: basic2d, basic3d, basic3dTexture, basic3dLight |            
+| -s   |          | only creates app.js & program.glsl (optional)               |
+| -w   |          | watchify app.js (optional)                                  |
+
 
 ##Build
 
-- standalone
-- packaged with custom extensions
+*(will change)*
+
+    browserify index.js -o pathOut -s foam-gl -d
+
 
 ##Dependencies
 
 [Opentype](https://github.com/bramstein/opentype) – A JavaScript parser for TrueType and OpenType fonts
+[Minimist](https://github.com/substack/minimist) - Argument parser  
+[Watchify](https://github.com/substack/watchify) - Update any source file and your browserify bundle will be recompiled on the spot.
 
 
 ##License
