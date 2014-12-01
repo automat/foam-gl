@@ -8,7 +8,7 @@ It tries to be as 'low'-level as possible (in a browser/js sense) but still hand
 *Foam expects you having solid knowledge in WebGL and shader development*, so if you don't want to deal with shaders and just quickly display your mesh using some predefined material and lighting, this might not be your weapon of choice.
 
 
-[Advantages & Disadvantages](#advantages--disadvantages)  – [Differences to other tools](#differences-to-other-tools) - [Goals](#goals) - [Structure](#structure) - [Install](#install) - [Usage](#usage) - [Templates](#templates) – [Build](#build) – [Documentation](#documentation) – [Dependencies](#dependencies) - [License](#license)
+[Advantages & Disadvantages](#advantages--disadvantages) – [Goals](#goals) – [Structure](#structure) – [Install](#install) - [Usage](#usage) – [Templates](#templates) – [Build](#build) – [Documentation](#documentation) – [Dependencies](#dependencies) – [License](#license)
 
 ---
 
@@ -25,20 +25,16 @@ It tries to be as 'low'-level as possible (in a browser/js sense) but still hand
 - Sometimes its necessary to just quickly test a visual idea. Therefore Foam offers an optional **'immediate mode' style**, which allows drawing mesh data and 2d & 3d primitives without previously allocating any object. 
 - Solid **text rendering of generated BitmapFonts** using the wonderful opentype.js – An OpenType and TrueType font parser.
 - Foam uses the **common.js module pattern** via [browserify](http://browserify.org/)
-- [more]
 
 
 
+###Differences to other tools
 
-##Differences to other tools
+Foam is no magical all-in-one tool like Three.js (which is wonderful). It doesn't have additional render targets like 2d canvas, SVG or CSS3D or uses them as fallbacks. 
 
+Foam doesnt provide any builtin optimisation of the render pipeline, no auto checking your cameras view frustum, auto lod or your ordering objects in a scene graph or providing giant uber shaders.
 
-There is more to WebGL than Three.js (although its magical).
-
-- There are no additional render targets, Foam is and will only be WebGL, no 2d canvas, SVG or CSS3D.
-- No builtin giant uber shader.
-- [more]
-
+Foam mainly focuses on generating procedural graphics – this often requires very specific and individual approaches depending on your design goals. When moving calculations or geometry modifications to the gpu, Foam provides an elegant interface between your shaders and js application.  
 
 
 
@@ -48,7 +44,6 @@ Foam tries to be as generic and structurally open as possible by not forcing you
 You may choose to use the builtin geometry or light representations or simply drop them and just use Foam for setting up your app and resources and write everything with raw WebGL calls. If you need a scene graph, build it on top. – This **flexibility is a core idea** of Foam. – Therefore *Foam will never compete with WebGL frameworks* like Three.js or others.
 
 Additional functionalities may be added with extensions.
-
 
 
 
