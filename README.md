@@ -1,5 +1,3 @@
-DRAFT & STILL EXPERIMENTAL
-
 #FOAM - A WebGL toolkit
 
 Foam is a condensed collection of tools for building procedural graphics in WebGL.   
@@ -237,6 +235,7 @@ Foam offers project templates to get you started quickly. It generates an index.
 [Opentype](https://github.com/bramstein/opentype) – A JavaScript parser for TrueType and OpenType fonts  
 [Minimist](https://github.com/substack/minimist) - Argument parser    
 [Watchify](https://github.com/substack/watchify) - Update any source file and your browserify bundle will be recompiled on the spot.
+
 
 
 ##License
