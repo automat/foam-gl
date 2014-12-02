@@ -1,6 +1,6 @@
 {
     "name": "foam-gl",
-    "version": "0.0.1",
+    "version": "0.0.6",
     "description": "A WebGL toolkit",
     "homepage"  : "https://github.com/automat/foam",
     "author": "Henryk Wollik",
