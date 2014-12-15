@@ -1,9 +1,8 @@
 #FOAM - A WebGL toolkit
 
-Foam is a condensed collection of tools for building procedural graphics in WebGL.   
-It tries to be as 'low'-level as possible (in a browser/js sense) but still handles and abstracts repetitive tasks such as scene, animation loop and user input setup, and provides thin abstractions for commonly used scene related objects such as cameras, textures, basic geometry, light and material representations as well as WebGL objects like shader programs, vbos, fbos and others.
+Foam is a condensed collection of tools for building procedural graphics in WebGL. It tries to be as 'low'-level as possible (in a browser/js sense) whilst handling and abstracting repetitive tasks such as scene, animation loop and user input setup. Foam provides thin abstractions for commonly used scene-related objects such as cameras, textures, basic geometry, light and material representations as well as WebGL objects like shader programs, vbos, fbos and others.
 
-*Foam expects you having solid knowledge in WebGL and shader development*, so if you don't want to deal with shaders and just quickly display your mesh using some predefined material and lighting, this might not be your weapon of choice.
+*Foam requires strong knowledge in WebGL and shader development.* If you don't want to deal with shaders and just quickly display your mesh using some predefined material and lighting, this might not be the right tool for you.
 
 
 [Advantages & Disadvantages](#advantages--disadvantages) – [Goals](#goals) – [Structure](#structure) – [Install](#install) - [Usage](#usage) – [Templates](#templates) – [Build](#build) – [Documentation](#documentation) – [Dependencies](#dependencies) – [License](#license)
@@ -15,31 +14,20 @@ It tries to be as 'low'-level as possible (in a browser/js sense) but still hand
 ##Advantages & Disadvantages 
 
 - Foam has a very thin abstraction layer, which allows you to **safely access any 'bare-bone' WebGL functionality** you need (except shader program binding) without breaking any Foam internal states.
-- Foam **focuses on writing shaders**. So compared to other libraries or frameworks you won't find any prepackaged materials, complex lighting and shadowing setups or post-processing filters. Thats your job. – But there a tiny shader templates to get you started.
-- Although you can load external models, Foam mainly **focuses on programmatically generating geometry**.
+- Foam **focuses on writing shaders**. Unlike other libraries or frameworks you won't find any prepackaged materials, complex lighting and shadowing setups or post-processing filters. That's your job. – But there are small shader templates to help get you started.
+- Although you can load external models, Foam mainly **focuses on generating geometry programmatically**.
 - Loading every resource asynchronously on scene init can be quite cumbersome, especially when dealing with multiple glsl files, texture images and additional resources. Foam uses a **resource bundle loader** which you can feed with a list of resources. It will load all of them, report errors and after completely processing the list init your program with a resource dictionary. This is not mandatory, you can still load and process every single resource on its own.
 - Foam offers **wrappers around WebGL base objects** such as programs, vertex and index buffers, framebuffers  and textures.
 - Foam reintroduces the **fixed pipeline matrix stack model**. Welcome back: glTranslate, glScale, glRotate, glMultMatrix, glPushMatrix and glPopMatrix as well as some additional matrix transformation methods.
-- Sometimes its necessary to just quickly test a visual idea. Therefore Foam offers an optional **'immediate mode' style**, which allows drawing mesh data and 2d & 3d primitives without previously allocating any object. 
+- It is sometimes necessary to quickly test a visual idea. Therefore, Foam offers an optional **'immediate mode' style**, which allows drawing mesh data and 2d & 3d primitives without previously allocating any object.
 - Solid **text rendering of generated BitmapFonts** using the wonderful opentype.js – An OpenType and TrueType font parser.
 - Foam uses the **common.js module pattern** via [browserify](http://browserify.org/)
-
-
-<!---
-####Differences to other tools
-
-Foam is no magical all-in-one tool like Three.js (which is wonderful). It doesn't have additional render targets like 2d canvas, SVG or CSS3D or uses them as fallbacks. 
-
-Foam doesnt provide any builtin optimisation of the render pipeline, no auto checking your cameras view frustum, auto lod, ordering your objects in a scene graph or providing giant uber shaders.
-
-Foam mainly focuses on generating procedural graphics – this often requires very specific and individual approaches depending on your design goals. When moving calculations or geometry modifications to the gpu, Foam provides an elegant interface between your shaders and js application.  
---->
 
 
 ##Goals
 
 Foam tries to be as generic and structurally open as possible by not forcing you to adopt a certain way of building your scenes or managing the objects within it.
-You may choose to use the builtin geometry or light representations or simply drop them and just use Foam for setting up your app and resources and write everything with raw WebGL calls. If you need a scene graph, build it on top. – This **flexibility is a core idea** of Foam. – Therefore *Foam will never compete with WebGL frameworks* like Three.js or others.
+You may choose to use the built-in geometry or light representations or simply drop them and just use Foam for setting up your app and resources and write everything with raw WebGL calls. If you need a scene graph, build it on top. – This **flexibility is a core idea** of Foam. – Therefore *Foam will never compete with WebGL frameworks* like Three.js or others.
 
 Additional functionalities may be added with extensions.
 
@@ -48,11 +36,11 @@ Additional functionalities may be added with extensions.
 ##Structure
 
 - ***App core*** – Canvas setup, user input, resource bundle handling and update loop setup
-- ***Graphics*** – Offers aforementioned cameras (perspective, orthographic, frustum and arcball rotation), generic material & light representations and geometry models which can be extended with custom attributes and uniforms, as well as text rendering, 'immediate mode' drawing via *glDraw*, and matrix stack manipulation via *glTrans*. Basic access to drawing methods, transformations and raw WebGL can be gained by inheriting from *glObject*.
+- ***Graphics*** – Offers aforementioned cameras (perspective, orthographic, frustum and arcball rotation), generic material & light representations and geometric models which can be extended with custom attributes and uniforms, as well as text rendering, 'immediate mode' drawing via *glDraw*, and matrix stack manipulation via *glTrans*. Basic access to drawing methods, transformations and raw WebGL can be gained by inheriting from *glObject*.
 - ***WebGL objects*** – Shader program, vbo, fbo, textures
 - **Geometry** – Axis aligned bounding boxes, planes, rectangles, to be extended
 - ***Math*** – 2d & 3d vectors, matrices, quaternions and utilities
-- ***Extras*** – Color representation, Filewatcher, WebWorker console
+- ***Extras*** – Colour representation, Filewatcher, WebWorker console
 
 
 
