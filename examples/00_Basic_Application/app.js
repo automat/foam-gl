@@ -86,7 +86,7 @@ Foam.App.newOnLoadWithResource(
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             glTrans.pushMatrix();
-            glTrans.multMatrix(Matrix44.createTranslation(windowWidth_4,windowHeight_4,0));
+            glTrans.multMatrix(Matrix44.fromTranslation(windowWidth_4,windowHeight_4,0));
             glTrans.scale1f(Math.sin(t));
             this.drawGeom();
             glTrans.popMatrix();
