@@ -92,6 +92,7 @@ Foam.App.newOnLoadWithResource({
 				drawAxisf(1,1,1);
 			glTrans.popMatrix();
 
+			var q0,q1,q2,v;
 
 			glTrans.pushMatrix();
 				glTrans.translate3f(0,1,0);
@@ -103,11 +104,11 @@ Foam.App.newOnLoadWithResource({
 					glDraw.colorf(1,0,s_);
 					glDraw.drawPointf(Math.cos(a),Math.sin(t * 2 - s_ * Math.PI * 2),Math.sin(a));
 				}
+				glTrans.translate3f(0,-1,0);
+				drawQuatLookAt(new Vec3(Math.cos(-t)*0.5,Math.sin(t*0.5),Math.sin(-t)*0.25),new Vec3(0,0,0));
 			glTrans.popMatrix();
 
 			program.uniform1f('uPointSize',4);
-
-			var q0,q1,q2;
 
 			glTrans.pushMatrix();
 				glTrans.translate3f(0,0,2);
@@ -124,6 +125,35 @@ Foam.App.newOnLoadWithResource({
 				glTrans.pushMatrix();
 					glTrans.rotateQuat(q2);
 					glDraw.drawCubeColored(0.125);
+				glTrans.popMatrix();
+			glTrans.popMatrix();
+
+			glTrans.pushMatrix();
+				glTrans.translate3f(-2,0,0);
+				v  = new Vec3(1,Math.sin(t),1);
+				q0 = Quat.fromDirection(v.normalize());
+				q0.mult(Quat.fromAxisAnglef(0,1,0,t));
+				q0.mult(Quat.fromAxisAnglef(0,0,1,(0.5 + Math.sin(t) * 0.5) * Math.PI * 0.5));
+				drawQuat(q0,1.15);
+				drawAxisf(v.x, v.y, v.z,1.15);
+				glTrans.rotateQuat(q0);
+				glTrans.pushMatrix();
+					glTrans.translate3f(0.5,0,0);
+					glTrans.scale3f(1.0,0.25,0.25);
+					glDraw.drawCubeColored();
+				glTrans.popMatrix();
+				glTrans.pushMatrix();
+					glTrans.translate3f(1,0,0);
+					q0 = Quat.fromAxisAngle(Vec3.zAxis(),(0.5 + Math.sin(t) * 0.5) * Math.PI * 0.5);
+					q1 = Quat.fromAxisAngle(Vec3.xAxis(),(0.5 + Math.sin(t * 2) * 0.5) * Math.PI * 0.15);
+					q0.mult(q1);
+					drawQuat(q0,1.15);
+					glTrans.pushMatrix();
+						glTrans.rotateQuat(q0);
+						glTrans.translate3f(0.5,0,0);
+						glTrans.scale3f(1.0,0.25,0.25);
+						glDraw.drawCubeColored();
+					glTrans.popMatrix();
 				glTrans.popMatrix();
 			glTrans.popMatrix();
 		}
