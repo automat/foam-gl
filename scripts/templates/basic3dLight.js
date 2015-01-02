@@ -53,7 +53,7 @@ Foam.App.newOnLoadWithResource({
 
 			var light = this._light;
 
-			light.position.set3f(Math.cos(t),Math.sin(t),Math.sin(t)*0.65);
+			light.position.setf(Math.cos(t),Math.sin(t),Math.sin(t)*0.65);
 
 			program.uniform1f('uUseLighting',0.0);
 			glDraw.drawPivot();

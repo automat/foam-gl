@@ -60,19 +60,19 @@ Foam.App.newOnLoadWithResource({
 			this._arcball.debugDraw();
 
 			var light = this._light0;
-			light.position.set3f(Math.cos(t) * 3,1,Math.sin(t) * 3);
+			light.position.setf(Math.cos(t) * 3,1,Math.sin(t) * 3);
 
-			light.position.set3f(Math.cos(t)*0.85,0.5,Math.sin(t)*0.85);
+			light.position.setf(Math.cos(t)*0.85,0.5,Math.sin(t)*0.85);
 			light.draw();
 			light.debugDraw();
 
 			light = this._light1;
-			light.position.set3f(Math.cos(t),Math.sin(t),Math.sin(t)*0.65);
+			light.position.setf(Math.cos(t),Math.sin(t),Math.sin(t)*0.65);
 			light.draw();
 			light.debugDraw();
 
 			light = this._light2;
-			light.position.set3f(0,0.55 + (0.5 + Math.sin(t) * 0.5) * 0.5,0);
+			light.position.setf(0,0.55 + (0.5 + Math.sin(t) * 0.5) * 0.5,0);
 			light.draw();
 			light.debugDraw();
 
