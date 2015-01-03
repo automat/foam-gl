@@ -45,6 +45,8 @@ module.exports = {
 	Ease: require('./lib/math/Ease'),
 	Random: require('./lib/math/Random'),
 
+	Geom: require('./lib/geom/Geom'),
+
 	Color: require('./lib/util/Color'),
 	AABB: require('./lib/geom/AABB'),
 	Plane: require('./lib/geom/Plane'),
@@ -67,6 +69,7 @@ module.exports = {
 	CameraPersp: require('./lib/gl/CameraPersp'),
 	CameraOrtho: require('./lib/gl/CameraOrtho'),
 	Arcball: require('./lib/gl/Arcball'),
+	CameraOrbiter : require('./lib/gl/CameraOrbiter'),
 	FrustumOrtho: require('./lib/gl/FrustumOrtho'),
 	FrustumPersp: require('./lib/gl/FrustumPersp'),
 
