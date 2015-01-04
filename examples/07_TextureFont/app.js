@@ -42,7 +42,7 @@ Foam.App.newOnLoadWithResource({
         this._textureFont96 = new TextureFont(resources.fontData);
         this._textureFont96.setFontSize(96);
 
-        this._texture = Texture.createRandom(windowWidth,windowHeight,null,null,0,0,255);
+        this._texture = Texture.fromRandom(windowWidth,windowHeight,null,null,0,0,255);
         this._texture.bind();
 
         this._string = "Drop it, Mr. Data and attack the Romulans.\n Well, that's certainly good to know. How long can two people talk about nothing? Congratulations - you just destroyed the Enterprise. Flair is what marks the difference between artistry and mere competence. When has justice ever been as simple as a rule book?";

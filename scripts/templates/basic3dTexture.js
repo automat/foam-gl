@@ -18,7 +18,7 @@ Foam.App.newOnLoadWithResource({
 
 			this._program.uniform1f('uPointSize',4.0);
 
-			this._texture = Texture.createRandom(100,100);
+			this._texture = Texture.fromRandom(100,100);
 			this._texture.bind(0);
 
 			var gl = this._gl;

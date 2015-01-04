@@ -37,9 +37,9 @@ Foam.App.newOnLoadWithResource({ // bundle.js relative
         this._camera.lookAt(Vec3.one(), Vec3.zero());
         this._camera.updateMatrices();
 
-        this._texture0 = Texture.createFromImage(resources.image0);
+        this._texture0 = Texture.fromImage(resources.image0);
         this._texture0.bind(0);
-        this._texture1 = Texture.createFromImage(resources.image1);
+        this._texture1 = Texture.fromImage(resources.image1);
         this._texture1.bind(1);
 
         gl.enable(gl.DEPTH_TEST);

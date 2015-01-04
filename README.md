@@ -112,7 +112,7 @@ And **app.js**:
             this._program = new Program(resources.shader);
             this._program.bind();
             
-            this._texture = Texture.createFromImage(resources.image);
+            this._texture = Texture.fromImage(resources.image);
             
             this._program.uniform1i('uTexture', this._texture.getUnit());
                 
