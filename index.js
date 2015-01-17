@@ -49,6 +49,7 @@ module.exports = {
 
 	Color: require('./lib/util/Color'),
 	AABB: require('./lib/geom/AABB'),
+	AABR: require('./lib/geom/AABR'),
 	Plane: require('./lib/geom/Plane'),
 	Rect: require('./lib/geom/Rect'),
 	App: require('./lib/app/App'),
