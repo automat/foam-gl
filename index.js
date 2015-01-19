@@ -40,6 +40,7 @@ module.exports = {
 	Vec2: require('./lib/math/Vec2'),
 	Vec3: require('./lib/math/Vec3'),
 	Vec4: require('./lib/math/Vec4'),
+	Matrix33: require('./lib/math/Matrix33'),
 	Matrix44: require('./lib/math/Matrix44'),
 	Quat: require('./lib/math/Quat'),
 	Ease: require('./lib/math/Ease'),
