@@ -16,7 +16,7 @@ Foam.App.newOnLoadWithResource({
         this.setWindowSize(800, 600);
 
         this._program = new Program(resource);
-        this._program .bind();
+        this._program.bind();
 
         this._camera = new CameraPersp();
         this._camera.setPerspective(45.0,this.getWindowAspectRatio(),0.00125, 20.0);
@@ -30,7 +30,7 @@ Foam.App.newOnLoadWithResource({
         var gl = this._gl;
 
         gl.enable(gl.DEPTH_TEST);
-        this._program .uniform1f('uPointSize',4.0);
+        this._program.uniform1f('uPointSize',4.0);
 },
     update : function(){
         var gl = this._gl,
