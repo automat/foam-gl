@@ -1,0 +1,84 @@
+doctype
+html
+    head
+        meta(charset='utf8')
+        meta(name='description' content="Foam : A WebGL toolkit")
+        link(href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700' rel='stylesheet' type='text/css')
+        link(rel="styleSheet" type="text/css"  media="screen" href="style/style.css")
+body
+    main
+        nav
+            a Foam - A WebGL toolkit
+        section.description
+            h1 — Reference
+            p Foam is a condensed collection of tools for building procedural graphics in WebGL. It tries to be as 'low'-level as possible (in a browser/js sense) whilst handling and abstracting repetitive tasks such as scene, animation loop and user input setup. Foam provides thin abstractions for commonly used scene-related objects such as cameras, textures, basic geometry, light and material representations as well as WebGL objects like shader programs, vbos, fbos and others.
+            p Foam requires strong knowledge in WebGL and shader development.* If you don't want to deal with shaders and just quickly display your mesh using some predefined material and lighting, this might not be the right tool for you.
+        ul.namespaces
+            li.namespace
+                h2 App
+                h3 App
+            li.namespace
+                h2 gl
+                h3 Arcball
+                h3 CameraOrbiter
+                h3 CameraOrtho
+                h3 CameraPersp
+                h3 Fbo
+                h3 FrustumOrtho
+                h3 FrustumPersp
+                h3 gl
+                h3 glDraw
+                h3 glExtensions
+                h3 glObjects
+                h3 glTrans
+                h3 glu
+                h3 Light
+                h3 Material
+                h3 MeshPrimitive
+                h3 Program
+                h3 Texture
+                h3 TextureFont
+                h3 Vbo
+                h3 VboMesh
+                h3 VboMeshPrimitive
+            li.namespace
+                h2 geom
+                h3 AABB
+                h3 AABR
+                h3 Geom
+                h3 Plane
+                h3 Rect
+            li.namespace
+                h2 input
+                h3 Keyboard
+                h3 KeyEvent
+                h3 Mouse
+                h3 MouseEvent
+            li.namespace
+                h2 Math
+                h3 Ease
+                h3 Math
+                h3 Matrix33
+                h3 Matrix44
+                h3 OnB
+                h3 Quat
+                h3 Random
+                h3 Vec2
+                h3 Vec3
+                h3 Vec4
+            li.namespace
+                h2 System
+                h3 Event
+                h3 EventDispatcher
+                h3 FileWatcher
+                h3 Id
+                h3 Resource
+            li.namespace
+                h2 Util
+                h3 ArrayUtil
+                h3 Color
+                h3 ElementArrayUtil
+                h3 ObjectUtil
+                h3 StringUtil
+                h3 WorkerConsole
+
