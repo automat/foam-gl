@@ -4,81 +4,223 @@ html
         meta(charset='utf8')
         meta(name='description' content="Foam : A WebGL toolkit")
         link(href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700' rel='stylesheet' type='text/css')
+        link(href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css')
         link(rel="styleSheet" type="text/css"  media="screen" href="style/style.css")
+
+
 body
     main
         nav
-            a Foam - A WebGL toolkit
+            a Foam — A WebGL toolkit
         section.description
             h1 — Reference
             p Foam is a condensed collection of tools for building procedural graphics in WebGL. It tries to be as 'low'-level as possible (in a browser/js sense) whilst handling and abstracting repetitive tasks such as scene, animation loop and user input setup. Foam provides thin abstractions for commonly used scene-related objects such as cameras, textures, basic geometry, light and material representations as well as WebGL objects like shader programs, vbos, fbos and others.
             p Foam requires strong knowledge in WebGL and shader development.* If you don't want to deal with shaders and just quickly display your mesh using some predefined material and lighting, this might not be the right tool for you.
         ul.namespaces
+            //h2 - API
             li.namespace
-                h2 App
-                h3 App
+                .inner
+                    h3 App
+                    ul.classes
+                        li.class App
+                            ul.methods
+                                li.method getInstace
+                                li.method setup
+                                li.method update
+                                li.method getCanvas
+                                li.method setWindowSize
+                                li.method getWindowWidth
+                                li.method getWindowHeight
             li.namespace
-                h2 gl
-                h3 Arcball
-                h3 CameraOrbiter
-                h3 CameraOrtho
-                h3 CameraPersp
-                h3 Fbo
-                h3 FrustumOrtho
-                h3 FrustumPersp
-                h3 gl
-                h3 glDraw
-                h3 glExtensions
-                h3 glObjects
-                h3 glTrans
-                h3 glu
-                h3 Light
-                h3 Material
-                h3 MeshPrimitive
-                h3 Program
-                h3 Texture
-                h3 TextureFont
-                h3 Vbo
-                h3 VboMesh
-                h3 VboMeshPrimitive
-            li.namespace
-                h2 geom
-                h3 AABB
-                h3 AABR
-                h3 Geom
-                h3 Plane
-                h3 Rect
-            li.namespace
-                h2 input
-                h3 Keyboard
-                h3 KeyEvent
-                h3 Mouse
-                h3 MouseEvent
-            li.namespace
-                h2 Math
-                h3 Ease
-                h3 Math
-                h3 Matrix33
-                h3 Matrix44
-                h3 OnB
-                h3 Quat
-                h3 Random
-                h3 Vec2
-                h3 Vec3
-                h3 Vec4
-            li.namespace
-                h2 System
-                h3 Event
-                h3 EventDispatcher
-                h3 FileWatcher
-                h3 Id
-                h3 Resource
-            li.namespace
-                h2 Util
-                h3 ArrayUtil
-                h3 Color
-                h3 ElementArrayUtil
-                h3 ObjectUtil
-                h3 StringUtil
-                h3 WorkerConsole
+                .inner
+                    h3 gl
+                    ul.classes
+                        li.class Arcball
+                            ul.methods
+                                li.method getInstace
+                                li.method setup
+                                li.method update
+                                li.method getCanvas
+                                li.method setWindowSize
+                                li.method getWindowWidth
+                                li.method getWindowHeight
 
+                        li.class CameraOrbiter
+                            ul.methods
+                                li.method setBounds
+                                li.method setBoundsf
+                                li.method apply
+                                li.method debugDraw
+                                li.method setRadiusScale
+                                li.method setCamera
+                                li.method setSpeed
+                                li.method setConstrainAxis
+                                li.method setDistanceMax
+                                li.method setDistanceMin
+                                li.method setDistance
+                                li.method getDistance
+                                li.method setEye
+                                li.method enable
+                                li.method disable
+                        li.class CameraOrtho
+                            ul.methods
+                                li.method setOrtho
+                                li.method setTarget
+                                li.method setTargetf
+                                li.method getTarget
+                                li.method setEye
+                                li.method setEyef
+                                li.method getEye
+                                li.method lookAt
+                                li.method setDistance
+                                li.method getDistance
+                                li.method setUp
+                                li.method setUpf
+                                li.method setNear
+                                li.method getNear
+                                li.method setFar
+                                li.method getFar
+                                li.method setFov
+                                li.method getFov
+                                li.method enable
+                                li.method updateMatrices
+                                li.method updateViewMatrix
+                                li.method updateProjectionMatrix
+                                li.method getFrustum
+                                li.method getU
+                                li.method getV
+                                li.method getW
+                                li.method draw
+                        li.class CameraPersp
+                            ul.methods
+                                li.method setBounds
+                                li.method setBoundsf
+                                li.method apply
+                                li.method debugDraw
+                                li.method setRadiusScale
+                                li.method setCamera
+                                li.method setSpeed
+                                li.method setConstrainAxis
+                                li.method setDistanceMax
+                                li.method setDistanceMin
+                                li.method setDistance
+                                li.method getDistance
+                                li.method setEye
+                                li.method enable
+                                li.method disable
+                        li.class Fbo
+                            ul.methods
+                                li.method setBounds
+                                li.method setBoundsf
+                                li.method apply
+                                li.method debugDraw
+                                li.method setRadiusScale
+                                li.method setCamera
+                                li.method setSpeed
+                                li.method setConstrainAxis
+                                li.method setDistanceMax
+                                li.method setDistanceMin
+                                li.method setDistance
+                                li.method getDistance
+                                li.method setEye
+                                li.method enable
+                                li.method disable
+                        li.class FrustumOrtho
+                            ul.methods
+                                li.method setBounds
+                                li.method setBoundsf
+                                li.method apply
+                                li.method debugDraw
+                                li.method setRadiusScale
+                                li.method setCamera
+                                li.method setSpeed
+                                li.method setConstrainAxis
+                                li.method setDistanceMax
+                                li.method setDistanceMin
+                                li.method setDistance
+                                li.method getDistance
+                                li.method setEye
+                                li.method enable
+                                li.method disable
+                        li.class FrustumPersp
+                            ul.methods
+                                li.method setBounds
+                                li.method setBoundsf
+                                li.method apply
+                                li.method debugDraw
+                                li.method setRadiusScale
+                                li.method setCamera
+                                li.method setSpeed
+                                li.method setConstrainAxis
+                                li.method setDistanceMax
+                                li.method setDistanceMin
+                                li.method setDistance
+                                li.method getDistance
+                                li.method setEye
+                                li.method enable
+                                li.method disable
+                        li.class gl
+                        li.class glDraw
+                        li.class glExtensions
+                        li.class glObjects
+                        li.class glTrans
+                        li.class glu
+                        li.class Light
+                        li.class Material
+                        li.class MeshPrimitive
+                        li.class Program
+                        li.class Texture
+                        li.class TextureFont
+                        li.class Vbo
+                        li.class VboMesh
+                        li.class VboMeshPrimitive
+            lir.namespace
+                .inner
+                    h3 geom
+                    ul
+                        li.class AABB
+                        li.class AABR
+                        li.class Geom
+                        li.class Plane
+                        li.class Rect
+            li.namespace
+                .inner
+                    h3 input
+                    ul
+                        li.class Keyboard
+                        li.class KeyEvent
+                        li.class Mouse
+                        li.class MouseEvent
+            li.namespace
+                .inner
+                    h3 Math
+                    ul
+                        li.class Ease
+                        li.class Math
+                        li.class Matrix33
+                        li.class Matrix44
+                        li.class OnB
+                        li.class Quat
+                        li.class Random
+                        li.class Vec2
+                        li.class Vec3
+                        li.class Vec4
+            li.namespace
+                .inner
+                    h3 System
+                    ul
+                        li Event
+                        li EventDispatcher
+                        li FileWatcher
+                        li Id
+                        li Resource
+            li.namespace
+                .inner
+                    h3 Util
+                    ul
+                        li ArrayUtil
+                        li Color
+                        li ElementArrayUtil
+                        li ObjectUtil
+                        li StringUtil
+                        li WorkerConsole

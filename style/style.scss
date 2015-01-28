@@ -19,6 +19,7 @@ main{
   max-width: 1280px;
   width: 100%;
   height: 100%;
+  padding: 0 0 60px 0;
 }
 
 
@@ -29,7 +30,8 @@ ul{
   li{
     padding: 0;
     margin: 0;
-    font-weight: 400;
+    font-size: 14px;
+    font-family: Menlo, Monaco, Consolas, "Lucida Console", monospace;
   }
 }
 //45
@@ -44,53 +46,85 @@ ul{
     padding-top: 0;
   }
   p{
-    font-size: 32px;
+    font-size: 30px;
     color:#fff;
     margin-top: 0;
-    margin-bottom: 25px;
+    margin-bottom: 28px;
     font-weight: 400;
 
   }
-  padding: 70px 50px;
-
+  padding: 70px 60px;
 }
 
 nav{
   box-sizing: border-box;
-  height: 80px;
+  height: 60px;
   background-color: #000;
   width: 100%;
   color:#ddd;
-  padding: 10px 50px;
+  padding: 20px 60px;
 
 }
 
 .namespaces{
 
+
 }
 
 .namespace{
-
+  border-top: 1px solid #1a1a1a;
+  width: 100%;
   box-sizing: border-box;
-  width: 12.5%;
   float: left;
-  padding: 20px;
-  h2{
-//    text-transform: uppercase;
-    color:#fff;
+  background: #212121;
+
+
+  .inner{
+    padding: 0 60px;
+  }
+
+  h3{
     margin: 0 0 16px 0;
     font-size: 20px;
     font-weight: 600;
     color:#00ff00;
-    border-bottom: 2px solid #00ff00;
     display: inline-block;
+    float: left;
+    background: #1a1a1a;
+    padding: 8px 10px;
+    font-family: 'Source Sans Pro', sans-serif;
   }
-  h3{
+  .classes{
+    box-sizing: border-box;
+    float: left;
+    width: 100%;
+  }
+  h4{
     color:#ddd;
     margin: 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 400;
+    width: 25%;
+    float: left;
   }
+}
 
+.class{
+  box-sizing: border-box;
+  float: left;
+  width: 25%;
+  color: #fff;
 
+  ul{
+    padding: 5px 0 5px 0;
+  }
+  li{
+    padding: 1px 0;
+    margin: 0;
+    font-size: 14px;
+    color: #4d4d4d;
+    font-weight: 400;
+    font-family: Menlo, Monaco, Consolas, "Lucida Console", monospace;
+
+  }
 }
