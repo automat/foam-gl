@@ -1,4 +1,4 @@
-var Foam     = require('Foam'),
+var Foam     = require('foam-gl'),
     Ease     = Foam.Ease,
     System   = Foam.System,
     Matrix44 = Foam.Matrix44,
@@ -36,7 +36,7 @@ Foam.App.newOnLoadWithResource({
                                         Random.randomFloat() * windowSize.y,
                                         0);
                 radii[i] = Random.randomFloat(4,8);
-                velocities[i] =  Vec2.randomPosition(radii[i]*0.05,radii[i]*0.05);
+                velocities[i] =  new Vec2().random(radii[i]*0.05,radii[i]*0.05);
                 speeds[i] = Random.randomFloat(1,10);
             }
         },
@@ -65,7 +65,7 @@ Foam.App.newOnLoadWithResource({
                 velocity = velocities[i];
 
                 if(Random.randomFloat() < 0.001){
-                    velocity = velocities[i] = Vec2.randomPosition(0,1);
+                    velocity = velocities[i].randomPosition(0,1);
                 }
                 speed = speeds[i];
                 position.addf(velocity.x * speed,
