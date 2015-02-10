@@ -78,6 +78,7 @@ module.exports = {
 	Texture: require('./lib/gl/Texture'),
 	Fbo: require('./lib/gl/Fbo'),
 
+	Time: require('./lib/system/Time'),
 	System: require('./lib/system/System'),
 	Resource: require('./lib/system/Resource'),
 	ResourceType : require('./lib/system/ResourceType'),
