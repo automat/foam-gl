@@ -43,6 +43,7 @@ module.exports = {
 	Matrix33: require('./lib/math/Matrix33'),
 	Matrix44: require('./lib/math/Matrix44'),
 	Quat: require('./lib/math/Quat'),
+    OnB : require('./lib/math/OnB'),
 	Ease: require('./lib/math/Ease'),
 	Random: require('./lib/math/Random'),
 
