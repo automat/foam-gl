@@ -55,6 +55,8 @@ module.exports = {
 	Plane: require('./lib/geom/Plane'),
 	Rect: require('./lib/geom/Rect'),
 	App: require('./lib/app/App'),
+	Time: require('./lib/app/Time'),
+	Animation : require('./lib/app/Animation'),
 
 	gl: require('./lib/gl/gl'),
 	glTrans: require('./lib/gl/glTrans'),
@@ -79,7 +81,6 @@ module.exports = {
 	Texture: require('./lib/gl/Texture'),
 	Fbo: require('./lib/gl/Fbo'),
 
-	Time: require('./lib/app/Time'),
 	System: require('./lib/system/System'),
 	Resource: require('./lib/system/Resource'),
 	ResourceType : require('./lib/system/ResourceType'),
@@ -108,7 +109,4 @@ module.exports = {
 	StringUtil : require('./lib/util/StringUtil'),
 	ArrayUtil  :   require('./lib/util/ArrayUtil'),
 	ElementArrayUtil : require('./lib/util/ElementArrayUtil')
-
-
-
 };
