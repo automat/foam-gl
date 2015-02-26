@@ -56,7 +56,6 @@ module.exports = {
 	Rect: require('./lib/geom/Rect'),
 	App: require('./lib/app/App'),
 	Time: require('./lib/app/Time'),
-	Animation : require('./lib/app/Animation'),
 
 	gl: require('./lib/gl/gl'),
 	glTrans: require('./lib/gl/glTrans'),
@@ -84,6 +83,7 @@ module.exports = {
 	System: require('./lib/system/System'),
 	Resource: require('./lib/system/Resource'),
 	ResourceType : require('./lib/system/ResourceType'),
+    Resources : require('./lib/system/Resources'),
 	FileWatcher :  require('./lib/system/FileWatcher'),
 	EventDispatcher : require('./lib/system/EventDispatcher'),
 	Event :           require('./lib/system/Event'),
