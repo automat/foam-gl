@@ -26,9 +26,10 @@ Foam.App.newOnLoadWithResource({
             var windowSize, program, fileWatcher;
 
             windowSize = this._windowSize = this.getWindowSize();
-            program = this._program = new Program(resources.vertShader,resources.fragShader);
-            program.bind();
-
+            program = this._program = new Program(resources.vertShader,resources.fragShader)
+                .bind()
+                .uniform2fv('uScreenSize', windowSize.toFloat32Array())
+                .uniform1f('uScreenRatio', this.getWindowAspectRatio());
 
             gl.viewport(0,0,windowSize.x, windowSize.y);
             glTrans.setWindowMatrices(windowSize.x, windowSize.y, true);
@@ -37,12 +38,15 @@ Foam.App.newOnLoadWithResource({
 
             var self = this;
             fileWatcher.addFile(pathFragGlsl, function (e) {
-                console.log('File :' + e.sender.path + ' did change.');
-                program.load(resources.vertShader, e.data);
-                program.bind();
-
-                program.uniform2fv('uScreenSize',  windowSize.toFloat32Array());
-                program.uniform1f('uScreenRatio', self.getWindowAspectRatio());
+                try{
+                    console.log('File :' + e.sender.path + ' did change.');
+                    program.load(resources.vertShader, e.data)
+                        .bind()
+                        .uniform2fv('uScreenSize', windowSize.toFloat32Array())
+                        .uniform1f('uScreenRatio', self.getWindowAspectRatio());
+                } catch (error){
+                    console.log(error.message);
+                }
             });
 
         },
@@ -57,6 +61,7 @@ Foam.App.newOnLoadWithResource({
             var program = this._program,
                 windowSize = this._windowSize,
                 mouse = Mouse.getInstance();
+
 
             program.uniform2f('uMousePosition', mouse.getXNormalized(), mouse.getYNormalized());
             program.uniform1f('uTime',this.getSecondsElapsed());
