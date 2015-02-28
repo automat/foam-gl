@@ -54,6 +54,9 @@ module.exports = {
 	AABR: require('./lib/geom/AABR'),
 	Plane: require('./lib/geom/Plane'),
 	Rect: require('./lib/geom/Rect'),
+
+    Window      : require('./lib/app/Window'),
+    WindowEvent : require('./lib/app/WindowEvent'),
 	App: require('./lib/app/App'),
 	Time: require('./lib/app/Time'),
 
@@ -87,8 +90,6 @@ module.exports = {
 	FileWatcher :  require('./lib/system/FileWatcher'),
 	EventDispatcher : require('./lib/system/EventDispatcher'),
 	Event :           require('./lib/system/Event'),
-
-    WindowEvent : require('./lib/app/WindowEvent'),
 
 	Mouse :      require('./lib/input/Mouse'),
 	MouseEvent : require('./lib/input/MouseEvent'),
