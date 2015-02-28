@@ -88,6 +88,8 @@ module.exports = {
 	EventDispatcher : require('./lib/system/EventDispatcher'),
 	Event :           require('./lib/system/Event'),
 
+    WindowEvent : require('./lib/app/WindowEvent'),
+
 	Mouse :      require('./lib/input/Mouse'),
 	MouseEvent : require('./lib/input/MouseEvent'),
 	Keyboard :   require('./lib/input/Keyboard'),
