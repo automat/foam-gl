@@ -2,6 +2,7 @@
 .temp/
 .templates/
 .tests
+.idea
 build
 docs
 examples
