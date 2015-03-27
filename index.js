@@ -59,6 +59,7 @@ module.exports = {
     WindowEvent : require('./lib/app/WindowEvent'),
 	App: require('./lib/app/App'),
 	Time: require('./lib/app/Time'),
+	TimeEvent : require('./lib/app/TimeEvent'),
 
 	gl: require('./lib/gl/gl'),
 	glTrans: require('./lib/gl/glTrans'),
