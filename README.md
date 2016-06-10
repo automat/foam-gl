@@ -1,3 +1,5 @@
+####foam-gl as a monolithic standalone library is deprecated. foam-gl is now part of [foam-lib](https://github.com/foam-lib). The webgl-part can be found [here](https://github.com/foam-lib/foam-context-gl).
+
 #FOAM - A WebGL toolkit
 
 Foam is a condensed collection of tools for building procedural graphics in WebGL. It tries to be as 'low'-level as possible (in a browser/js sense) whilst handling and abstracting repetitive tasks such as scene, animation loop and user input setup. Foam provides thin abstractions for commonly used scene-related objects such as cameras, textures, basic geometry, light and material representations as well as WebGL objects like shader programs, vbos, fbos and others.
